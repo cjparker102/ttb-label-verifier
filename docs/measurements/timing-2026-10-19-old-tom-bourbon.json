@@ -1,0 +1,700 @@
+{
+  "measured_at": "2026-10-19T06:26:37",
+  "model": "claude-haiku-5-5",
+  "effort": "low",
+  "sample": "old-tom-bourbon",
+  "images": [
+    "old-tom-bourbon_front.png",
+    "old-tom-bourbon_back.png"
+  ],
+  "prepared": {
+    "2576": {
+      "shrink_seconds": 0.131,
+      "jpeg_bytes": [
+        245448,
+        280507
+      ]
+    },
+    "1568": {
+      "shrink_seconds": 0.099,
+      "jpeg_bytes": [
+        123275,
+        141286
+      ]
+    }
+  },
+  "runs": [
+    {
+      "run": 1,
+      "max_edge": 2576,
+      "thinking": "off",
+      "seconds": 4.64,
+      "input_tokens": 11876,
+      "output_tokens": 454,
+      "problems": {},
+      "reading": {
+        "brand_name": {
+          "text": "OLD TOM DISTILLERY",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null
+        },
+        "class_type": {
+          "text": "Kentucky Straight Bourbon Whiskey",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null
+        },
+        "alcohol_content": {
+          "text": "45% Alc./Vol. (90 Proof)",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null
+        },
+        "net_contents": {
+          "text": "750 mL",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null
+        },
+        "bottler_name_address": {
+          "text": "Bottled by Old Tom Distillery, Bardstown, Kentucky",
+          "readability": "clear",
+          "image_number": 2,
+          "english_meaning": null
+        },
+        "country_of_origin": {
+          "text": null,
+          "readability": "not_found",
+          "image_number": null,
+          "english_meaning": null
+        },
+        "government_warning": {
+          "text": "GOVERNMENT WARNING: (1) According to the Surgeon General, women should not drink alcoholic beverages during pregnancy because of the risk of birth defects. (2) Consumption of alcoholic beverages impairs your ability to drive a car or operate machinery, and may cause health problems.",
+          "readability": "clear",
+          "image_number": 2,
+          "english_meaning": null,
+          "heading_bold": "yes",
+          "rest_bold": "no"
+        },
+        "image_problems": []
+      }
+    },
+    {
+      "run": 1,
+      "max_edge": 2576,
+      "thinking": "adaptive",
+      "seconds": 11.54,
+      "input_tokens": 11877,
+      "output_tokens": 455,
+      "problems": {},
+      "reading": {
+        "brand_name": {
+          "text": "OLD TOM DISTILLERY",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null
+        },
+        "class_type": {
+          "text": "Kentucky Straight Bourbon Whiskey",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null
+        },
+        "alcohol_content": {
+          "text": "45% Alc./Vol. (90 Proof)",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null
+        },
+        "net_contents": {
+          "text": "750 mL",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null
+        },
+        "bottler_name_address": {
+          "text": "Bottled by Old Tom Distillery, Bardstown, Kentucky",
+          "readability": "clear",
+          "image_number": 2,
+          "english_meaning": null
+        },
+        "country_of_origin": {
+          "text": null,
+          "readability": "not_found",
+          "image_number": null,
+          "english_meaning": null
+        },
+        "government_warning": {
+          "text": "GOVERNMENT WARNING: (1) According to the Surgeon General, women should not drink alcoholic beverages during pregnancy because of the risk of birth defects. (2) Consumption of alcoholic beverages impairs your ability to drive a car or operate machinery, and may cause health problems.",
+          "readability": "clear",
+          "image_number": 2,
+          "english_meaning": null,
+          "heading_bold": "yes",
+          "rest_bold": "no"
+        },
+        "image_problems": []
+      }
+    },
+    {
+      "run": 1,
+      "max_edge": 1568,
+      "thinking": "off",
+      "seconds": 2.51,
+      "input_tokens": 7100,
+      "output_tokens": 454,
+      "problems": {},
+      "reading": {
+        "brand_name": {
+          "text": "OLD TOM DISTILLERY",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null
+        },
+        "class_type": {
+          "text": "Kentucky Straight Bourbon Whiskey",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null
+        },
+        "alcohol_content": {
+          "text": "45% Alc./Vol. (90 Proof)",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null
+        },
+        "net_contents": {
+          "text": "750 mL",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null
+        },
+        "bottler_name_address": {
+          "text": "Bottled by Old Tom Distillery, Bardstown, Kentucky",
+          "readability": "clear",
+          "image_number": 2,
+          "english_meaning": null
+        },
+        "country_of_origin": {
+          "text": null,
+          "readability": "not_found",
+          "image_number": null,
+          "english_meaning": null
+        },
+        "government_warning": {
+          "text": "GOVERNMENT WARNING: (1) According to the Surgeon General, women should not drink alcoholic beverages during pregnancy because of the risk of birth defects. (2) Consumption of alcoholic beverages impairs your ability to drive a car or operate machinery, and may cause health problems.",
+          "readability": "clear",
+          "image_number": 2,
+          "english_meaning": null,
+          "heading_bold": "yes",
+          "rest_bold": "no"
+        },
+        "image_problems": []
+      }
+    },
+    {
+      "run": 1,
+      "max_edge": 1568,
+      "thinking": "adaptive",
+      "seconds": 2.71,
+      "input_tokens": 7101,
+      "output_tokens": 455,
+      "problems": {},
+      "reading": {
+        "brand_name": {
+          "text": "OLD TOM DISTILLERY",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null
+        },
+        "class_type": {
+          "text": "Kentucky Straight Bourbon Whiskey",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null
+        },
+        "alcohol_content": {
+          "text": "45% Alc./Vol. (90 Proof)",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null
+        },
+        "net_contents": {
+          "text": "750 mL",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null
+        },
+        "bottler_name_address": {
+          "text": "Bottled by Old Tom Distillery, Bardstown, Kentucky",
+          "readability": "clear",
+          "image_number": 2,
+          "english_meaning": null
+        },
+        "country_of_origin": {
+          "text": null,
+          "readability": "not_found",
+          "image_number": null,
+          "english_meaning": null
+        },
+        "government_warning": {
+          "text": "GOVERNMENT WARNING: (1) According to the Surgeon General, women should not drink alcoholic beverages during pregnancy because of the risk of birth defects. (2) Consumption of alcoholic beverages impairs your ability to drive a car or operate machinery, and may cause health problems.",
+          "readability": "clear",
+          "image_number": 2,
+          "english_meaning": null,
+          "heading_bold": "yes",
+          "rest_bold": "no"
+        },
+        "image_problems": []
+      }
+    },
+    {
+      "run": 2,
+      "max_edge": 2576,
+      "thinking": "off",
+      "seconds": 2.06,
+      "input_tokens": 11876,
+      "output_tokens": 454,
+      "problems": {},
+      "reading": {
+        "brand_name": {
+          "text": "OLD TOM DISTILLERY",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null
+        },
+        "class_type": {
+          "text": "Kentucky Straight Bourbon Whiskey",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null
+        },
+        "alcohol_content": {
+          "text": "45% Alc./Vol. (90 Proof)",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null
+        },
+        "net_contents": {
+          "text": "750 mL",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null
+        },
+        "bottler_name_address": {
+          "text": "Bottled by Old Tom Distillery, Bardstown, Kentucky",
+          "readability": "clear",
+          "image_number": 2,
+          "english_meaning": null
+        },
+        "country_of_origin": {
+          "text": null,
+          "readability": "not_found",
+          "image_number": null,
+          "english_meaning": null
+        },
+        "government_warning": {
+          "text": "GOVERNMENT WARNING: (1) According to the Surgeon General, women should not drink alcoholic beverages during pregnancy because of the risk of birth defects. (2) Consumption of alcoholic beverages impairs your ability to drive a car or operate machinery, and may cause health problems.",
+          "readability": "clear",
+          "image_number": 2,
+          "english_meaning": null,
+          "heading_bold": "yes",
+          "rest_bold": "no"
+        },
+        "image_problems": []
+      }
+    },
+    {
+      "run": 2,
+      "max_edge": 2576,
+      "thinking": "adaptive",
+      "seconds": 2.96,
+      "input_tokens": 11877,
+      "output_tokens": 455,
+      "problems": {},
+      "reading": {
+        "brand_name": {
+          "text": "OLD TOM DISTILLERY",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null
+        },
+        "class_type": {
+          "text": "Kentucky Straight Bourbon Whiskey",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null
+        },
+        "alcohol_content": {
+          "text": "45% Alc./Vol. (90 Proof)",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null
+        },
+        "net_contents": {
+          "text": "750 mL",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null
+        },
+        "bottler_name_address": {
+          "text": "Bottled by Old Tom Distillery, Bardstown, Kentucky",
+          "readability": "clear",
+          "image_number": 2,
+          "english_meaning": null
+        },
+        "country_of_origin": {
+          "text": null,
+          "readability": "not_found",
+          "image_number": null,
+          "english_meaning": null
+        },
+        "government_warning": {
+          "text": "GOVERNMENT WARNING: (1) According to the Surgeon General, women should not drink alcoholic beverages during pregnancy because of the risk of birth defects. (2) Consumption of alcoholic beverages impairs your ability to drive a car or operate machinery, and may cause health problems.",
+          "readability": "clear",
+          "image_number": 2,
+          "english_meaning": null,
+          "heading_bold": "yes",
+          "rest_bold": "no"
+        },
+        "image_problems": []
+      }
+    },
+    {
+      "run": 2,
+      "max_edge": 1568,
+      "thinking": "off",
+      "seconds": 2.55,
+      "input_tokens": 7100,
+      "output_tokens": 454,
+      "problems": {},
+      "reading": {
+        "brand_name": {
+          "text": "OLD TOM DISTILLERY",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null
+        },
+        "class_type": {
+          "text": "Kentucky Straight Bourbon Whiskey",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null
+        },
+        "alcohol_content": {
+          "text": "45% Alc./Vol. (90 Proof)",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null
+        },
+        "net_contents": {
+          "text": "750 mL",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null
+        },
+        "bottler_name_address": {
+          "text": "Bottled by Old Tom Distillery, Bardstown, Kentucky",
+          "readability": "clear",
+          "image_number": 2,
+          "english_meaning": null
+        },
+        "country_of_origin": {
+          "text": null,
+          "readability": "not_found",
+          "image_number": null,
+          "english_meaning": null
+        },
+        "government_warning": {
+          "text": "GOVERNMENT WARNING: (1) According to the Surgeon General, women should not drink alcoholic beverages during pregnancy because of the risk of birth defects. (2) Consumption of alcoholic beverages impairs your ability to drive a car or operate machinery, and may cause health problems.",
+          "readability": "clear",
+          "image_number": 2,
+          "english_meaning": null,
+          "heading_bold": "yes",
+          "rest_bold": "no"
+        },
+        "image_problems": []
+      }
+    },
+    {
+      "run": 2,
+      "max_edge": 1568,
+      "thinking": "adaptive",
+      "seconds": 2.15,
+      "input_tokens": 7101,
+      "output_tokens": 455,
+      "problems": {},
+      "reading": {
+        "brand_name": {
+          "text": "OLD TOM DISTILLERY",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null
+        },
+        "class_type": {
+          "text": "Kentucky Straight Bourbon Whiskey",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null
+        },
+        "alcohol_content": {
+          "text": "45% Alc./Vol. (90 Proof)",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null
+        },
+        "net_contents": {
+          "text": "750 mL",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null
+        },
+        "bottler_name_address": {
+          "text": "Bottled by Old Tom Distillery, Bardstown, Kentucky",
+          "readability": "clear",
+          "image_number": 2,
+          "english_meaning": null
+        },
+        "country_of_origin": {
+          "text": null,
+          "readability": "not_found",
+          "image_number": null,
+          "english_meaning": null
+        },
+        "government_warning": {
+          "text": "GOVERNMENT WARNING: (1) According to the Surgeon General, women should not drink alcoholic beverages during pregnancy because of the risk of birth defects. (2) Consumption of alcoholic beverages impairs your ability to drive a car or operate machinery, and may cause health problems.",
+          "readability": "clear",
+          "image_number": 2,
+          "english_meaning": null,
+          "heading_bold": "yes",
+          "rest_bold": "no"
+        },
+        "image_problems": []
+      }
+    },
+    {
+      "run": 3,
+      "max_edge": 2576,
+      "thinking": "off",
+      "seconds": 1.87,
+      "input_tokens": 11876,
+      "output_tokens": 454,
+      "problems": {},
+      "reading": {
+        "brand_name": {
+          "text": "OLD TOM DISTILLERY",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null
+        },
+        "class_type": {
+          "text": "Kentucky Straight Bourbon Whiskey",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null
+        },
+        "alcohol_content": {
+          "text": "45% Alc./Vol. (90 Proof)",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null
+        },
+        "net_contents": {
+          "text": "750 mL",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null
+        },
+        "bottler_name_address": {
+          "text": "Bottled by Old Tom Distillery, Bardstown, Kentucky",
+          "readability": "clear",
+          "image_number": 2,
+          "english_meaning": null
+        },
+        "country_of_origin": {
+          "text": null,
+          "readability": "not_found",
+          "image_number": null,
+          "english_meaning": null
+        },
+        "government_warning": {
+          "text": "GOVERNMENT WARNING: (1) According to the Surgeon General, women should not drink alcoholic beverages during pregnancy because of the risk of birth defects. (2) Consumption of alcoholic beverages impairs your ability to drive a car or operate machinery, and may cause health problems.",
+          "readability": "clear",
+          "image_number": 2,
+          "english_meaning": null,
+          "heading_bold": "yes",
+          "rest_bold": "no"
+        },
+        "image_problems": []
+      }
+    },
+    {
+      "run": 3,
+      "max_edge": 2576,
+      "thinking": "adaptive",
+      "seconds": 3.46,
+      "input_tokens": 11877,
+      "output_tokens": 455,
+      "problems": {},
+      "reading": {
+        "brand_name": {
+          "text": "OLD TOM DISTILLERY",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null
+        },
+        "class_type": {
+          "text": "Kentucky Straight Bourbon Whiskey",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null
+        },
+        "alcohol_content": {
+          "text": "45% Alc./Vol. (90 Proof)",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null
+        },
+        "net_contents": {
+          "text": "750 mL",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null
+        },
+        "bottler_name_address": {
+          "text": "Bottled by Old Tom Distillery, Bardstown, Kentucky",
+          "readability": "clear",
+          "image_number": 2,
+          "english_meaning": null
+        },
+        "country_of_origin": {
+          "text": null,
+          "readability": "not_found",
+          "image_number": null,
+          "english_meaning": null
+        },
+        "government_warning": {
+          "text": "GOVERNMENT WARNING: (1) According to the Surgeon General, women should not drink alcoholic beverages during pregnancy because of the risk of birth defects. (2) Consumption of alcoholic beverages impairs your ability to drive a car or operate machinery, and may cause health problems.",
+          "readability": "clear",
+          "image_number": 2,
+          "english_meaning": null,
+          "heading_bold": "yes",
+          "rest_bold": "no"
+        },
+        "image_problems": []
+      }
+    },
+    {
+      "run": 3,
+      "max_edge": 1568,
+      "thinking": "off",
+      "seconds": 2.36,
+      "input_tokens": 7100,
+      "output_tokens": 454,
+      "problems": {},
+      "reading": {
+        "brand_name": {
+          "text": "OLD TOM DISTILLERY",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null
+        },
+        "class_type": {
+          "text": "Kentucky Straight Bourbon Whiskey",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null
+        },
+        "alcohol_content": {
+          "text": "45% Alc./Vol. (90 Proof)",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null
+        },
+        "net_contents": {
+          "text": "750 mL",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null
+        },
+        "bottler_name_address": {
+          "text": "Bottled by Old Tom Distillery, Bardstown, Kentucky",
+          "readability": "clear",
+          "image_number": 2,
+          "english_meaning": null
+        },
+        "country_of_origin": {
+          "text": null,
+          "readability": "not_found",
+          "image_number": null,
+          "english_meaning": null
+        },
+        "government_warning": {
+          "text": "GOVERNMENT WARNING: (1) According to the Surgeon General, women should not drink alcoholic beverages during pregnancy because of the risk of birth defects. (2) Consumption of alcoholic beverages impairs your ability to drive a car or operate machinery, and may cause health problems.",
+          "readability": "clear",
+          "image_number": 2,
+          "english_meaning": null,
+          "heading_bold": "yes",
+          "rest_bold": "no"
+        },
+        "image_problems": []
+      }
+    },
+    {
+      "run": 3,
+      "max_edge": 1568,
+      "thinking": "adaptive",
+      "seconds": 2.37,
+      "input_tokens": 7101,
+      "output_tokens": 455,
+      "problems": {},
+      "reading": {
+        "brand_name": {
+          "text": "OLD TOM DISTILLERY",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null
+        },
+        "class_type": {
+          "text": "Kentucky Straight Bourbon Whiskey",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null
+        },
+        "alcohol_content": {
+          "text": "45% Alc./Vol. (90 Proof)",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null
+        },
+        "net_contents": {
+          "text": "750 mL",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null
+        },
+        "bottler_name_address": {
+          "text": "Bottled by Old Tom Distillery, Bardstown, Kentucky",
+          "readability": "clear",
+          "image_number": 2,
+          "english_meaning": null
+        },
+        "country_of_origin": {
+          "text": null,
+          "readability": "not_found",
+          "image_number": null,
+          "english_meaning": null
+        },
+        "government_warning": {
+          "text": "GOVERNMENT WARNING: (1) According to the Surgeon General, women should not drink alcoholic beverages during pregnancy because of the risk of birth defects. (2) Consumption of alcoholic beverages impairs your ability to drive a car or operate machinery, and may cause health problems.",
+          "readability": "clear",
+          "image_number": 2,
+          "english_meaning": null,
+          "heading_bold": "yes",
+          "rest_bold": "no"
+        },
+        "image_problems": []
+      }
+    }
+  ]
+}
