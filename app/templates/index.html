@@ -13,7 +13,11 @@
 {% endif %}
 
 <section class="card" aria-labelledby="check-heading">
-  <h1 id="check-heading">{{ "Check another label" if outcome else "Check a label" }}</h1>
+  {% if outcome %}
+  <h2 id="check-heading" class="section-heading">Check another label</h2>
+  {% else %}
+  <h1 id="check-heading">Check a label</h1>
+  {% endif %}
   <p class="lead">Add the label pictures and what the application says. The app reads the label and compares it for you.</p>
 
   <form method="post" action="/check" enctype="multipart/form-data" id="check-form">
