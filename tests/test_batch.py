@@ -19,6 +19,19 @@ OLD_TOM = Application(
 FRONT = LABELS_DIR / "old-tom-bourbon_front.png"
 
 
+def _tiny_png() -> bytes:
+    from io import BytesIO
+
+    from PIL import Image
+
+    out = BytesIO()
+    Image.new("RGB", (40, 40), "white").save(out, format="PNG")
+    return out.getvalue()
+
+
+TINY_PNG = _tiny_png()
+
+
 def good_row(number, application=OLD_TOM):
     row = ApplicationRow(number, ("front.png",), application, (), application.brand_name)
     return MatchedRow(row, (("front.png", FRONT.read_bytes()),), ())
@@ -109,14 +122,19 @@ def test_no_more_than_the_allowed_number_of_labels_are_read_at_once():
         async def read(self, images):
             self.now += 1
             self.most = max(self.most, self.now)
-            await asyncio.sleep(0.01)
+            await asyncio.sleep(0.2)  # long enough to overlap, even on a slow machine
             self.now -= 1
             return await super().read(images)
 
+    def tiny_row(number):  # tiny pictures, so preparing them never delays the reads
+        row = ApplicationRow(number, ("tiny.png",), OLD_TOM, (), OLD_TOM.brand_name)
+        return MatchedRow(row, (("tiny.png", TINY_PNG),), ())
+
     reader = SlowReader()
-    job = new_job([good_row(n) for n in range(2, 12)], [], [])
+    job = new_job([tiny_row(n) for n in range(2, 12)], [], [])
     run(job, reader=reader, concurrency=3)
-    assert reader.most == 3
+    assert reader.most <= 3  # the limit
+    assert reader.most == 3  # and labels really were read side by side
 
 
 def test_a_second_batch_waits_for_the_first():
