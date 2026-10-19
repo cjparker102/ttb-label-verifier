@@ -540,6 +540,594 @@
     }
   },
   {
+    "id": "seiran-japanese-whisky",
+    "title": "Brand in Japanese script",
+    "planted": "The label shows the brand only in Japanese; the application uses the romanized name \"Seiran\".",
+    "beverage_type": "Distilled spirits",
+    "images": [
+      "seiran-japanese-whisky.png"
+    ],
+    "truth": {
+      "brand_name": {
+        "text": "青嵐",
+        "image_number": 1
+      },
+      "class_type": {
+        "text": "Japanese Whisky",
+        "image_number": 1
+      },
+      "alcohol_content": {
+        "text": "43% Alc./Vol. (86 Proof)",
+        "image_number": 1
+      },
+      "net_contents": {
+        "text": "700 mL",
+        "image_number": 1
+      },
+      "bottler_name_address": {
+        "text": "Imported by Seiran Imports, Seattle, Washington",
+        "image_number": 1
+      },
+      "country_of_origin": {
+        "text": "Product of Japan",
+        "image_number": 1
+      },
+      "government_warning": {
+        "text": "GOVERNMENT WARNING: (1) According to the Surgeon General, women should not drink alcoholic beverages during pregnancy because of the risk of birth defects. (2) Consumption of alcoholic beverages impairs your ability to drive a car or operate machinery, and may cause health problems.",
+        "image_number": 1,
+        "heading_bold": true
+      }
+    },
+    "expected": {
+      "brand_name": "review",
+      "class_type": "pass",
+      "alcohol_content": "pass",
+      "net_contents": "pass",
+      "bottler_name_address": "pass",
+      "country_of_origin": "pass",
+      "government_warning": "pass"
+    }
+  },
+  {
+    "id": "kirchberger-german-lager",
+    "title": "Country written in German",
+    "planted": "Imported German beer: the label says \"Produkt aus Deutschland\"; the application says \"Germany\". Net contents in both US and metric units.",
+    "beverage_type": "Malt beverage",
+    "images": [
+      "kirchberger-german-lager.png"
+    ],
+    "truth": {
+      "brand_name": {
+        "text": "KIRCHBERGER",
+        "image_number": 1
+      },
+      "class_type": {
+        "text": "Helles Lager",
+        "image_number": 1
+      },
+      "alcohol_content": {
+        "text": "4.9% ALC/VOL",
+        "image_number": 1
+      },
+      "net_contents": {
+        "text": "16.9 FL. OZ. (500 mL)",
+        "image_number": 1
+      },
+      "bottler_name_address": {
+        "text": "Imported by Kirchberger Imports, Milwaukee, Wisconsin",
+        "image_number": 1
+      },
+      "country_of_origin": {
+        "text": "Produkt aus Deutschland",
+        "image_number": 1
+      },
+      "government_warning": {
+        "text": "GOVERNMENT WARNING: (1) According to the Surgeon General, women should not drink alcoholic beverages during pregnancy because of the risk of birth defects. (2) Consumption of alcoholic beverages impairs your ability to drive a car or operate machinery, and may cause health problems.",
+        "image_number": 1,
+        "heading_bold": true
+      }
+    },
+    "expected": {
+      "brand_name": "pass",
+      "class_type": "pass",
+      "alcohol_content": "pass",
+      "net_contents": "pass",
+      "bottler_name_address": "pass",
+      "country_of_origin": "pass_with_note",
+      "government_warning": "pass"
+    }
+  },
+  {
+    "id": "silverbirch-vodka-centiliters",
+    "title": "Net contents in centiliters only",
+    "planted": "The label says \"75 cl\" with no mL or L. Spirits must state net contents in mL or L (27 CFR 5.70(a)).",
+    "beverage_type": "Distilled spirits",
+    "images": [
+      "silverbirch-vodka-centiliters.png"
+    ],
+    "truth": {
+      "brand_name": {
+        "text": "SILVERBIRCH",
+        "image_number": 1
+      },
+      "class_type": {
+        "text": "Vodka",
+        "image_number": 1
+      },
+      "alcohol_content": {
+        "text": "40% Alc./Vol.",
+        "image_number": 1
+      },
+      "net_contents": {
+        "text": "75 cl",
+        "image_number": 1
+      },
+      "bottler_name_address": {
+        "text": "Bottled by Silverbirch Spirits, Duluth, Minnesota",
+        "image_number": 1
+      },
+      "country_of_origin": {
+        "text": null,
+        "image_number": null
+      },
+      "government_warning": {
+        "text": "GOVERNMENT WARNING: (1) According to the Surgeon General, women should not drink alcoholic beverages during pregnancy because of the risk of birth defects. (2) Consumption of alcoholic beverages impairs your ability to drive a car or operate machinery, and may cause health problems.",
+        "image_number": 1,
+        "heading_bold": true
+      }
+    },
+    "expected": {
+      "brand_name": "pass",
+      "class_type": "pass",
+      "alcohol_content": "pass",
+      "net_contents": "review",
+      "bottler_name_address": "pass",
+      "country_of_origin": "not_needed",
+      "government_warning": "pass"
+    }
+  },
+  {
+    "id": "driftwood-rum-no-warning",
+    "title": "No government warning",
+    "planted": "The government warning is missing.",
+    "beverage_type": "Distilled spirits",
+    "images": [
+      "driftwood-rum-no-warning.png"
+    ],
+    "truth": {
+      "brand_name": {
+        "text": "DRIFTWOOD COVE",
+        "image_number": 1
+      },
+      "class_type": {
+        "text": "Spiced Rum",
+        "image_number": 1
+      },
+      "alcohol_content": {
+        "text": "35% Alc./Vol. (70 Proof)",
+        "image_number": 1
+      },
+      "net_contents": {
+        "text": "750 mL",
+        "image_number": 1
+      },
+      "bottler_name_address": {
+        "text": "Bottled by Driftwood Cove Rum Co., Mobile, Alabama",
+        "image_number": 1
+      },
+      "country_of_origin": {
+        "text": null,
+        "image_number": null
+      },
+      "government_warning": {
+        "text": null,
+        "image_number": null
+      }
+    },
+    "expected": {
+      "brand_name": "pass",
+      "class_type": "pass",
+      "alcohol_content": "pass",
+      "net_contents": "pass",
+      "bottler_name_address": "pass",
+      "country_of_origin": "not_needed",
+      "government_warning": "fail"
+    }
+  },
+  {
+    "id": "meadowvine-table-wine",
+    "title": "Table wine with no alcohol statement",
+    "planted": "Nothing wrong: \"table wine\" of 14% or less may leave out the alcohol content (27 CFR 4.36(a)).",
+    "beverage_type": "Wine",
+    "images": [
+      "meadowvine-table-wine.png"
+    ],
+    "truth": {
+      "brand_name": {
+        "text": "MEADOWVINE",
+        "image_number": 1
+      },
+      "class_type": {
+        "text": "Red Table Wine",
+        "image_number": 1
+      },
+      "alcohol_content": {
+        "text": null,
+        "image_number": null
+      },
+      "net_contents": {
+        "text": "750 ml",
+        "image_number": 1
+      },
+      "bottler_name_address": {
+        "text": "Bottled by Meadowvine Cellars, Lodi, California",
+        "image_number": 1
+      },
+      "country_of_origin": {
+        "text": null,
+        "image_number": null
+      },
+      "government_warning": {
+        "text": "GOVERNMENT WARNING: (1) According to the Surgeon General, women should not drink alcoholic beverages during pregnancy because of the risk of birth defects. (2) Consumption of alcoholic beverages impairs your ability to drive a car or operate machinery, and may cause health problems.",
+        "image_number": 1,
+        "heading_bold": true
+      }
+    },
+    "expected": {
+      "brand_name": "pass",
+      "class_type": "pass",
+      "alcohol_content": "not_needed",
+      "net_contents": "pass",
+      "bottler_name_address": "pass",
+      "country_of_origin": "not_needed",
+      "government_warning": "pass"
+    }
+  },
+  {
+    "id": "irongate-bourbon-proof-only",
+    "title": "Proof without a percentage",
+    "planted": "The label says only \"90 Proof\". Spirits must state alcohol as a percentage by volume (27 CFR 5.65).",
+    "beverage_type": "Distilled spirits",
+    "images": [
+      "irongate-bourbon-proof-only.png"
+    ],
+    "truth": {
+      "brand_name": {
+        "text": "IRONGATE",
+        "image_number": 1
+      },
+      "class_type": {
+        "text": "Straight Bourbon Whiskey",
+        "image_number": 1
+      },
+      "alcohol_content": {
+        "text": "90 Proof",
+        "image_number": 1
+      },
+      "net_contents": {
+        "text": "750 mL",
+        "image_number": 1
+      },
+      "bottler_name_address": {
+        "text": "Bottled by Irongate Distilling, Frankfort, Kentucky",
+        "image_number": 1
+      },
+      "country_of_origin": {
+        "text": null,
+        "image_number": null
+      },
+      "government_warning": {
+        "text": "GOVERNMENT WARNING: (1) According to the Surgeon General, women should not drink alcoholic beverages during pregnancy because of the risk of birth defects. (2) Consumption of alcoholic beverages impairs your ability to drive a car or operate machinery, and may cause health problems.",
+        "image_number": 1,
+        "heading_bold": true
+      }
+    },
+    "expected": {
+      "brand_name": "pass",
+      "class_type": "pass",
+      "alcohol_content": "fail",
+      "net_contents": "pass",
+      "bottler_name_address": "pass",
+      "country_of_origin": "not_needed",
+      "government_warning": "pass"
+    }
+  },
+  {
+    "id": "lakemoor-lager-metric-only",
+    "title": "Beer in metric units only",
+    "planted": "The label says only \"355 mL\". Beer must state net contents in US units (27 CFR 7.70).",
+    "beverage_type": "Malt beverage",
+    "images": [
+      "lakemoor-lager-metric-only.png"
+    ],
+    "truth": {
+      "brand_name": {
+        "text": "LAKEMOOR",
+        "image_number": 1
+      },
+      "class_type": {
+        "text": "Lager",
+        "image_number": 1
+      },
+      "alcohol_content": {
+        "text": "5.2% ALC/VOL",
+        "image_number": 1
+      },
+      "net_contents": {
+        "text": "355 mL",
+        "image_number": 1
+      },
+      "bottler_name_address": {
+        "text": "Brewed by Lakemoor Brewing, Duluth, Minnesota",
+        "image_number": 1
+      },
+      "country_of_origin": {
+        "text": null,
+        "image_number": null
+      },
+      "government_warning": {
+        "text": "GOVERNMENT WARNING: (1) According to the Surgeon General, women should not drink alcoholic beverages during pregnancy because of the risk of birth defects. (2) Consumption of alcoholic beverages impairs your ability to drive a car or operate machinery, and may cause health problems.",
+        "image_number": 1,
+        "heading_bold": true
+      }
+    },
+    "expected": {
+      "brand_name": "pass",
+      "class_type": "pass",
+      "alcohol_content": "pass",
+      "net_contents": "fail",
+      "bottler_name_address": "pass",
+      "country_of_origin": "not_needed",
+      "government_warning": "pass"
+    }
+  },
+  {
+    "id": "fernhollow-gin-unauthorized-size",
+    "title": "A bottle size that isn't allowed",
+    "planted": "740 mL is not an authorized size for distilled spirits (27 CFR 5.203).",
+    "beverage_type": "Distilled spirits",
+    "images": [
+      "fernhollow-gin-unauthorized-size.png"
+    ],
+    "truth": {
+      "brand_name": {
+        "text": "FERNHOLLOW",
+        "image_number": 1
+      },
+      "class_type": {
+        "text": "Dry Gin",
+        "image_number": 1
+      },
+      "alcohol_content": {
+        "text": "41% Alc./Vol.",
+        "image_number": 1
+      },
+      "net_contents": {
+        "text": "740 mL",
+        "image_number": 1
+      },
+      "bottler_name_address": {
+        "text": "Bottled by Fernhollow Distillery, Burlington, Vermont",
+        "image_number": 1
+      },
+      "country_of_origin": {
+        "text": null,
+        "image_number": null
+      },
+      "government_warning": {
+        "text": "GOVERNMENT WARNING: (1) According to the Surgeon General, women should not drink alcoholic beverages during pregnancy because of the risk of birth defects. (2) Consumption of alcoholic beverages impairs your ability to drive a car or operate machinery, and may cause health problems.",
+        "image_number": 1,
+        "heading_bold": true
+      }
+    },
+    "expected": {
+      "brand_name": "pass",
+      "class_type": "pass",
+      "alcohol_content": "pass",
+      "net_contents": "fail",
+      "bottler_name_address": "pass",
+      "country_of_origin": "not_needed",
+      "government_warning": "pass"
+    }
+  },
+  {
+    "id": "verdale-dessert-wine-no-alcohol",
+    "title": "Dessert wine missing its alcohol content",
+    "planted": "The label has no alcohol statement. Dessert wine is not table wine, so it must have one (27 CFR 4.36(a)); the application says 19%.",
+    "beverage_type": "Wine",
+    "images": [
+      "verdale-dessert-wine-no-alcohol.png"
+    ],
+    "truth": {
+      "brand_name": {
+        "text": "VERDALE RESERVE",
+        "image_number": 1
+      },
+      "class_type": {
+        "text": "Dessert Wine",
+        "image_number": 1
+      },
+      "alcohol_content": {
+        "text": null,
+        "image_number": null
+      },
+      "net_contents": {
+        "text": "500 ml",
+        "image_number": 1
+      },
+      "bottler_name_address": {
+        "text": "Imported by Verdale Imports, Boston, MA",
+        "image_number": 1
+      },
+      "country_of_origin": {
+        "text": "Product of Portugal",
+        "image_number": 1
+      },
+      "government_warning": {
+        "text": "GOVERNMENT WARNING: (1) According to the Surgeon General, women should not drink alcoholic beverages during pregnancy because of the risk of birth defects. (2) Consumption of alcoholic beverages impairs your ability to drive a car or operate machinery, and may cause health problems.",
+        "image_number": 1,
+        "heading_bold": true
+      }
+    },
+    "expected": {
+      "brand_name": "pass",
+      "class_type": "pass",
+      "alcohol_content": "fail",
+      "net_contents": "pass",
+      "bottler_name_address": "pass",
+      "country_of_origin": "pass",
+      "government_warning": "pass"
+    }
+  },
+  {
+    "id": "tallgrass-bourbon-two-sides",
+    "title": "Brand and alcohol on different sides",
+    "planted": "Brand and class are on the front; alcohol content is only on the back. For spirits they must be on the same side (27 CFR 5.63(a)).",
+    "beverage_type": "Distilled spirits",
+    "images": [
+      "tallgrass-bourbon-two-sides_front.png",
+      "tallgrass-bourbon-two-sides_back.png"
+    ],
+    "truth": {
+      "brand_name": {
+        "text": "TALLGRASS",
+        "image_number": 1
+      },
+      "class_type": {
+        "text": "Kentucky Straight Bourbon Whiskey",
+        "image_number": 1
+      },
+      "alcohol_content": {
+        "text": "47% Alc./Vol. (94 Proof)",
+        "image_number": 2
+      },
+      "net_contents": {
+        "text": "750 mL",
+        "image_number": 2
+      },
+      "bottler_name_address": {
+        "text": "Bottled by Tallgrass Distillers, Louisville, Kentucky",
+        "image_number": 2
+      },
+      "country_of_origin": {
+        "text": null,
+        "image_number": null
+      },
+      "government_warning": {
+        "text": "GOVERNMENT WARNING: (1) According to the Surgeon General, women should not drink alcoholic beverages during pregnancy because of the risk of birth defects. (2) Consumption of alcoholic beverages impairs your ability to drive a car or operate machinery, and may cause health problems.",
+        "image_number": 2,
+        "heading_bold": true
+      }
+    },
+    "expected": {
+      "brand_name": "review",
+      "class_type": "pass",
+      "alcohol_content": "pass",
+      "net_contents": "pass",
+      "bottler_name_address": "pass",
+      "country_of_origin": "not_needed",
+      "government_warning": "pass"
+    }
+  },
+  {
+    "id": "silvernook-whiskey-no-bottled-by",
+    "title": "Bottler without \"Bottled by\"",
+    "planted": "The name and address have no \"Bottled by\" or similar phrase (27 CFR 5.66(b)).",
+    "beverage_type": "Distilled spirits",
+    "images": [
+      "silvernook-whiskey-no-bottled-by.png"
+    ],
+    "truth": {
+      "brand_name": {
+        "text": "SILVERNOOK",
+        "image_number": 1
+      },
+      "class_type": {
+        "text": "Rye Whiskey",
+        "image_number": 1
+      },
+      "alcohol_content": {
+        "text": "45% Alc./Vol. (90 Proof)",
+        "image_number": 1
+      },
+      "net_contents": {
+        "text": "750 mL",
+        "image_number": 1
+      },
+      "bottler_name_address": {
+        "text": "Silvernook Distillery, Boise, Idaho",
+        "image_number": 1
+      },
+      "country_of_origin": {
+        "text": null,
+        "image_number": null
+      },
+      "government_warning": {
+        "text": "GOVERNMENT WARNING: (1) According to the Surgeon General, women should not drink alcoholic beverages during pregnancy because of the risk of birth defects. (2) Consumption of alcoholic beverages impairs your ability to drive a car or operate machinery, and may cause health problems.",
+        "image_number": 1,
+        "heading_bold": true
+      }
+    },
+    "expected": {
+      "brand_name": "pass",
+      "class_type": "pass",
+      "alcohol_content": "pass",
+      "net_contents": "pass",
+      "bottler_name_address": "review",
+      "country_of_origin": "not_needed",
+      "government_warning": "pass"
+    }
+  },
+  {
+    "id": "cerro-plateado-tequila",
+    "title": "Country written in Spanish",
+    "planted": "Nothing wrong: \"Hecho en México\" names Mexico, as the application says.",
+    "beverage_type": "Distilled spirits",
+    "images": [
+      "cerro-plateado-tequila.png"
+    ],
+    "truth": {
+      "brand_name": {
+        "text": "CERRO PLATEADO",
+        "image_number": 1
+      },
+      "class_type": {
+        "text": "Tequila Blanco",
+        "image_number": 1
+      },
+      "alcohol_content": {
+        "text": "40% Alc./Vol. (80 Proof)",
+        "image_number": 1
+      },
+      "net_contents": {
+        "text": "750 mL",
+        "image_number": 1
+      },
+      "bottler_name_address": {
+        "text": "Imported by Cerro Plateado Imports, San Diego, California",
+        "image_number": 1
+      },
+      "country_of_origin": {
+        "text": "Hecho en México",
+        "image_number": 1
+      },
+      "government_warning": {
+        "text": "GOVERNMENT WARNING: (1) According to the Surgeon General, women should not drink alcoholic beverages during pregnancy because of the risk of birth defects. (2) Consumption of alcoholic beverages impairs your ability to drive a car or operate machinery, and may cause health problems.",
+        "image_number": 1,
+        "heading_bold": true
+      }
+    },
+    "expected": {
+      "brand_name": "pass",
+      "class_type": "pass",
+      "alcohol_content": "pass",
+      "net_contents": "pass",
+      "bottler_name_address": "pass",
+      "country_of_origin": "pass",
+      "government_warning": "pass"
+    }
+  },
+  {
     "id": "stones-throw-gin--tilted",
     "title": "Brand in capitals on the label (tilted photo)",
     "planted": "Brand in capitals on the label, mixed case in the application. Photographed tilted on a table.",

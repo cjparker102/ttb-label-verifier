@@ -38,6 +38,7 @@ FONT_FILES = {
     "serif-bold": "DejaVuSerif-Bold.ttf",
     "condensed": "DejaVuSansCondensed.ttf",
     "condensed-bold": "DejaVuSansCondensed-Bold.ttf",
+    "japanese-bold": "NotoSansJP-Bold.otf",
 }
 
 FIELDS = (
@@ -101,29 +102,35 @@ class Sample:
 def label(
     brand: str,
     class_type: str,
-    alcohol: str,
+    alcohol: str | None,
     net: str,
     bottler: str,
     *,
     country: str | None = None,
     warning: Warning | None = None,
+    no_warning: bool = False,
+    brand_font: str = "serif-bold",
     extra: tuple[Text, ...] = (),
     paper: str = "#f4ecd8",
     ink: str = "#1f1a14",
 ) -> Panel:
-    """A single-image label with every field on it."""
+    """A single-image label with every field on it, unless told to leave one out."""
     blocks: list[Text | Warning | Space] = [
         Space(150),
-        Text(brand, 180, "serif-bold", "brand_name", gap=70),
+        Text(brand, 180, brand_font, "brand_name", gap=70),
         Text(class_type, 95, "serif", "class_type", gap=330),
-        Text(alcohol, 85, "sans", "alcohol_content", gap=60),
+    ]
+    if alcohol is not None:
+        blocks.append(Text(alcohol, 85, "sans", "alcohol_content", gap=60))
+    blocks += [
         Text(net, 85, "sans-bold", "net_contents", gap=300),
         *extra,
         Text(bottler, 54, "sans", "bottler_name_address", gap=40),
     ]
     if country:
         blocks.append(Text(country, 54, "sans", "country_of_origin", gap=40))
-    blocks += [Space(100), warning or Warning()]
+    if not no_warning:
+        blocks += [Space(100), warning or Warning()]
     return Panel(blocks, paper=paper, ink=ink)
 
 
@@ -468,6 +475,319 @@ SAMPLES = [
             )
         ],
         expected=all_pass(alcohol_content="fail"),
+    ),
+    Sample(
+        id="seiran-japanese-whisky",
+        title="Brand in Japanese script",
+        planted="The label shows the brand only in Japanese; the application uses the "
+        'romanized name "Seiran".',
+        beverage_type="Distilled spirits",
+        application=application_data(
+            "Seiran",
+            "Japanese Whisky",
+            "43%",
+            "700 mL",
+            "Seiran Imports, Seattle, Washington",
+            "Japan",
+        ),
+        panels=[
+            label(
+                "青嵐",
+                "Japanese Whisky",
+                "43% Alc./Vol. (86 Proof)",
+                "700 mL",
+                "Imported by Seiran Imports, Seattle, Washington",
+                country="Product of Japan",
+                brand_font="japanese-bold",
+                paper="#f7f3ea",
+                ink="#2b2118",
+            )
+        ],
+        expected={**all_pass(brand_name="review"), "country_of_origin": "pass"},
+    ),
+    Sample(
+        id="kirchberger-german-lager",
+        title="Country written in German",
+        planted='Imported German beer: the label says "Produkt aus Deutschland"; the '
+        'application says "Germany". Net contents in both US and metric units.',
+        beverage_type="Malt beverage",
+        application=application_data(
+            "KIRCHBERGER",
+            "Helles Lager",
+            "4.9%",
+            "16.9 fl oz",
+            "Kirchberger Imports, Milwaukee, Wisconsin",
+            "Germany",
+        ),
+        panels=[
+            label(
+                "KIRCHBERGER",
+                "Helles Lager",
+                "4.9% ALC/VOL",
+                "16.9 FL. OZ. (500 mL)",
+                "Imported by Kirchberger Imports, Milwaukee, Wisconsin",
+                country="Produkt aus Deutschland",
+                paper="#fdf8e6",
+                ink="#3b2a07",
+            )
+        ],
+        expected={**all_pass(), "country_of_origin": "pass_with_note"},
+    ),
+    Sample(
+        id="silverbirch-vodka-centiliters",
+        title="Net contents in centiliters only",
+        planted='The label says "75 cl" with no mL or L. Spirits must state net contents in '
+        "mL or L (27 CFR 5.70(a)).",
+        beverage_type="Distilled spirits",
+        application=application_data(
+            "SILVERBIRCH", "Vodka", "40%", "750 mL", "Silverbirch Spirits, Duluth, Minnesota"
+        ),
+        panels=[
+            label(
+                "SILVERBIRCH",
+                "Vodka",
+                "40% Alc./Vol.",
+                "75 cl",
+                "Bottled by Silverbirch Spirits, Duluth, Minnesota",
+                paper="#f3f6f8",
+                ink="#22313f",
+            )
+        ],
+        expected=all_pass(net_contents="review"),
+    ),
+    Sample(
+        id="driftwood-rum-no-warning",
+        title="No government warning",
+        planted="The government warning is missing.",
+        beverage_type="Distilled spirits",
+        application=application_data(
+            "DRIFTWOOD COVE",
+            "Spiced Rum",
+            "35%",
+            "750 mL",
+            "Driftwood Cove Rum Co., Mobile, Alabama",
+        ),
+        panels=[
+            label(
+                "DRIFTWOOD COVE",
+                "Spiced Rum",
+                "35% Alc./Vol. (70 Proof)",
+                "750 mL",
+                "Bottled by Driftwood Cove Rum Co., Mobile, Alabama",
+                no_warning=True,
+                paper="#fbf4e9",
+                ink="#4a2c12",
+            )
+        ],
+        expected=all_pass(government_warning="fail"),
+    ),
+    Sample(
+        id="meadowvine-table-wine",
+        title="Table wine with no alcohol statement",
+        planted='Nothing wrong: "table wine" of 14% or less may leave out the alcohol content '
+        "(27 CFR 4.36(a)).",
+        beverage_type="Wine",
+        application=application_data(
+            "MEADOWVINE", "Red Table Wine", "", "750 mL", "Meadowvine Cellars, Lodi, California"
+        ),
+        panels=[
+            label(
+                "MEADOWVINE",
+                "Red Table Wine",
+                None,
+                "750 ml",
+                "Bottled by Meadowvine Cellars, Lodi, California",
+                paper="#fbf7f2",
+                ink="#5a1a1a",
+            )
+        ],
+        expected=all_pass(alcohol_content="not_needed"),
+    ),
+    Sample(
+        id="irongate-bourbon-proof-only",
+        title="Proof without a percentage",
+        planted='The label says only "90 Proof". Spirits must state alcohol as a percentage '
+        "by volume (27 CFR 5.65).",
+        beverage_type="Distilled spirits",
+        application=application_data(
+            "IRONGATE",
+            "Straight Bourbon Whiskey",
+            "45%",
+            "750 mL",
+            "Irongate Distilling, Frankfort, Kentucky",
+        ),
+        panels=[
+            label(
+                "IRONGATE",
+                "Straight Bourbon Whiskey",
+                "90 Proof",
+                "750 mL",
+                "Bottled by Irongate Distilling, Frankfort, Kentucky",
+            )
+        ],
+        expected=all_pass(alcohol_content="fail"),
+    ),
+    Sample(
+        id="lakemoor-lager-metric-only",
+        title="Beer in metric units only",
+        planted='The label says only "355 mL". Beer must state net contents in US units '
+        "(27 CFR 7.70).",
+        beverage_type="Malt beverage",
+        application=application_data(
+            "LAKEMOOR", "Lager", "5.2%", "355 mL", "Lakemoor Brewing, Duluth, Minnesota"
+        ),
+        panels=[
+            label(
+                "LAKEMOOR",
+                "Lager",
+                "5.2% ALC/VOL",
+                "355 mL",
+                "Brewed by Lakemoor Brewing, Duluth, Minnesota",
+                paper="#eef4f0",
+                ink="#173b29",
+            )
+        ],
+        expected=all_pass(net_contents="fail"),
+    ),
+    Sample(
+        id="fernhollow-gin-unauthorized-size",
+        title="A bottle size that isn't allowed",
+        planted="740 mL is not an authorized size for distilled spirits (27 CFR 5.203).",
+        beverage_type="Distilled spirits",
+        application=application_data(
+            "FERNHOLLOW", "Dry Gin", "41%", "740 mL", "Fernhollow Distillery, Burlington, Vermont"
+        ),
+        panels=[
+            label(
+                "FERNHOLLOW",
+                "Dry Gin",
+                "41% Alc./Vol.",
+                "740 mL",
+                "Bottled by Fernhollow Distillery, Burlington, Vermont",
+                paper="#f1f6ef",
+                ink="#1f3a1c",
+            )
+        ],
+        expected=all_pass(net_contents="fail"),
+    ),
+    Sample(
+        id="verdale-dessert-wine-no-alcohol",
+        title="Dessert wine missing its alcohol content",
+        planted="The label has no alcohol statement. Dessert wine is not table wine, so it "
+        "must have one (27 CFR 4.36(a)); the application says 19%.",
+        beverage_type="Wine",
+        application=application_data(
+            "VERDALE RESERVE",
+            "Dessert Wine",
+            "19%",
+            "500 mL",
+            "Verdale Imports, Boston, MA",
+            "Portugal",
+        ),
+        panels=[
+            label(
+                "VERDALE RESERVE",
+                "Dessert Wine",
+                None,
+                "500 ml",
+                "Imported by Verdale Imports, Boston, MA",
+                country="Product of Portugal",
+                paper="#fbf6ee",
+                ink="#4b1530",
+            )
+        ],
+        expected={**all_pass(alcohol_content="fail"), "country_of_origin": "pass"},
+    ),
+    Sample(
+        id="tallgrass-bourbon-two-sides",
+        title="Brand and alcohol on different sides",
+        planted="Brand and class are on the front; alcohol content is only on the back. For "
+        "spirits they must be on the same side (27 CFR 5.63(a)).",
+        beverage_type="Distilled spirits",
+        application=application_data(
+            "TALLGRASS",
+            "Kentucky Straight Bourbon Whiskey",
+            "47%",
+            "750 mL",
+            "Tallgrass Distillers, Louisville, Kentucky",
+        ),
+        panels=[
+            Panel(
+                [
+                    Space(450),
+                    Text("TALLGRASS", 190, "serif-bold", "brand_name", gap=80),
+                    Text("Kentucky Straight Bourbon Whiskey", 95, "serif", "class_type"),
+                ],
+                suffix="front",
+            ),
+            Panel(
+                [
+                    Space(250),
+                    Text("47% Alc./Vol. (94 Proof)", 85, "sans", "alcohol_content", gap=60),
+                    Text("750 mL", 85, "sans-bold", "net_contents", gap=200),
+                    Text(
+                        "Bottled by Tallgrass Distillers, Louisville, Kentucky",
+                        54,
+                        "sans",
+                        "bottler_name_address",
+                        gap=200,
+                    ),
+                    Warning(),
+                ],
+                suffix="back",
+            ),
+        ],
+        expected=all_pass(brand_name="review"),
+    ),
+    Sample(
+        id="silvernook-whiskey-no-bottled-by",
+        title='Bottler without "Bottled by"',
+        planted='The name and address have no "Bottled by" or similar phrase (27 CFR 5.66(b)).',
+        beverage_type="Distilled spirits",
+        application=application_data(
+            "SILVERNOOK",
+            "Rye Whiskey",
+            "45%",
+            "750 mL",
+            "Silvernook Distillery, Boise, Idaho",
+        ),
+        panels=[
+            label(
+                "SILVERNOOK",
+                "Rye Whiskey",
+                "45% Alc./Vol. (90 Proof)",
+                "750 mL",
+                "Silvernook Distillery, Boise, Idaho",
+            )
+        ],
+        expected=all_pass(bottler_name_address="review"),
+    ),
+    Sample(
+        id="cerro-plateado-tequila",
+        title="Country written in Spanish",
+        planted='Nothing wrong: "Hecho en México" names Mexico, as the application says.',
+        beverage_type="Distilled spirits",
+        application=application_data(
+            "CERRO PLATEADO",
+            "Tequila Blanco",
+            "40%",
+            "750 mL",
+            "Cerro Plateado Imports, San Diego, California",
+            "Mexico",
+        ),
+        panels=[
+            label(
+                "CERRO PLATEADO",
+                "Tequila Blanco",
+                "40% Alc./Vol. (80 Proof)",
+                "750 mL",
+                "Imported by Cerro Plateado Imports, San Diego, California",
+                country="Hecho en México",
+                paper="#f5f8f3",
+                ink="#24452d",
+            )
+        ],
+        expected={**all_pass(), "country_of_origin": "pass"},
     ),
 ]
 
