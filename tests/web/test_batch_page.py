@@ -216,3 +216,14 @@ def test_a_whole_batch_writes_nothing_to_disk(client):
         client.get(url)
         client.get(f"{url}/results.xlsx")
     assert list(writes) == []
+
+
+def test_a_batch_sent_as_a_7z_file(client):
+    from tests.intake.test_sevenzip import make_7z
+
+    use_reader(ReplayReader())
+    pictures = [(name, (LABELS_DIR / name).read_bytes()) for e in EXPECTED for name in e["images"]]
+    response = start(client, pictures=make_7z(*pictures), name="labels.7z")
+    assert response.status_code == 303
+    progress = wait_until_finished(client, response.headers["location"])
+    assert progress["done"] == progress["total"] == len(EXPECTED)
