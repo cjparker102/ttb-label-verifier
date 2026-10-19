@@ -100,7 +100,9 @@ def soften_for_ocr(result: LabelResult) -> LabelResult:
     return LabelResult(tuple(fields))
 
 
-# Outlines are optional, so no failure while finding them ever stops a check.
+# Outlines are optional, so no failure while finding them ever stops a check, and a
+# finished check waits only this long for them. Speed matters more than an outline.
+OUTLINE_WAIT = 1.0  # seconds
 
 
 async def find_words(pictures: list[bytes]):
@@ -113,7 +115,13 @@ async def find_words(pictures: list[bytes]):
 
 
 async def outlines(words: asyncio.Task | None, result: LabelResult) -> tuple[Highlight, ...]:
-    found = await words if words is not None else None
+    if words is None:
+        return ()
+    try:
+        found = await asyncio.wait_for(asyncio.shield(words), OUTLINE_WAIT)
+    except TimeoutError:
+        log.warning("Outlines skipped: finding the words took too long")
+        return ()
     if found is None:
         return ()
     try:

@@ -2,6 +2,7 @@
 
 import asyncio
 import json
+import time
 from io import BytesIO
 
 import pytest
@@ -228,3 +229,23 @@ def test_a_failure_while_outlining_never_stops_the_check(monkeypatch, failure):
     )
     assert outcome.result.status == Status.FAIL
     assert outcome.highlights == ()
+
+
+@needs_tesseract
+def test_a_check_never_waits_long_for_outlines(monkeypatch):
+    def slow(pictures):
+        time.sleep(1.5)
+        return [[] for _ in pictures]
+
+    monkeypatch.setattr("app.checking.words_on", slow)
+    monkeypatch.setattr("app.checking.OUTLINE_WAIT", 0.05)
+    entry = EXPECTED["ridgewick-rye-wrong-abv"]
+    images = [(name, (LABELS_DIR / name).read_bytes()) for name in entry["images"]]
+    outcome = asyncio.run(
+        check_one(
+            application_for(entry), images, PerfectReader([entry["truth"]]), 1568, outline=True
+        )
+    )
+    assert outcome.result.status == Status.FAIL
+    assert outcome.highlights == ()
+    assert outcome.seconds < 1.2  # without the limit it would be over 1.5

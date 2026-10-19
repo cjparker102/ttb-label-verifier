@@ -129,8 +129,9 @@ up to date as of Oct 15, 2026). The rules differ by beverage type:
   Claude reads, and code looks for Claude's reading among those words. The AI's job doesn't
   change and nothing extra is sent to it. If the words can't be found closely enough (as on
   a blurry photo, or a brand in Japanese), there is simply no outline. Outlines never change
-  a result. They are drawn for single checks only, because in a batch Tesseract would compete
-  with the batch for the app's one CPU.
+  a result, and a finished check waits at most one second for them. They are drawn for
+  single checks only, because in a batch Tesseract would compete with the batch for the
+  app's one CPU.
 - **Photo tips.** When a picture is hard to read, the result adds a plain tip, such as "Glare
   covers part of the label. Turn off the flash, or tilt the bottle so light doesn't reflect
   straight back at the camera." Claude reports glare,
