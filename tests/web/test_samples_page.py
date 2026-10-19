@@ -9,6 +9,7 @@ from markupsafe import escape
 
 from app.limits import Limits
 from app.main import app, get_reader
+from app.reading.ocr import tesseract_available
 from app.samples import FEATURED, featured, pictures, sample_labels
 from tests.stand_ins import PerfectReader, ReplayReader
 from tools.make_samples import SAMPLES_DIR
@@ -98,3 +99,23 @@ def test_changed_warning_wording_shows_track_changes(client):
     page = client.post(f"/samples/{sample_id}/check").text
     assert "compared with the required text" in page
     assert '<del><span class="visually-hidden">missing: </span>a car</del>' in page
+
+
+@pytest.mark.skipif(not tesseract_available(), reason="Tesseract is not installed")
+def test_the_problem_is_outlined_on_the_label_picture(client):
+    sample_id = "ridgewick-rye-wrong-abv"
+    use_reader(PerfectReader([EXPECTED[sample_id]["truth"]]))
+    page = client.post(f"/samples/{sample_id}/check").text
+    assert '<svg class="outlines"' in page
+    assert 'aria-hidden="true"' in page  # the caption says it in words instead
+    assert page.count('class="outline outline-fail"') == 1
+    assert "Image 1, marked 1 on the picture" in page
+    assert "Marked on it: 1, Alcohol content (Problem)" in " ".join(page.split())
+
+
+def test_a_label_with_nothing_to_look_at_has_no_outlines(client):
+    sample_id = "old-tom-bourbon"
+    use_reader(PerfectReader([EXPECTED[sample_id]["truth"]]))
+    page = client.post(f"/samples/{sample_id}/check").text
+    assert "All good" in page
+    assert "<svg" not in page and "Marked on it" not in page

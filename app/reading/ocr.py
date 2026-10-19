@@ -14,6 +14,7 @@ import os
 import re
 import shutil
 import subprocess
+from dataclasses import dataclass
 from difflib import SequenceMatcher
 
 from app.reading.schema import BoldLook, FieldReading, LabelReading, Readability, WarningReading
@@ -42,10 +43,12 @@ def tesseract_available() -> bool:
     return shutil.which(TESSERACT) is not None
 
 
-def ocr_text(jpeg: bytes, timeout: float = 60) -> str:
+def ocr_text(jpeg: bytes, timeout: float = 60, layout: str = "3", *output: str) -> str:
+    """The text Tesseract finds in a picture. `layout` is Tesseract's page segmentation
+    mode, and `output` can name another output format, such as "tsv"."""
     try:
         result = subprocess.run(
-            [TESSERACT, "stdin", "stdout", "-l", "eng", "--psm", "3"],
+            [TESSERACT, "stdin", "stdout", "-l", "eng", "--psm", layout, *output],
             input=jpeg,
             capture_output=True,
             timeout=timeout,
@@ -57,6 +60,30 @@ def ocr_text(jpeg: bytes, timeout: float = 60) -> str:
     if result.returncode != 0:
         raise OcrFailed(f"tesseract exited with {result.returncode}")
     return result.stdout.decode("utf-8", errors="replace")
+
+
+@dataclass(frozen=True)
+class Word:
+    """One word Tesseract found, with its box in the picture's pixels."""
+
+    text: str
+    left: int
+    top: int
+    width: int
+    height: int
+
+
+def ocr_words(jpeg: bytes, timeout: float = 60, layout: str = "11") -> list[Word]:
+    """Every word in a picture, in reading order, with where it is. Layout 11 ("sparse
+    text") finds short lines that stand alone, which the usual layout can skip."""
+    words = []
+    for line in ocr_text(jpeg, timeout, layout, "tsv").splitlines()[1:]:
+        columns = line.split("\t")
+        # level, page, block, paragraph, line, word, left, top, width, height, conf, text
+        if len(columns) == 12 and columns[0] == "5" and columns[11].strip():
+            left, top, width, height = (int(c) for c in columns[6:10])
+            words.append(Word(columns[11].strip(), left, top, width, height))
+    return words
 
 
 def found(text: str | None, image_number: int | None, clear: bool) -> FieldReading:

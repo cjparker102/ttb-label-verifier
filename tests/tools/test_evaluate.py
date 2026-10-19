@@ -89,3 +89,32 @@ def test_summary_counts_and_report():
     report = markdown(results, summary)
     assert "| False passes (a planted problem shown as Matches) | 1 |" in report
     assert "- b: net_contents" in report
+
+
+def test_summary_reports_how_many_fields_to_look_at_were_outlined():
+    def record(label_id, flagged, outlined):
+        return {
+            "id": label_id,
+            "photo": None,
+            "judgments": {"brand_name": "exact"},
+            "seconds": 2.0,
+            "flagged_on_label": flagged,
+            "outlined": outlined,
+        }
+
+    results = {
+        "mode": "in process",
+        "reader": "anthropic",
+        "settings": {},
+        "measured_at": "2026-10-19T12:00:00",
+        "commit": "abc1234",
+        "records": [
+            record("a", ["alcohol_content", "government_warning"], ["alcohol_content"]),
+            record("b", [], []),
+            record("c", ["net_contents"], ["net_contents"]),
+        ],
+    }
+    summary = summarize(results)
+    assert (summary["outlined"], summary["flagged_on_label"]) == (2, 3)
+    report = markdown(results, summary)
+    assert "| Fields to look at that were outlined on the picture | 2 of 3 |" in report

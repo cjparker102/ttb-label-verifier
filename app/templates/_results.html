@@ -45,10 +45,23 @@
     </div>
 
     <aside class="label-preview" aria-label="Label pictures that were checked">
-      {% for src in previews %}
+      {% for picture in pictures %}
       <figure>
-        <img src="{{ src }}" alt="Label picture {{ loop.index }}, as it was checked">
-        <figcaption>Image {{ loop.index }}</figcaption>
+        <div class="picture-frame">
+          <img src="{{ picture.src }}" alt="Label picture {{ picture.number }}, as it was checked">
+          {% if picture.boxes %}
+          <svg class="outlines" viewBox="0 0 {{ picture.width }} {{ picture.height }}" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+            {% for box in picture.boxes %}
+            <rect class="outline-halo" x="{{ box.x }}" y="{{ box.y }}" width="{{ box.width }}" height="{{ box.height }}"></rect>
+            <rect class="outline outline-{{ box.css }}" x="{{ box.x }}" y="{{ box.y }}" width="{{ box.width }}" height="{{ box.height }}"></rect>
+            <rect class="outline-tag outline-tag-{{ box.css }}" x="{{ box.tag_x }}" y="{{ box.tag_y }}" width="{{ picture.tag }}" height="{{ picture.tag }}"></rect>
+            <text class="outline-number" x="{{ box.tag_x + picture.tag // 2 }}" y="{{ box.tag_y + picture.tag // 2 }}" font-size="{{ picture.tag * 3 // 4 }}" text-anchor="middle" dominant-baseline="central">{{ box.number }}</text>
+            {% endfor %}
+          </svg>
+          {% endif %}
+        </div>
+        <figcaption>Image {{ picture.number }}{% if picture.boxes %}. Marked on it:
+          {% for box in picture.boxes %}{{ box.number }}, {{ box.title }} ({{ box.word }}){% if not loop.last %}; {% endif %}{% endfor %}{% endif %}</figcaption>
       </figure>
       {% endfor %}
     </aside>

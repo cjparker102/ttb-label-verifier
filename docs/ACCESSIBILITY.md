@@ -11,6 +11,8 @@ readers. The app aims at WCAG 2.2 AA, and at AAA for text contrast.
 - **Never color alone:** every result has a word and an icon as well as a color (Matches,
   Check this, Problem, Not needed). Missing and extra warning words are announced as
   "missing:" and "added:" to screen readers, not only struck through or underlined.
+  Outlines on the label picture are numbered, Check this outlines are dashed, and the
+  caption under the picture lists them in words; screen readers skip the drawing itself.
 - **Plain HTML controls:** real buttons, links, file inputs, and `<details>` for the folded
   sections, so everything works by keyboard. Drag and drop is an extra; the file buttons do
   the same job.

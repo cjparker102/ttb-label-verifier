@@ -17,6 +17,7 @@ In development (October 2026). These work and are deployed:
 - sample labels to try with one click
 - drag and drop, and JPEG, PNG, WebP, GIF, HEIC, TIFF, and PDF pictures, alone or in ZIP or
   7z files
+- each field to look at outlined on the label picture
 - tips for taking a better photo
 - the offline fallback
 
@@ -117,6 +118,7 @@ app/
   export.py        Excel results, built in memory
   limits.py        upload size limit, security headers, usage limits
   presenting.py    results in plain words, for the pages
+  highlights.py    where each field to look at is on the label picture
   photo_coach.py   tips for a better photo
   samples.py       the sample labels behind "Try a sample"
   intake/          pictures, ZIP and 7z files, spreadsheets, matching rows to pictures

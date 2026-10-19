@@ -3,6 +3,9 @@
 import base64
 from collections import Counter
 from dataclasses import dataclass
+from io import BytesIO
+
+from PIL import Image
 
 from app.batch import BatchItem, BatchJob, ItemState
 from app.checking import CheckOutcome
@@ -133,7 +136,10 @@ def warning_track(field: FieldResult) -> list[tuple[str, str]] | None:
 
 
 def results_view(outcome: CheckOutcome) -> dict:
-    rows = [field_row(field) for field in outcome.result.fields]
+    numbers = {highlight.field: n for n, highlight in enumerate(outcome.highlights, start=1)}
+    rows = [
+        {**field_row(field), "outline": numbers.get(field.field)} for field in outcome.result.fields
+    ]
     needs_attention = {"fail", "review"}
     return {
         "summary": summary(outcome.result.counts),
@@ -142,6 +148,46 @@ def results_view(outcome: CheckOutcome) -> dict:
         "seconds": f"{outcome.seconds:.1f}",
         "photo_tips": photo_tips(list(outcome.photo_problems)),
     }
+
+
+def picture_views(outcome: CheckOutcome, previews: list[str]) -> list[dict]:
+    """Each checked picture with the outlines on it. Outlines are measured in the
+    checked picture's pixels; the preview is a smaller copy with the same shape."""
+    views = []
+    for number, (picture, src) in enumerate(zip(outcome.images, previews, strict=True), start=1):
+        with Image.open(BytesIO(picture)) as image:
+            width, height = image.size
+        tag = max(width, height) // 20  # the size of the number tag on each outline
+        boxes = []
+        for n, highlight in enumerate(outcome.highlights, start=1):
+            if highlight.image_number != number:
+                continue
+            x, y = highlight.left, highlight.top
+            boxes.append(
+                {
+                    "number": n,
+                    "title": highlight.title,
+                    **STATUS_VIEW[highlight.status],
+                    "x": x,
+                    "y": y,
+                    "width": highlight.width,
+                    "height": highlight.height,
+                    # The tag sits on the outline's top-left corner, inside the picture.
+                    "tag_x": min(x, width - tag),
+                    "tag_y": y - tag if y >= tag else y,
+                }
+            )
+        views.append(
+            {
+                "number": number,
+                "src": src,
+                "width": width,
+                "height": height,
+                "tag": tag,
+                "boxes": boxes,
+            }
+        )
+    return views
 
 
 def data_uri(jpeg: bytes) -> str:

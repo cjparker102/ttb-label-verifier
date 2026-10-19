@@ -25,7 +25,14 @@ from app.intake.images import ACCEPT, FORMATS, shrink_to_jpeg
 from app.intake.matching import match_rows
 from app.intake.spreadsheet import HEADINGS, ApplicationRow, SpreadsheetError, read_spreadsheet
 from app.limits import Limits, RequestSizeLimit, SecurityHeaders, visitor_id
-from app.presenting import BEVERAGE_CHOICES, TEXT_FIELDS, batch_view, data_uri, results_view
+from app.presenting import (
+    BEVERAGE_CHOICES,
+    TEXT_FIELDS,
+    batch_view,
+    data_uri,
+    picture_views,
+    results_view,
+)
 from app.reading.ocr import tesseract_available
 from app.reading.providers import make_reader
 from app.rules.application import Application, BeverageType
@@ -169,7 +176,12 @@ async def single_check(
         return page(request, 429, errors=[refusal], form=values)
     try:
         outcome = await check_one(
-            application, images, reader, settings.max_image_edge, settings.ocr_fallback
+            application,
+            images,
+            reader,
+            settings.max_image_edge,
+            settings.ocr_fallback,
+            outline=True,
         )
     except NotAnImage as error:
         return page(
@@ -187,7 +199,13 @@ async def single_check(
         data_uri(await asyncio.to_thread(shrink_to_jpeg, image, PREVIEW_EDGE))
         for image in outcome.images
     ]
-    return page(request, outcome=outcome, previews=previews, sample=sample, **results_view(outcome))
+    return page(
+        request,
+        outcome=outcome,
+        pictures=picture_views(outcome, previews),
+        sample=sample,
+        **results_view(outcome),
+    )
 
 
 TEMPLATE_ROWS = [

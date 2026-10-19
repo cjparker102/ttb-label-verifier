@@ -11,6 +11,7 @@ from typing import Protocol
 import anthropic
 from PIL import Image, UnidentifiedImageError
 
+from app.highlights import Highlight, find_highlights, words_on
 from app.intake.images import UnreadableFile, shrink_to_jpeg, split_pages
 from app.photo_coach import low_resolution
 from app.reading.claude import ReadingFailed, ReadResult
@@ -69,6 +70,7 @@ class CheckOutcome:
     input_tokens: int = 0  # what the AI reader used, for cost estimates
     output_tokens: int = 0
     photo_problems: tuple[str, ...] = ()  # for the photo tips; never affects results
+    highlights: tuple[Highlight, ...] = ()  # where fields to look at are; never affects results
 
 
 def soften_for_ocr(result: LabelResult) -> LabelResult:
@@ -98,16 +100,41 @@ def soften_for_ocr(result: LabelResult) -> LabelResult:
     return LabelResult(tuple(fields))
 
 
+# Outlines are optional, so no failure while finding them ever stops a check.
+
+
+async def find_words(pictures: list[bytes]):
+    """Words and where they are on each picture, or None if Tesseract fails."""
+    try:
+        return await asyncio.to_thread(words_on, pictures)
+    except Exception as error:
+        log.warning("Finding words for outlines failed: %s", type(error).__name__)
+        return None
+
+
+async def outlines(words: asyncio.Task | None, result: LabelResult) -> tuple[Highlight, ...]:
+    found = await words if words is not None else None
+    if found is None:
+        return ()
+    try:
+        return tuple(find_highlights(result, found))
+    except Exception as error:
+        log.warning("Outlining fields failed: %s", type(error).__name__)
+        return ()
+
+
 async def check_one(
     application: Application,
     images: list[tuple[str, bytes]],
     reader: LabelReader | None,
     max_edge: int,
     ocr_fallback: bool = True,
+    outline: bool = False,
 ) -> CheckOutcome:
     """Check one product's label images, given as (file name, bytes), against its
     application. Uses the AI reader, or basic text reading when there is no AI reader
-    or it fails, if `ocr_fallback` allows."""
+    or it fails, if `ocr_fallback` allows. With `outline`, also finds where each
+    field to look at is on the pictures."""
     start = time.perf_counter()
     pictures = []
     for name, data in images:
@@ -128,6 +155,27 @@ async def check_one(
     # Shrinking never enlarges a picture, so the shrunken copies show if any was small.
     small = await asyncio.to_thread(low_resolution, prepared)
 
+    # Tesseract looks for the words while the AI reader works, so it rarely adds time.
+    words = asyncio.create_task(find_words(prepared)) if outline and tesseract_available() else None
+    try:
+        return await read_and_decide(
+            application, prepared, reader, ocr_fallback, small, words, start
+        )
+    finally:
+        if words is not None:
+            words.cancel()  # only matters if the check failed before using them
+
+
+async def read_and_decide(
+    application: Application,
+    prepared: list[bytes],
+    reader: LabelReader | None,
+    ocr_fallback: bool,
+    small: bool,
+    words: asyncio.Task | None,
+    start: float,
+) -> CheckOutcome:
+    """The rest of check_one: read the pictures, apply the rules, add the outlines."""
     if reader is not None:
         try:
             read = await reader.read(prepared)
@@ -149,8 +197,10 @@ async def check_one(
             problems = [str(problem) for problem in read.reading.image_problems]
             if small:
                 problems.append("low_resolution")
+            result = check_label(application, read.reading)
+            highlights = await outlines(words, result)
             return CheckOutcome(
-                result=check_label(application, read.reading),
+                result=result,
                 reading=read.reading,
                 images=prepared,
                 seconds=time.perf_counter() - start,
@@ -158,6 +208,7 @@ async def check_one(
                 input_tokens=read.input_tokens,
                 output_tokens=read.output_tokens,
                 photo_problems=tuple(problems),
+                highlights=highlights,
             )
 
     if not (ocr_fallback and tesseract_available()):
@@ -168,12 +219,16 @@ async def check_one(
     except OcrFailed as error:
         log.warning("Basic text reading failed: %s", type(error).__name__)
         raise NoReader from error
+    reading_seconds = time.perf_counter() - reading_start
+    result = soften_for_ocr(check_label(application, reading))
+    highlights = await outlines(words, result)
     return CheckOutcome(
-        result=soften_for_ocr(check_label(application, reading)),
+        result=result,
         reading=reading,
         images=prepared,
         seconds=time.perf_counter() - start,
-        reading_seconds=time.perf_counter() - reading_start,
+        reading_seconds=reading_seconds,
         read_by="ocr",
         photo_problems=("low_resolution",) if small else (),
+        highlights=highlights,
     )

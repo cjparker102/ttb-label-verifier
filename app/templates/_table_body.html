@@ -14,7 +14,7 @@
     <td data-label="Label says">
       {% if row.label_says %}
       <span class="label-text{% if row.is_warning %} warning-text{% endif %}">{{ row.label_says }}</span>
-      {% if row.image %}<span class="where">{{ row.image }}</span>{% endif %}
+      {% if row.image %}<span class="where">{{ row.image }}{% if row.outline %}, marked {{ row.outline }} on the picture{% endif %}</span>{% endif %}
       {% else %}
       <em>Not found on the label</em>
       {% endif %}

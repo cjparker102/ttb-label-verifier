@@ -117,7 +117,7 @@ async def evaluate_here(entries: list[dict], reader_name: str) -> dict:
         try:
             outcome = await check_one(
                 application_for(entry), images, reader, settings.max_image_edge,
-                ocr_fallback=reader is None,
+                ocr_fallback=reader is None, outline=True,  # as single checks in the app
             )  # fmt: skip
         except NoReader as error:
             record["error"] = f"{type(error).__name__}: {error.__cause__ or error}"
@@ -136,6 +136,13 @@ async def evaluate_here(entries: list[dict], reader_name: str) -> dict:
             output_tokens=outcome.output_tokens,
             reading_problems=reading_problems,
             reading=outcome.reading.model_dump(mode="json"),
+            # Fields to look at that are printed on the label, and those outlined.
+            flagged_on_label=[
+                f.field
+                for f in outcome.result.fields
+                if f.status in ("fail", "review") and f.label_says
+            ],
+            outlined=[highlight.field for highlight in outcome.highlights],
         )
         print(f"{entry['id']:50} {outcome.seconds:5.2f} s  {describe(record)}")
         records.append(record)
@@ -328,6 +335,9 @@ def summarize(results: dict) -> dict:
     if reading:
         summary["clean_fields_read_exactly"] = sum(7 - len(r["reading_problems"]) for r in reading)
         summary["clean_fields_read"] = 7 * len(reading)
+    if any("outlined" in r for r in scored):
+        summary["outlined"] = sum(len(r.get("outlined", [])) for r in scored)
+        summary["flagged_on_label"] = sum(len(r.get("flagged_on_label", [])) for r in scored)
     tokens_in = sum(r.get("input_tokens", 0) for r in scored)
     tokens_out = sum(r.get("output_tokens", 0) for r in scored)
     if tokens_in:
@@ -366,6 +376,11 @@ def markdown(results: dict, summary: dict) -> str:
         row("Labels checked in under 5 seconds", f"{s['under_5_seconds']} of {s['timed']}")
     if "batch_seconds" in results:
         row("Whole batch, upload to finished", f"{results['batch_seconds']} s")
+    if "outlined" in summary:
+        row(
+            "Fields to look at that were outlined on the picture",
+            f"{summary['outlined']} of {summary['flagged_on_label']}",
+        )
     if summary["read_by_ocr"]:
         row("Labels read with basic text reading", summary["read_by_ocr"])
     if "cost_usd" in summary:

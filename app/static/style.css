@@ -93,7 +93,7 @@ input[type="file"]::file-selector-button {
 .summary-fail { color: var(--fail); background: var(--fail-bg); }
 .meta { color: var(--muted); margin: 8px 0 16px; }
 
-.results-layout { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 1fr); gap: 24px; align-items: start; }
+.results-layout { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 24px; align-items: start; }
 
 table { width: 100%; border-collapse: collapse; margin: 0 0 24px; }
 caption { text-align: left; font-size: 1.2rem; font-weight: 700; padding: 8px 0; }
@@ -124,6 +124,18 @@ details.ok-fields > summary { cursor: pointer; font-weight: 700; padding: 10px 0
 .label-preview figure { margin: 0 0 16px; }
 .label-preview img { display: block; width: 100%; height: auto; border: 2px solid var(--line); border-radius: 6px; }
 .label-preview figcaption { font-size: 0.9rem; color: var(--muted); }
+
+/* Outlines around the fields to look at, drawn over the label picture. */
+.picture-frame { position: relative; }
+.outlines { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.outlines rect { fill: none; vector-effect: non-scaling-stroke; }
+.outline-halo { stroke: #fff; stroke-width: 7px; }
+.outline { stroke-width: 3px; }
+.outline-fail { stroke: var(--fail); }
+.outline-review { stroke: var(--review); stroke-dasharray: 10 5; }
+.outlines .outline-tag-fail { fill: var(--fail); }
+.outlines .outline-tag-review { fill: var(--review); }
+.outline-number { fill: #fff; font-weight: 700; font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif; }
 
 .visually-hidden {
   position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
