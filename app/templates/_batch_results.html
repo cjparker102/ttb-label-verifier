@@ -52,6 +52,12 @@
         {% if item.fields %}
         <details class="item-details" data-key="row-{{ item.row_number }}">
           <summary>Show every field for row {{ item.row_number }}</summary>
+          {% if item.photo_tips %}
+          <div class="notice photo-tips" role="note">
+            <p><strong>Tips for a better photo</strong></p>
+            <ul>{% for tip in item.photo_tips %}<li>{{ tip }}</li>{% endfor %}</ul>
+          </div>
+          {% endif %}
           <div class="item-detail-layout">
             <table>
               <caption class="visually-hidden">Every field for row {{ item.row_number }}</caption>

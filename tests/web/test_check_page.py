@@ -208,3 +208,17 @@ def test_results_list_the_rules_checked_with_links(use_reader):
     page = client.post("/check", data=OLD_TOM_FORM, files=label_files()).text
     assert "Rules checked:" in page
     assert 'href="https://www.ecfr.gov/current/title-27/section-5.65#p-5.65(b)"' in page
+
+
+def test_photo_tips_appear_when_the_picture_has_problems(use_reader):
+    reading = recorded_reading().model_copy(update={"image_problems": ["glare"]})
+    use_reader(ReplayReader(reading))
+    page = client.post("/check", data=OLD_TOM_FORM, files=label_files()).text
+    assert "Tips for a better photo" in page
+    assert "Turn off the flash" in page
+
+
+def test_no_photo_tips_for_a_clean_picture(use_reader):
+    use_reader(ReplayReader())
+    page = client.post("/check", data=OLD_TOM_FORM, files=label_files()).text
+    assert "Tips for a better photo" not in page

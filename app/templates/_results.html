@@ -15,6 +15,15 @@
   </div>
   {% endif %}
 
+  {% if photo_tips %}
+  <div class="notice photo-tips" role="note">
+    <p><strong>Tips for a better photo</strong></p>
+    <ul>
+      {% for tip in photo_tips %}<li>{{ tip }}</li>{% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+
   <div class="results-layout">
     <div class="results-tables">
       {% if problem_rows %}

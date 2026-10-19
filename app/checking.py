@@ -12,6 +12,7 @@ import anthropic
 from PIL import Image, UnidentifiedImageError
 
 from app.intake.images import UnreadableFile, shrink_to_jpeg, split_pages
+from app.photo_coach import low_resolution
 from app.reading.claude import ReadingFailed, ReadResult
 from app.reading.ocr import OcrFailed, ocr_reading, tesseract_available
 from app.reading.schema import LabelReading
@@ -67,6 +68,7 @@ class CheckOutcome:
     read_by: str = "ai"  # "ai", or "ocr" for basic text reading
     input_tokens: int = 0  # what the AI reader used, for cost estimates
     output_tokens: int = 0
+    photo_problems: tuple[str, ...] = ()  # for the photo tips; never affects results
 
 
 def soften_for_ocr(result: LabelResult) -> LabelResult:
@@ -123,6 +125,9 @@ async def check_one(
         except CANNOT_OPEN as error:
             raise NotAnImage(name) from error
 
+    # Shrinking never enlarges a picture, so the shrunken copies show if any was small.
+    small = await asyncio.to_thread(low_resolution, prepared)
+
     if reader is not None:
         try:
             read = await reader.read(prepared)
@@ -141,6 +146,9 @@ async def check_one(
             if not ocr_fallback:
                 raise NoReader from error
         else:
+            problems = [str(problem) for problem in read.reading.image_problems]
+            if small:
+                problems.append("low_resolution")
             return CheckOutcome(
                 result=check_label(application, read.reading),
                 reading=read.reading,
@@ -149,6 +157,7 @@ async def check_one(
                 reading_seconds=read.seconds,
                 input_tokens=read.input_tokens,
                 output_tokens=read.output_tokens,
+                photo_problems=tuple(problems),
             )
 
     if not (ocr_fallback and tesseract_available()):
@@ -166,4 +175,5 @@ async def check_one(
         seconds=time.perf_counter() - start,
         reading_seconds=time.perf_counter() - reading_start,
         read_by="ocr",
+        photo_problems=("low_resolution",) if small else (),
     )

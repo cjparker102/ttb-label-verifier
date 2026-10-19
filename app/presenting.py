@@ -6,6 +6,7 @@ from dataclasses import dataclass
 
 from app.batch import BatchItem, BatchJob, ItemState
 from app.checking import CheckOutcome
+from app.photo_coach import photo_tips
 from app.rules.application import BeverageType
 from app.rules.results import Status, worst
 from app.rules.text import tidy
@@ -139,6 +140,7 @@ def results_view(outcome: CheckOutcome) -> dict:
         "problem_rows": [r for r in rows if r["view"]["css"] in needs_attention],
         "ok_rows": [r for r in rows if r["view"]["css"] not in needs_attention],
         "seconds": f"{outcome.seconds:.1f}",
+        "photo_tips": photo_tips(list(outcome.photo_problems)),
     }
 
 
@@ -180,6 +182,7 @@ def item_view(item: BatchItem) -> dict:
         **view,
         "read_by_ocr": item.outcome.read_by == "ocr",
         "seconds": f"{item.outcome.seconds:.1f}",
+        "photo_tips": photo_tips(list(item.outcome.photo_problems)),
         "kind": lines[0]["css"],
         "icon": lines[0]["icon"],
         "word": " / ".join(line["text"] for line in lines),
