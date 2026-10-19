@@ -4,7 +4,9 @@ Checks alcohol label images against their application data and TTB labeling rule
 
 ## Status
 
-In development (October 2026). Only a placeholder page exists so far. This README grows as features land.
+In development (October 2026). Single-label checking works; batch upload is next. This README grows as features land.
+
+Live prototype: https://ttb-label-verifier.kindmoss-39b6eae5.eastus2.azurecontainerapps.io (see [docs/DEPLOY.md](docs/DEPLOY.md)).
 
 ## Run locally
 
