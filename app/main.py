@@ -2,6 +2,7 @@
 
 import asyncio
 import base64
+import logging
 from pathlib import Path
 from typing import Annotated
 
@@ -24,6 +25,9 @@ from app.rules.application import Application, BeverageType
 
 HERE = Path(__file__).resolve().parent
 PREVIEW_EDGE = 900
+
+# Logs carry error kinds, status codes, and request IDs only. Never pictures or label text.
+log = logging.getLogger("ttb_label_verifier")
 
 settings = load_settings()
 
@@ -134,7 +138,13 @@ async def check(request: Request, reader: Annotated[LabelReader | None, Depends(
             errors=[f"{error} Please choose a JPEG, PNG, WebP, or GIF picture."],
             form=values,
         )
-    except (ReadingFailed, anthropic.APIError):
+    except (ReadingFailed, anthropic.APIError) as error:
+        log.warning(
+            "Label reading failed: %s status=%s request_id=%s",
+            type(error).__name__,
+            getattr(error, "status_code", None),
+            getattr(error, "request_id", None),
+        )
         return page(
             request,
             503,

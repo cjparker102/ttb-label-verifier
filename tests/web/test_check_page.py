@@ -149,3 +149,11 @@ def test_security_headers():
 def test_stylesheet_and_script_are_served_by_the_app():
     for path in ("/static/style.css", "/static/app.js"):
         assert client.get(path).status_code == 200
+
+
+def test_reader_failure_is_logged_without_label_details(use_reader, caplog):
+    use_reader(FailingReader())
+    with caplog.at_level("WARNING", logger="ttb_label_verifier"):
+        client.post("/check", data=OLD_TOM_FORM, files=label_files())
+    assert "Label reading failed: ReadingFailed" in caplog.text
+    assert "OLD TOM" not in caplog.text

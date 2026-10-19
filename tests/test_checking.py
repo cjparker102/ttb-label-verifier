@@ -51,11 +51,30 @@ def test_default_settings_match_the_timing_test_choices():
 
 def test_settings_come_from_environment_variables():
     settings = load_settings(
-        {"CLAUDE_THINKING": "adaptive", "MAX_IMAGE_EDGE": "2576", "CLAUDE_EFFORT": "medium"}
+        {
+            "TTB_CLAUDE_THINKING": "adaptive",
+            "TTB_MAX_IMAGE_EDGE": "2576",
+            "TTB_CLAUDE_EFFORT": "xhigh",
+        }
     )
-    assert (settings.thinking, settings.max_image_edge, settings.effort) == (True, 2576, "medium")
+    assert (settings.thinking, settings.max_image_edge, settings.effort) == (True, 2576, "xhigh")
 
 
-def test_unknown_thinking_setting_is_refused():
+def test_other_tools_variables_are_ignored():
+    # Claude Code sets CLAUDE_EFFORT in its own shells; the app must not pick it up.
+    assert load_settings({"CLAUDE_EFFORT": "xhigh", "CLAUDE_MODEL": "other"}) == Settings()
+
+
+@pytest.mark.parametrize(
+    "env",
+    [
+        {"TTB_CLAUDE_THINKING": "sometimes"},
+        {"TTB_CLAUDE_EFFORT": "extreme"},
+        # Thinking off only works up to high effort on Claude Haiku 5.5.
+        {"TTB_CLAUDE_THINKING": "off", "TTB_CLAUDE_EFFORT": "xhigh"},
+        {"TTB_CLAUDE_EFFORT": "max"},
+    ],
+)
+def test_bad_settings_stop_the_app_at_startup(env):
     with pytest.raises(ValueError):
-        load_settings({"CLAUDE_THINKING": "sometimes"})
+        load_settings(env)
