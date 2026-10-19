@@ -8,7 +8,7 @@ Two ways to run it, from the project root:
   Against a deployed app, end to end through its web pages:
     uv run python -m tools.evaluate --url https://...
 
-Each run reads every sample label once (19 labels as of Oct 19, 2026), which costs
+Each run reads every sample label once (31 labels as of Oct 19, 2026), which costs
 about two cents with Claude Haiku 5.5. Results are saved to docs/measurements/ as
 JSON and Markdown, exactly as measured.
 

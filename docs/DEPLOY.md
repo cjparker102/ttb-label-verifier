@@ -38,7 +38,8 @@ az containerapp env create -n cae-ttb-label-verifier -g rg-ttb-label-verifier -l
 ## Build and deploy a version
 
 Images are tagged with the git commit they were built from. Build from a clean working tree.
-`.dockerignore` keeps `.env`, `private/`, tests, and samples out of the upload.
+`.dockerignore` keeps `.env`, `private/`, tests, tools, and docs out of the upload. The sample
+labels are included, for "Try a sample".
 
 ```sh
 SHA=$(git rev-parse --short HEAD)

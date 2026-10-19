@@ -11,10 +11,18 @@ field, whether it matches the application and follows the basic TTB rules: **Mat
 
 ## Status
 
-In development (October 2026). Single-label checks, batch checks, sample labels to try, the
-Excel download, HEIC, TIFF, and PDF files, and the offline fallback work and are deployed.
-Claude in Microsoft Foundry is built and tested offline; it is not yet tried against a live
-Foundry deployment. Still to come: the evaluation on the deployed app.
+In development (October 2026). These work and are deployed:
+
+- single-label and batch checks, with an Excel download of batch results
+- sample labels to try with one click
+- drag and drop, and JPEG, PNG, WebP, GIF, HEIC, TIFF, and PDF pictures, alone or in ZIP or
+  7z files
+- tips for taking a better photo
+- the offline fallback
+
+Claude in Microsoft Foundry is built and tested offline. On Azure, the Foundry resource and
+keyless sign-in work, but the model deployment waits on quota. Still to come: the
+evaluation on the deployed app.
 
 ## How it decides
 
@@ -25,6 +33,18 @@ rules. Every TTB check cites the eCFR paragraph it comes from.
 
 See [docs/APPROACH.md](docs/APPROACH.md) for the approach, the rules, the assumptions, and the
 limits.
+
+## Accuracy and speed
+
+On 31 sample labels (23 clean, 8 made to look like poor photos), with Claude Haiku 5.5:
+
+- **No planted problem was shown as Matches,** and no fine field was shown as a Problem.
+- **Every clean label** got the expected result on every field.
+- **Every label was checked in under 5 seconds** (median 2.4 s, slowest 4.2 s).
+- **The AI cost** was about 0.07 cents a label.
+
+The labels are drawn by code, so this is a first measure, not proof. See
+[docs/EVALUATION.md](docs/EVALUATION.md) for the method, the details, and the limits.
 
 ## Run locally
 
@@ -40,7 +60,8 @@ uv run --env-file .env uvicorn app.main:app --reload
 Then open http://127.0.0.1:8000. Without an API key the app still runs, using basic text
 reading (OCR) only.
 
-To try a batch, upload `samples/applications.csv` and the pictures in `samples/labels/`.
+To try a batch, use "Try a sample batch", or upload `samples/applications.csv` and the
+pictures in `samples/labels/`.
 
 ## Settings
 
@@ -77,9 +98,13 @@ Tesseract are skipped if it isn't installed. CI installs it, so they run there.
 ## Sample labels
 
 `tools/make_samples.py` draws the sample labels in `samples/labels/`, with made-up brands,
-and writes `samples/applications.csv` and `samples/expected.json`. Each sample has known
-planted errors and the expected result for every field. One label carries a prompt-injection
+and writes `samples/applications.csv` and `samples/expected.json`. There are 23 labels, each
+with known planted errors and the expected result for every field, plus 8 photo-like
+versions (tilted, blurry, dim, glare, and so on). One label carries a prompt-injection
 attempt. Regenerate with `uv run python -m tools.make_samples`.
+
+`tools/evaluate.py` checks every sample and records accuracy, speed, and cost in
+`docs/measurements/`. See [docs/EVALUATION.md](docs/EVALUATION.md).
 
 ## Project layout
 
@@ -90,14 +115,17 @@ app/
   batch.py         background batch jobs, kept in memory
   export.py        Excel results, built in memory
   limits.py        upload size limit, security headers, usage limits
-  intake/          pictures, ZIP files, spreadsheets, matching rows to pictures
+  presenting.py    results in plain words, for the pages
+  photo_coach.py   tips for a better photo
+  samples.py       the sample labels behind "Try a sample"
+  intake/          pictures, ZIP and 7z files, spreadsheets, matching rows to pictures
   reading/         the JSON contract, the Claude reader, and the OCR fallback
   rules/           every matching and TTB rule, with eCFR citations
   templates/, static/
-tools/             sample label generator and timing script
+tools/             sample label generator, evaluation, and timing scripts
 samples/           sample labels, applications, expected results
 tests/
-docs/              approach, deployment, measurements
+docs/              approach, evaluation, deployment, measurements
 ```
 
 ## Deployment
@@ -108,8 +136,9 @@ The app runs as one container on Azure Container Apps. See [docs/DEPLOY.md](docs
 
 - [Claude Code](https://claude.com/claude-code) (Anthropic), an AI coding assistant, used under
   Christopher Parker's direction for planning, research, code, and tests.
-- Claude Haiku 5.5 through the Anthropic API reads the labels.
+- Claude Haiku 5.5 reads the labels, through the Anthropic Python SDK (or Microsoft Foundry,
+  signing in with azure-identity).
 - Tesseract OCR is the offline fallback reader.
-- Python 3.12, FastAPI, Jinja2, Pillow, openpyxl (reading spreadsheets), XlsxWriter (writing
-  results), pytest, ruff, and uv.
+- Python 3.12, FastAPI, Jinja2, Pillow, pillow-heif (HEIC), pypdfium2 (PDF), py7zr (7z),
+  openpyxl (reading spreadsheets), XlsxWriter (writing results), pytest, ruff, and uv.
 - Azure Container Apps and Azure Container Registry host the prototype.

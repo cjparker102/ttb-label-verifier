@@ -54,10 +54,13 @@ marks the field unclear, which can only lead to "Check this".
 - **Settings picked from a timing test** (`docs/measurements/timing-2026-10-19-old-tom-bourbon.json`):
   pictures shrunk to 1568 pixels on the long side, and thinking off at low effort. Both
   settings read every field correctly on that test. The smaller size used 40% fewer tokens
-  and gave the steadiest times. The test was small (3 runs per setting, one clean label), so
-  the evaluation on harder photos will check these choices again.
+  and gave the steadiest times. The test was small (3 runs per setting, one clean label). The
+  evaluation on 31 labels, 8 of them photo-like, then confirmed both settings
+  ([EVALUATION.md](EVALUATION.md)).
 - **Several pictures per label** (front, back, neck) are read together, so a warning on the back
-  label counts.
+  label counts. A label can have up to 8 pictures.
+- **File types:** JPEG, PNG, WebP, GIF, HEIC (iPhone photos), TIFF, and PDF. Each page of a PDF
+  or multi-page TIFF counts as a picture, up to 4 pages.
 
 ## The rules
 
@@ -77,7 +80,8 @@ All rules are in `app/rules/`, and each has its own tests.
   only for rounding (±0.05 points). TTB's own tolerances, such as ±0.3 points for spirits,
   compare the label with the lab-tested liquid, not with the application, so they don't apply.
 - **Net contents** are converted to milliliters first (mL, cl, L, fl oz, pints, quarts, gallons),
-  allowing 0.5% for rounding. The ℮ sign is ignored.
+  allowing 0.5% for rounding. The ℮ sign is ignored. When a label gives both systems, such as
+  "16.9 FL. OZ. (500 mL)", the amount in the application's units is the one compared.
 - **Country of origin** names in many languages map to one standard name (`Deutschland` is
   Germany). Scotland and the other UK nations count as part of the United Kingdom.
 
@@ -109,6 +113,22 @@ up to date as of Oct 15, 2026). The rules differ by beverage type:
   - Imports need "Imported by" (5.68(b), 4.35(b)(1), 7.68(b)).
 - **English:** mandatory information must be in English, except the brand name (5.55, 4.38(c),
   7.55).
+
+## What the agent sees
+
+- **One row per field,** with Matches, Check this, Problem, or Not needed, and one plain
+  sentence saying why. In a batch, labels with problems come first.
+- **The warning's wording differences** are shown like tracked changes: missing words struck
+  through, extra words underlined, so the agent doesn't have to compare two paragraphs by eye.
+- **Each field lists the rules it was checked against,** with links to the eCFR paragraphs.
+- **Photo tips.** When a picture is hard to read, the result adds a plain tip, such as "Glare
+  covers part of the label. Turn off the flash, or tilt the bottle so light doesn't reflect
+  straight back at the camera." Claude reports glare,
+  blur, angle, darkness, a label that is too small, or one that is cut off. Code adds a tip
+  for pictures under 1,000 pixels across. Tips never change a result.
+- **Sample labels to try with one click,** for reviewers without label pictures of their own,
+  and a whole sample batch.
+- **Drag and drop** onto either form, or the usual file buttons.
 
 ## Store nothing
 
@@ -142,18 +162,20 @@ bold. So in this mode:
 - **A banner says plainly** that basic text reading was used.
 - **A match found by overlooking capitals or punctuation needs review too,** because OCR can't
   tell that from a lost accent.
+- **Each field is looked for away from the other fields' lines.** Otherwise a brand could be
+  "found" inside the importer's company name when the brand itself was unreadable.
 
 A test runs Tesseract on every sample label and confirms that every planted problem still
 comes out as "Check this", never as "Matches".
 
 ## Batches
 
-A batch is a CSV or Excel spreadsheet with one row per application, plus the pictures or ZIP
-files of them. Rows are matched to pictures by file name, ignoring folders and capitals.
+A batch is a CSV or Excel spreadsheet with one row per application, plus the pictures, or ZIP
+or 7z files of them. Rows are matched to pictures by file name, ignoring folders and capitals.
 Labels are checked in the background, eight at a time, while the page shows progress, with
 problems first.
 
-ZIP files are opened in memory with safety limits:
+ZIP and 7z files are opened in memory with safety limits:
 
 - **Zip bombs** are stopped by a size limit per file, a compression-ratio limit, and a total
   limit.
@@ -195,5 +217,6 @@ results matched the expected results (`docs/measurements/batch-smoke-2026-10-19.
 - **Bold type** can only be judged by eye from a photo, so anything uncertain is sent for review.
 - **The app runs as one instance,** because batch jobs and usage counts live in memory. A
   production version would need shared storage for them, which is a policy decision.
-- **Accuracy so far was measured on clean, code-drawn labels.** The evaluation on harder photos
-  (blur, glare, angles) is still to come.
+- **Accuracy was measured on 31 code-drawn labels,** 8 of them made to look like poor photos
+  (tilted, blurry, dim, glare). No planted problem was shown as Matches. Real camera photos
+  are not yet in the test set. See [EVALUATION.md](EVALUATION.md).
