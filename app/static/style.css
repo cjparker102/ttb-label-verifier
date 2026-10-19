@@ -45,6 +45,8 @@ h2 { font-size: 1.3rem; margin: 0 0 8px; }
 a { color: var(--brand); }
 
 :focus-visible { outline: 4px solid var(--focus); outline-offset: 2px; box-shadow: 0 0 0 7px var(--text); }
+/* Headings that the script focuses after a check don't need a ring. */
+#results-heading:focus, #errors:focus { outline: none; box-shadow: none; }
 
 /* Form */
 
@@ -57,6 +59,12 @@ input[type="text"], select {
   border: 2px solid var(--text); border-radius: 6px; background: #fff; color: var(--text);
 }
 input[type="file"] { font: inherit; padding: 10px 0; max-width: 100%; }
+input[type="file"]::file-selector-button {
+  font: inherit; font-weight: 700;
+  min-height: 52px; padding: 10px 22px; margin-right: 14px;
+  color: var(--text); background: var(--panel);
+  border: 2px solid var(--text); border-radius: 8px; cursor: pointer;
+}
 
 .button-primary {
   font: inherit; font-weight: 700; font-size: 1.15rem;
@@ -120,7 +128,8 @@ details.ok-fields > summary { cursor: pointer; font-weight: 700; padding: 10px 0
 /* Narrow screens: one column, and each table row becomes a card. */
 @media (max-width: 760px) {
   html { font-size: 18px; }
-  .results-layout { grid-template-columns: 1fr; }
+  .results-layout { grid-template-columns: minmax(0, 1fr); }
+  caption { display: block; }
   thead { display: none; }
   table, tbody, tr, th, td { display: block; width: 100%; }
   tr { border: 2px solid var(--line); border-radius: 8px; margin-bottom: 16px; }
