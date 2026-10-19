@@ -8,7 +8,7 @@ from fastapi.testclient import TestClient
 from markupsafe import escape
 
 from app.limits import Limits
-from app.main import app, get_reader
+from app.main import app, get_reader, settings
 from app.reading.ocr import tesseract_available
 from app.samples import FEATURED, featured, pictures, sample_labels
 from tests.stand_ins import PerfectReader, ReplayReader
@@ -79,6 +79,17 @@ def test_sample_checks_count_toward_the_limits(client):
     app.state.limits = Limits(1, 600, 3, 3600, 100)
     assert client.post("/samples/old-tom-bourbon/check").status_code == 200
     assert client.post("/samples/old-tom-bourbon/check").status_code == 429
+
+
+def test_a_new_visitor_can_try_every_sample_and_the_sample_batch(client, monkeypatch):
+    # The app's real limits on a fresh day, not the roomy ones the other web tests use.
+    app.state.limits = Limits.from_settings(settings)
+    # Outlines have nothing to do with limits, and finding them makes 31 checks slow.
+    monkeypatch.setattr("app.checking.tesseract_available", lambda: False)
+    use_reader(ReplayReader())
+    for sample_id in sample_labels():
+        assert client.post(f"/samples/{sample_id}/check").status_code == 200, sample_id
+    assert client.post("/samples/batch", follow_redirects=False).status_code == 303
 
 
 def test_the_sample_batch_checks_every_sample(client):

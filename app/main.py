@@ -56,13 +56,7 @@ app = FastAPI(title="TTB Label Verifier", docs_url=None, redoc_url=None, openapi
 app.add_middleware(SecurityHeaders)
 app.add_middleware(RequestSizeLimit, max_bytes=settings.max_request_bytes)
 app.mount("/static", StaticFiles(directory=HERE / "static"), name="static")
-app.state.limits = Limits(
-    settings.checks_per_visitor,
-    settings.check_window_seconds,
-    settings.batches_per_visitor,
-    settings.batch_window_seconds,
-    settings.labels_per_day,
-)
+app.state.limits = Limits.from_settings(settings)
 app.state.batches = BatchStore(settings.batch_keep_seconds)
 app.state.batch_concurrency = settings.batch_concurrency
 app.state.one_batch_at_a_time = asyncio.Semaphore(1)

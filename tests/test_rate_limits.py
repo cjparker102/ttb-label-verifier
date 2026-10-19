@@ -1,12 +1,16 @@
-from datetime import date
+from datetime import UTC, datetime
 
-from app.limits import Limits, visitor_id
+import pytest
+
+from app.config import Settings
+from app.limits import Limits, how_long, visitor_id
+from app.samples import sample_labels
 
 
 class FakeClock:
     def __init__(self):
         self.now = 0.0
-        self.day = date(2026, 10, 19)
+        self.wall = datetime(2026, 10, 19, 12, 0, tzinfo=UTC)
 
     def __call__(self):
         return self.now
@@ -14,7 +18,7 @@ class FakeClock:
 
 def limits(checks=3, batches=2, per_day=100):
     clock = FakeClock()
-    made = Limits(checks, 600, batches, 3600, per_day, clock=clock, today=lambda: clock.day)
+    made = Limits(checks, 600, batches, 3600, per_day, clock=clock, now=lambda: clock.wall)
     return made, clock
 
 
@@ -46,7 +50,7 @@ def test_daily_cap_covers_everyone_and_resets_next_day():
     assert rate.take_check("a") is None
     assert rate.take_check("b") is None
     assert "limit of 2 labels for today" in rate.take_check("c")
-    clock.day = date(2026, 10, 20)
+    clock.wall = datetime(2026, 10, 20, 0, 0, tzinfo=UTC)
     assert rate.take_check("c") is None
 
 
@@ -73,6 +77,69 @@ def test_batches_and_checks_share_the_daily_cap():
     message = rate.take_batch("c", 5)
     assert "can check only 1 more today" in message
     assert rate.daily.used == 11  # the refused batch was not counted
+
+
+def test_a_refused_check_says_how_long_to_wait():
+    rate, clock = limits(checks=2)
+    rate.take_check("a")
+    clock.now = 300
+    rate.take_check("a")
+    clock.now = 420  # the first check leaves the 10-minute window at 600
+    assert rate.take_check("a").endswith("Please wait 3 minutes and try again.")
+    clock.now = 599.5
+    assert rate.take_check("a").endswith("Please wait 1 minute and try again.")
+
+
+def test_a_refused_batch_says_how_long_to_wait():
+    rate, clock = limits(batches=2)
+    rate.take_batch("a", 5)
+    clock.now = 1000
+    rate.take_batch("a", 5)
+    clock.now = 1200  # the first batch leaves the hour's window at 3600
+    assert rate.take_batch("a", 5).endswith("Please wait 40 minutes and try again.")
+
+
+def test_the_daily_limit_says_when_it_starts_again():
+    rate, clock = limits(checks=10, per_day=1)
+    clock.wall = datetime(2026, 10, 19, 18, 10, tzinfo=UTC)
+    rate.take_check("a")
+    assert rate.take_check("b").endswith("Please try again in 6 hours, after midnight UTC.")
+    assert rate.take_batch("b", 5).endswith("Please try again in 6 hours, after midnight UTC.")
+    clock.wall = datetime(2026, 10, 19, 23, 30, tzinfo=UTC)
+    assert rate.take_check("b").endswith("in 30 minutes, after midnight UTC.")
+
+
+def test_a_batch_bigger_than_what_is_left_today_says_when_it_starts_again():
+    rate, clock = limits(per_day=10)
+    clock.wall = datetime(2026, 10, 19, 23, 0, tzinfo=UTC)
+    assert rate.take_batch("a", 20).endswith(
+        "Please send a smaller batch, or try again in 60 minutes, after midnight UTC."
+    )
+
+
+@pytest.mark.parametrize(
+    ("seconds", "words"),
+    [
+        (0, "1 minute"),
+        (30, "1 minute"),
+        (60, "1 minute"),
+        (61, "2 minutes"),
+        (90 * 60, "90 minutes"),
+        (90 * 60 + 1, "2 hours"),
+        (5 * 3600 + 50 * 60, "6 hours"),  # rounded up, never too short
+    ],
+)
+def test_waits_are_said_in_plain_words(seconds, words):
+    assert how_long(seconds) == words
+
+
+def test_a_new_visitor_can_try_every_sample_and_then_the_sample_batch():
+    rate = Limits.from_settings(Settings())
+    samples = len(sample_labels())
+    assert all(rate.take_check("a") is None for _ in range(samples))
+    assert rate.take_batch("a", samples) is None
+    # And a whole office on one address has room for many more.
+    assert rate.checks.limit >= 300
 
 
 def test_visitor_is_the_last_forwarded_address():

@@ -80,8 +80,8 @@ az containerapp update -n ttb-label-verifier -g rg-ttb-label-verifier \
 ```
 
 The key belongs to a dedicated Anthropic workspace with a monthly spend limit. That limit is
-the hard stop on AI spending; the app also limits each visitor to 30 checks per 10 minutes and
-the whole app to 2,000 labels a day.
+the hard stop on AI spending; the app also limits each visitor (each internet address) to 300
+checks per 10 minutes and 3 batches per hour, and the whole app to 2,000 labels a day.
 
 ## Claude in Microsoft Foundry (optional)
 

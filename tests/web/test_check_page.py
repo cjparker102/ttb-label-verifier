@@ -183,7 +183,7 @@ def test_too_many_checks_from_one_visitor_are_refused(use_reader):
     assert client.post("/check", data=OLD_TOM_FORM, files=label_files()).status_code == 200
     response = client.post("/check", data=OLD_TOM_FORM, files=label_files())
     assert response.status_code == 429
-    assert "Please wait a few minutes" in response.text
+    assert "Please wait 10 minutes and try again." in response.text
 
 
 def test_form_mistakes_do_not_use_up_the_limit(use_reader):

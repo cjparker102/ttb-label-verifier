@@ -1,10 +1,13 @@
 """Request size limit, security headers, and rate limits."""
 
+import math
 import time
 from collections import deque
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
+
+from app.config import Settings
 
 SECURITY_HEADERS = [
     (
@@ -115,12 +118,27 @@ class VisitorWindow:
         self.clock = clock
         self.recent: dict[str, deque[float]] = {}
 
-    def has_room(self, visitor: str, count: int = 1) -> bool:
+    def current(self, visitor: str) -> deque[float]:
+        """The visitor's times still inside the window."""
         now = self.clock()
         times = self.recent.setdefault(visitor, deque())
         while times and now - times[0] >= self.window_seconds:
             times.popleft()
-        return len(times) + count <= self.limit
+        return times
+
+    def has_room(self, visitor: str, count: int = 1) -> bool:
+        return len(self.current(visitor)) + count <= self.limit
+
+    def wait(self, visitor: str, count: int = 1) -> float:
+        """Seconds until `count` more fit in the window: 0 if they fit now, and infinite
+        if they never will."""
+        times = self.current(visitor)
+        over = len(times) + count - self.limit
+        if over <= 0:
+            return 0.0
+        if over > len(times):
+            return math.inf
+        return times[over - 1] + self.window_seconds - self.clock()
 
     def record(self, visitor: str, count: int = 1) -> None:
         now = self.clock()
@@ -135,16 +153,21 @@ class VisitorWindow:
 class DailyCap:
     """Labels checked today by everyone together. Resets at midnight UTC."""
 
-    def __init__(self, limit: int, today=lambda: datetime.now(UTC).date()):
+    def __init__(self, limit: int, now=lambda: datetime.now(UTC)):
         self.limit = limit
-        self.today = today
-        self.day = today()
+        self.now = now
+        self.day = now().date()
         self.used = 0
 
     def remaining(self) -> int:
-        if self.today() != self.day:
-            self.day, self.used = self.today(), 0
+        if self.now().date() != self.day:
+            self.day, self.used = self.now().date(), 0
         return self.limit - self.used
+
+    def seconds_to_midnight(self) -> float:
+        now = self.now()
+        midnight = datetime.combine(now.date() + timedelta(days=1), datetime.min.time(), UTC)
+        return (midnight - now).total_seconds()
 
     def record(self, labels: int) -> None:
         self.remaining()
@@ -163,11 +186,21 @@ class Limits:
         batch_window_seconds: float,
         labels_per_day: int,
         clock=time.monotonic,
-        today=lambda: datetime.now(UTC).date(),
+        now=lambda: datetime.now(UTC),
     ):
         self.checks = VisitorWindow(checks_per_visitor, check_window_seconds, clock)
         self.batches = VisitorWindow(batches_per_visitor, batch_window_seconds, clock)
-        self.daily = DailyCap(labels_per_day, today)
+        self.daily = DailyCap(labels_per_day, now)
+
+    @classmethod
+    def from_settings(cls, settings: Settings) -> "Limits":
+        return cls(
+            settings.checks_per_visitor,
+            settings.check_window_seconds,
+            settings.batches_per_visitor,
+            settings.batch_window_seconds,
+            settings.labels_per_day,
+        )
 
     def take_check(self, visitor: str) -> str | None:
         """Record one single-label check if allowed. Returns None, or why not."""
@@ -177,7 +210,7 @@ class Limits:
             minutes = round(self.checks.window_seconds / 60)
             return (
                 f"You have checked {self.checks.limit} labels in the last {minutes} minutes, "
-                "which is the limit for this demo. Please wait a few minutes and try again."
+                f"which is the limit for this demo. {wait_for(self.checks.wait(visitor))}"
             )
         self.checks.record(visitor)
         self.daily.record(1)
@@ -191,13 +224,13 @@ class Limits:
         if labels > left:
             return (
                 f"This batch has {labels} labels, but this demo can check only {left} more "
-                "today. Please send a smaller batch, or try again tomorrow."
+                f"today. Please send a smaller batch, or try again {self.after_midnight()}."
             )
         if not self.batches.has_room(visitor):
             minutes = round(self.batches.window_seconds / 60)
             return (
                 f"You have sent {self.batches.limit} batches in the last {minutes} minutes, "
-                "which is the limit for this demo. Please try again later."
+                f"which is the limit for this demo. {wait_for(self.batches.wait(visitor))}"
             )
         self.batches.record(visitor)
         self.daily.record(labels)
@@ -206,8 +239,29 @@ class Limits:
     def daily_message(self) -> str:
         return (
             f"This demo has reached its limit of {self.daily.limit:,} labels for today. "
-            "Please try again tomorrow."
+            f"Please try again {self.after_midnight()}."
         )
+
+    def after_midnight(self) -> str:
+        """When the daily count starts again: "in 6 hours, after midnight UTC"."""
+        return f"in {how_long(self.daily.seconds_to_midnight())}, after midnight UTC"
+
+
+def how_long(seconds: float) -> str:
+    """A wait in plain words, rounded up so it is never too short: "1 minute",
+    "25 minutes", "6 hours"."""
+    minutes = max(1, math.ceil(seconds / 60))
+    if minutes == 1:
+        return "1 minute"
+    if minutes <= 90:
+        return f"{minutes} minutes"
+    return f"{math.ceil(minutes / 60)} hours"
+
+
+def wait_for(seconds: float) -> str:
+    if math.isinf(seconds):
+        return "Please try again later."  # only when the limit is 0
+    return f"Please wait {how_long(seconds)} and try again."
 
 
 def visitor_id(headers: dict[str, str], client_host: str | None) -> str:
