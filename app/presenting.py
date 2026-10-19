@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from app.batch import BatchItem, BatchJob, ItemState
 from app.checking import CheckOutcome
 from app.rules.application import BeverageType
-from app.rules.results import Status
+from app.rules.results import Status, worst
 from app.rules.verdict import FieldResult
 
 
@@ -74,6 +74,31 @@ def summary(counts) -> list[dict]:
     return lines
 
 
+RULE_RESULT = {
+    Status.PASS: "met",
+    Status.REVIEW: "check this",
+    Status.FAIL: "not met",
+    Status.NOT_NEEDED: "not needed",
+}
+
+
+def rules_checked(field: FieldResult) -> list[dict]:
+    """Each eCFR section behind this field's checks, once, with its worst result."""
+    by_section: dict[str, dict] = {}
+    for check in field.checks:
+        if check.citation is None:
+            continue
+        section = check.citation.section
+        if section in by_section:
+            by_section[section]["statuses"].append(check.status)
+        else:
+            by_section[section] = {"url": check.citation.url, "statuses": [check.status]}
+    return [
+        {"section": section, "url": rule["url"], "result": RULE_RESULT[worst(rule["statuses"])]}
+        for section, rule in by_section.items()
+    ]
+
+
 def field_row(field: FieldResult) -> dict:
     status = field.status
     problems = [c for c in field.checks if c.status in (Status.FAIL, Status.REVIEW)]
@@ -90,6 +115,7 @@ def field_row(field: FieldResult) -> dict:
         "view": STATUS_VIEW[status],
         "word": word,
         "reasons": [{"text": c.reason, "citation": c.citation} for c in shown],
+        "rules": rules_checked(field),
     }
 
 
@@ -141,6 +167,7 @@ def item_view(item: BatchItem) -> dict:
     return {
         **view,
         "read_by_ocr": item.outcome.read_by == "ocr",
+        "seconds": f"{item.outcome.seconds:.1f}",
         "kind": lines[0]["css"],
         "icon": lines[0]["icon"],
         "word": " / ".join(line["text"] for line in lines),

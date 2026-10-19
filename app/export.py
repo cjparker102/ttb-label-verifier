@@ -37,7 +37,7 @@ class Sheet:
         """Add a row. `fill` maps a column number to a background color."""
         for column, value in enumerate(values):
             style = self.formats[fill[column]] if fill and column in fill else self.plain
-            if isinstance(value, int):
+            if isinstance(value, int | float):
                 self.sheet.write_number(self.next_row, column, value, style)
             else:
                 self.sheet.write_string(self.next_row, column, value, style)
@@ -58,8 +58,16 @@ def results_workbook(job: BatchJob) -> bytes:
     overview = Sheet(
         workbook,
         "Summary",
-        ["Row", "Brand (application)", "Pictures", "Overall result", "What to look at", "Read by"],
-        [7, 28, 34, 22, 80, 22],
+        [
+            "Row",
+            "Brand (application)",
+            "Pictures",
+            "Overall result",
+            "What to look at",
+            "Read by",
+            "Seconds",
+        ],
+        [7, 28, 34, 22, 80, 22, 10],
     )
     details = Sheet(
         workbook,
@@ -72,7 +80,9 @@ def results_workbook(job: BatchJob) -> bytes:
     for item in sorted(job.items, key=lambda i: i.row_number):
         first = [item.row_number, item.brand, "; ".join(item.file_names)]
         if item.state != ItemState.DONE or item.outcome is None:
-            overview.add([*first, "Not checked", item.problem or "", ""], {3: NOT_CHECKED_COLOR})
+            overview.add(
+                [*first, "Not checked", item.problem or "", "", ""], {3: NOT_CHECKED_COLOR}
+            )
             continue
         result = item.outcome.result
         to_look_at = [
@@ -84,7 +94,7 @@ def results_workbook(job: BatchJob) -> bytes:
         overall = " / ".join(line["text"] for line in summary(result.counts))
         read_by = "Basic text reading" if item.outcome.read_by == "ocr" else "AI reader"
         overview.add(
-            [*first, overall, "\n".join(to_look_at), read_by],
+            [*first, overall, "\n".join(to_look_at), read_by, round(item.outcome.seconds, 1)],
             {3: FILL_COLORS.get(result.status, NOT_CHECKED_COLOR)},
         )
 

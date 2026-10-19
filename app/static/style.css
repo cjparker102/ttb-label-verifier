@@ -112,6 +112,7 @@ tbody th { width: 14%; }
 .result-fail .badge { color: var(--fail); background: var(--fail-bg); }
 .result-not-needed .badge { color: var(--not-needed); background: var(--not-needed-bg); }
 .reasons { margin: 8px 0 0; padding-left: 1.1em; font-size: 0.95rem; }
+.rules { margin: 6px 0 0; font-size: 0.85rem; color: var(--muted); }
 
 details.ok-fields { margin-bottom: 24px; }
 details.ok-fields > summary { cursor: pointer; font-weight: 700; padding: 10px 0; }

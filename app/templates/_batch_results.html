@@ -42,6 +42,7 @@
       </th>
       <td data-label="Result" class="result result-{{ item.kind }}">
         <span class="badge"><span aria-hidden="true">{{ item.icon }}</span> {{ item.word }}</span>
+        {% if item.seconds %}<span class="where">Checked in {{ item.seconds }} seconds</span>{% endif %}
         {% if item.read_by_ocr %}<span class="where">Read with basic text reading</span>{% endif %}
         {% if item.reasons %}
         <ul class="reasons">

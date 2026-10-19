@@ -201,3 +201,10 @@ def test_every_file_box_has_a_drop_zone_and_a_chosen_files_list():
         zone = page[zone_start:zone_end]
         assert f'id="{box}"' in zone
         assert f'data-chosen-for="{box}"' in zone
+
+
+def test_results_list_the_rules_checked_with_links(use_reader):
+    use_reader(ReplayReader())
+    page = client.post("/check", data=OLD_TOM_FORM, files=label_files()).text
+    assert "Rules checked:" in page
+    assert 'href="https://www.ecfr.gov/current/title-27/section-5.65#p-5.65(b)"' in page

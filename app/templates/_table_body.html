@@ -26,6 +26,11 @@
         <li>{{ reason.text }}{% if reason.citation %} <a href="{{ reason.citation.url }}" target="_blank" rel="noopener noreferrer">{{ reason.citation.section }}</a>{% endif %}</li>
         {% endfor %}
       </ul>
+      {% if row.rules %}
+      <p class="rules">Rules checked:
+        {% for rule in row.rules %}<a href="{{ rule.url }}" target="_blank" rel="noopener noreferrer">{{ rule.section }}</a> ({{ rule.result }}){% if not loop.last %}, {% endif %}{% endfor %}
+      </p>
+      {% endif %}
     </td>
   </tr>
   {% endfor %}
