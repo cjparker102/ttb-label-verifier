@@ -12,18 +12,18 @@ MB = 1024 * 1024
 EFFORTS = ("low", "medium", "high", "xhigh", "max")
 # Claude Haiku 5.5 accepts thinking turned off only at these effort levels.
 EFFORTS_WITHOUT_THINKING = ("low", "medium", "high")
-
-
-READERS = ("anthropic", "ocr")
+READERS = ("anthropic", "foundry", "ocr")
 
 
 @dataclass(frozen=True)
 class Settings:
-    reader: str = "anthropic"  # "ocr" uses only basic text reading
+    reader: str = "anthropic"  # "foundry" uses Claude in Azure; "ocr" basic text reading only
     ocr_fallback: bool = True  # use basic text reading when the AI reader fails
-    model: str = "claude-haiku-5-5"
+    model: str = "claude-haiku-5-5"  # with Foundry, the deployment name
     thinking: bool = False  # picked from the Oct 19 timing test
     effort: str = "low"
+    foundry_resource: str = ""  # the Foundry resource name, for TTB_READER=foundry
+    labels_per_minute: int = 0  # pace calls to the AI reader; 0 means no pacing
     max_image_edge: int = 1568  # picked from the Oct 19 timing test
     max_images_per_label: int = 6
     max_image_bytes: int = 20 * MB
@@ -38,11 +38,26 @@ class Settings:
     labels_per_day: int = 2000  # for the whole app
 
 
+def whole_number(env: Mapping[str, str], name: str, default: int, minimum: int) -> int:
+    text = env.get(name, str(default)).strip()
+    if not text.isdigit() or int(text) < minimum:
+        raise ValueError(f"{name} must be a whole number of at least {minimum}")
+    return int(text)
+
+
 def load_settings(env: Mapping[str, str] = os.environ) -> Settings:
     defaults = Settings()
-    thinking = env.get("TTB_CLAUDE_THINKING", "off").strip().lower()
+    reader = env.get("TTB_READER", defaults.reader).strip().lower()
+    if reader not in READERS:
+        raise ValueError(f"TTB_READER must be one of {', '.join(READERS)}")
+
+    # Claude in Foundry gives structured answers only with thinking on, so it defaults on.
+    thinking = env.get("TTB_CLAUDE_THINKING", "adaptive" if reader == "foundry" else "off")
+    thinking = thinking.strip().lower()
     if thinking not in ("off", "adaptive"):
         raise ValueError('TTB_CLAUDE_THINKING must be "off" or "adaptive"')
+    if reader == "foundry" and thinking == "off":
+        raise ValueError("Claude in Foundry needs TTB_CLAUDE_THINKING=adaptive")
     effort = env.get("TTB_CLAUDE_EFFORT", defaults.effort).strip().lower()
     if effort not in EFFORTS:
         raise ValueError(f"TTB_CLAUDE_EFFORT must be one of {', '.join(EFFORTS)}")
@@ -51,17 +66,22 @@ def load_settings(env: Mapping[str, str] = os.environ) -> Settings:
             f'TTB_CLAUDE_EFFORT "{effort}" needs thinking on. With TTB_CLAUDE_THINKING=off, '
             f"use {', '.join(EFFORTS_WITHOUT_THINKING)}."
         )
-    reader = env.get("TTB_READER", defaults.reader).strip().lower()
-    if reader not in READERS:
-        raise ValueError(f"TTB_READER must be one of {', '.join(READERS)}")
+
+    foundry_resource = env.get("TTB_FOUNDRY_RESOURCE", "").strip()
+    if reader == "foundry" and not foundry_resource:
+        raise ValueError("TTB_READER=foundry needs TTB_FOUNDRY_RESOURCE, the Foundry resource name")
     fallback = env.get("TTB_OCR_FALLBACK", "on").strip().lower()
     if fallback not in ("on", "off"):
         raise ValueError('TTB_OCR_FALLBACK must be "on" or "off"')
+
     return Settings(
         reader=reader,
         ocr_fallback=fallback == "on",
         model=env.get("TTB_CLAUDE_MODEL", defaults.model),
         thinking=thinking == "adaptive",
         effort=effort,
-        max_image_edge=int(env.get("TTB_MAX_IMAGE_EDGE", defaults.max_image_edge)),
+        foundry_resource=foundry_resource,
+        labels_per_minute=whole_number(env, "TTB_LABELS_PER_MINUTE", 0, 0),
+        max_image_edge=whole_number(env, "TTB_MAX_IMAGE_EDGE", defaults.max_image_edge, 200),
+        batch_concurrency=whole_number(env, "TTB_BATCH_CONCURRENCY", defaults.batch_concurrency, 1),
     )

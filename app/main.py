@@ -8,7 +8,6 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Annotated
 
-import anthropic
 from fastapi import Depends, FastAPI, Request
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, Response
 from fastapi.staticfiles import StaticFiles
@@ -27,8 +26,8 @@ from app.intake.matching import match_rows
 from app.intake.spreadsheet import HEADINGS, ApplicationRow, SpreadsheetError, read_spreadsheet
 from app.limits import Limits, RequestSizeLimit, SecurityHeaders, visitor_id
 from app.presenting import BEVERAGE_CHOICES, TEXT_FIELDS, batch_view, data_uri, results_view
-from app.reading.claude import ClaudeReader
 from app.reading.ocr import tesseract_available
+from app.reading.providers import make_reader
 from app.rules.application import Application, BeverageType
 from app.samples import SampleLabel, featured, pictures, sample_labels
 
@@ -63,29 +62,11 @@ app.state.one_batch_at_a_time = asyncio.Semaphore(1)
 templates = Jinja2Templates(directory=HERE / "templates")
 
 
-def has_credentials(client) -> bool:
-    """The SDK builds a client without credentials and only complains when it sends a
-    request, so check what it found: an API key, a token, or federated credentials."""
-    return any(
-        getattr(client, name, None) is not None for name in ("api_key", "auth_token", "credentials")
-    )
-
-
 def get_reader() -> LabelReader | None:
-    """The Claude reader, or None if this server is set to basic text reading only or
-    has no Anthropic credentials."""
-    if settings.reader == "ocr":
-        return None
+    """The AI reader the settings ask for, made once. None means basic text reading only,
+    either by setting or because this server has no Anthropic credentials."""
     if not hasattr(app.state, "reader"):
-        try:
-            client = anthropic.AsyncAnthropic(max_retries=1, timeout=30)
-        except anthropic.AnthropicError:
-            return None
-        if not has_credentials(client):
-            return None
-        app.state.reader = ClaudeReader(
-            client, thinking=settings.thinking, effort=settings.effort, model=settings.model
-        )
+        app.state.reader = make_reader(settings)
     return app.state.reader
 
 

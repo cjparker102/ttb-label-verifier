@@ -81,6 +81,26 @@ The key belongs to a dedicated Anthropic workspace with a monthly spend limit. T
 the hard stop on AI spending; the app also limits each visitor to 30 checks per 10 minutes and
 the whole app to 2,000 labels a day.
 
+## Claude in Microsoft Foundry (optional)
+
+For an agency whose firewall blocks outside AI services, the app can read labels with
+Claude hosted in its own Azure subscription instead of the Anthropic API. The code is in
+`app/reading/providers.py`. Requirements (Microsoft's, as of October 2026):
+
+- **A paid subscription with a pay-as-you-go billing method.** Free trial, student, and
+  credit-only subscriptions have no Claude quota.
+- **A Foundry resource in a region that offers Claude** (East US 2 does), with a Claude Haiku 5.5
+  deployment using the "Hosted on Azure" version, so prompts and answers stay in Azure.
+- **The container app's managed identity** needs the "Cognitive Services User" role on the
+  Foundry resource. Then no key is stored anywhere.
+- **The default quota is low:** about 40 requests and 40,000 input tokens a minute for the whole
+  subscription. Set `TTB_LABELS_PER_MINUTE` to stay inside it (a two-picture label uses
+  about 7,000 input tokens), and lower `TTB_BATCH_CONCURRENCY`.
+
+Then set `TTB_READER=foundry`, `TTB_FOUNDRY_RESOURCE=<resource name>`, and
+`TTB_CLAUDE_MODEL=<deployment name>` on the container app. Foundry needs
+`TTB_CLAUDE_THINKING=adaptive`, which is the default when `TTB_READER=foundry`.
+
 ## Checking a deployment
 
 ```sh

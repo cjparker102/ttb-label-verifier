@@ -11,10 +11,10 @@ field, whether it matches the application and follows the basic TTB rules: **Mat
 
 ## Status
 
-In development (October 2026). Single-label checks, batch checks, the Excel download, and
-the offline fallback work and are deployed. Still to come: the full accuracy and speed
-evaluation on harder photos, more picture formats (HEIC, TIFF, PDF), and Claude in Microsoft
-Foundry as a second AI provider.
+In development (October 2026). Single-label checks, batch checks, sample labels to try, the
+Excel download, HEIC, TIFF, and PDF files, and the offline fallback work and are deployed.
+Claude in Microsoft Foundry is built and tested offline; it is not yet tried against a live
+Foundry deployment. Still to come: the evaluation on the deployed app.
 
 ## How it decides
 
@@ -49,10 +49,13 @@ All settings come from environment variables. See [.env.example](.env.example).
 | Variable | Default | Meaning |
 |---|---|---|
 | `ANTHROPIC_API_KEY` | none | Key for the Claude API. In Azure it comes from a secret. |
-| `TTB_READER` | `anthropic` | `anthropic` (Claude), or `ocr` for basic text reading only |
+| `TTB_READER` | `anthropic` | `anthropic` (Claude through the Anthropic API), `foundry` (Claude in Microsoft Foundry, in Azure), or `ocr` (basic text reading only) |
+| `TTB_FOUNDRY_RESOURCE` | none | The Foundry resource name, for `TTB_READER=foundry`. In Azure the app signs in with its managed identity; no key is stored. |
+| `TTB_LABELS_PER_MINUTE` | `0` | Pace calls to the AI reader to stay inside a quota (`0` means no pacing) |
+| `TTB_BATCH_CONCURRENCY` | `8` | Labels read at the same time within a batch |
 | `TTB_OCR_FALLBACK` | `on` | Use basic text reading when Claude can't be reached |
 | `TTB_CLAUDE_MODEL` | `claude-haiku-5-5` | Claude model |
-| `TTB_CLAUDE_THINKING` | `off` | `off` or `adaptive` |
+| `TTB_CLAUDE_THINKING` | `off` (`adaptive` for Foundry) | `off` or `adaptive`. Foundry needs `adaptive`. |
 | `TTB_CLAUDE_EFFORT` | `low` | `low`, `medium`, or `high` (higher needs thinking on) |
 | `TTB_MAX_IMAGE_EDGE` | `1568` | Longest side, in pixels, of pictures sent to Claude |
 

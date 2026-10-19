@@ -102,7 +102,7 @@ def test_any_reader_failure_falls_back_to_basic_text_reading(caplog):
 def test_a_client_without_credentials_is_no_reader():
     from types import SimpleNamespace
 
-    from app.main import has_credentials
+    from app.reading.providers import has_credentials
 
     assert not has_credentials(SimpleNamespace(api_key=None, auth_token=None, credentials=None))
     assert has_credentials(SimpleNamespace(api_key="key", auth_token=None, credentials=None))
