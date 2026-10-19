@@ -8,7 +8,8 @@ These rules apply to everyone who works in this repository, including AI coding 
 - AI tools used on this project are listed in the README, not in commit trailers.
 - Commits and pull requests carry no Co-Authored-By, Claude-Session, or "Generated with" lines. No AI tool, bot, or other identity appears as author, committer, or co-author.
 - Do not change git configuration, skip hooks, force-push, or rewrite history.
-- Commit only when Christopher asks.
+- After each step is finished and all tests pass, commit it with a clear message and tell Christopher.
+- Push at the end of each day, or when Christopher asks.
 - Git hooks in `.githooks/` check these rules on every commit.
 
 ## Secrets
