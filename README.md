@@ -40,12 +40,13 @@ use and what was checked.
 
 On 31 sample labels (23 clean, 8 made to look like poor photos), with Claude Haiku 5.5:
 
-- **No planted problem was shown as Matches,** and no fine field was shown as a Problem.
-- **Every clean label** got the expected result on every field.
-- **Every label was checked in under 5 seconds** (median 2.4 s, slowest 4.2 s).
+- **Every field result was as expected,** 217 of 217: no planted problem was shown as
+  Matches, and no fine field was shown as a Problem.
+- **Every label was checked in under 5 seconds** (median 2.5 s, slowest 4.2 s).
 - **The AI cost** was about 0.07 cents a label.
 
-The labels are drawn by code, so this is a first measure, not proof. See
+An earlier run found one false Problem, on a French wine's importer statement. It was fixed
+and checked again. The labels are drawn by code, so this is a first measure, not proof. See
 [docs/EVALUATION.md](docs/EVALUATION.md) for the method, the details, and the limits.
 
 ## Run locally
