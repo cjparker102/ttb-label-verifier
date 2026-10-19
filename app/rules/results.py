@@ -23,11 +23,21 @@ class Citation:
 
 
 @dataclass(frozen=True)
+class WordChange:
+    """One difference between required text and the label, for a track-changes view."""
+
+    kind: str  # "missing", "extra", or "changed"
+    required: str  # the words the rule requires ("" when words were added)
+    found: str  # the words on the label ("" when words are missing)
+
+
+@dataclass(frozen=True)
 class Check:
     status: Status
     reason: str  # one plain sentence for the agent
     note: str | None = None  # short tag on a pass, such as "Matches, different capitals"
     citation: Citation | None = None
+    changes: tuple[WordChange, ...] = ()
 
 
 def worst(statuses: Iterable[Status]) -> Status:
