@@ -15,7 +15,7 @@ MB = 1024 * 1024
 MAX_ITEMS = 2000  # entries listed in the ZIP, pictures or not
 MAX_PICTURES = 600
 MAX_PICTURE_BYTES = 50 * MB  # one picture, unpacked
-MAX_TOTAL_BYTES = 1024 * MB  # everything unpacked
+MAX_TOTAL_BYTES = 400 * MB  # everything unpacked; the app holds it in memory
 MAX_RATIO = 100  # pictures barely compress; far more than this is a zip bomb sign
 
 ARCHIVE_ENDINGS = (".zip", ".7z", ".rar", ".tar", ".gz", ".tgz", ".bz2", ".xz")

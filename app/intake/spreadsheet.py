@@ -71,6 +71,7 @@ class ApplicationRow:
     file_names: tuple[str, ...]
     application: Application | None  # None when the row has problems
     problems: tuple[str, ...]
+    brand_name: str = ""  # as typed, so a row with problems can still be recognized
 
 
 def tidy_heading(text: str) -> str:
@@ -205,4 +206,4 @@ def build_row(number: int, values: dict[str, str]) -> ApplicationRow:
             bottler_name_address=values["bottler_name_address"],
             country_of_origin=values.get("country_of_origin", ""),
         )
-    return ApplicationRow(number, file_names, application, tuple(problems))
+    return ApplicationRow(number, file_names, application, tuple(problems), values["brand_name"])
