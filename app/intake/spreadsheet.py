@@ -11,6 +11,7 @@ from openpyxl import load_workbook
 from app.rules.application import Application, BeverageType
 
 MAX_ROWS = 300  # applications per batch
+MAX_BYTES = 5 * 1024 * 1024  # the spreadsheet file itself
 MAX_UNZIPPED_BYTES = 50 * 1024 * 1024  # an .xlsx file is a ZIP; refuse ones that balloon
 
 # Accepted ways of writing each column heading, compared after tidying.
@@ -86,6 +87,11 @@ def split_file_names(cell: str) -> tuple[str, ...]:
 
 
 def read_spreadsheet(name: str, data: bytes) -> list[ApplicationRow]:
+    if len(data) > MAX_BYTES:
+        raise SpreadsheetError(
+            f"The spreadsheet is larger than {MAX_BYTES // (1024 * 1024)} MB. One batch needs "
+            "only one row per application."
+        )
     extension = name.rsplit(".", 1)[-1].casefold() if "." in name else ""
     if extension == "csv":
         table = csv_rows(data)

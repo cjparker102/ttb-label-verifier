@@ -161,3 +161,11 @@ def test_reading_uploaded_spreadsheets_writes_nothing_to_disk():
         assert len(read_spreadsheet("batch.xlsx", excel)) == 50
         assert len(read_spreadsheet("batch.csv", text)) == 50
     assert list(writes) == []
+
+
+def test_spreadsheet_file_size_is_capped(monkeypatch):
+    from app.intake import spreadsheet
+
+    monkeypatch.setattr(spreadsheet, "MAX_BYTES", 100)
+    with pytest.raises(SpreadsheetError, match="larger than"):
+        read_spreadsheet("batch.csv", csv_bytes([HEADINGS, OLD_TOM]))
