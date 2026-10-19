@@ -13,6 +13,17 @@ document.addEventListener("DOMContentLoaded", () => {
   busyOnSubmit("check-form", "check-button", "busy", "Checking…");
   busyOnSubmit("batch-form", "batch-button", "batch-busy", "Uploading…");
 
+  // Sample buttons and other one-button forms say they're working once pressed.
+  document.querySelectorAll("form[data-busy]").forEach((form) => {
+    form.addEventListener("submit", () => {
+      const button = form.querySelector("button");
+      button.disabled = true;
+      button.setAttribute("aria-busy", "true");
+      const title = button.querySelector(".sample-title") || button;
+      title.textContent = form.dataset.busy;
+    });
+  });
+
   // After a check, move keyboard and screen-reader focus to what changed.
   const target = document.getElementById("errors") || document.getElementById("results-heading");
   if (target) {

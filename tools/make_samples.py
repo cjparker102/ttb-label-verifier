@@ -147,7 +147,7 @@ def all_pass(**changes: str) -> dict[str, str]:
 SAMPLES = [
     Sample(
         id="old-tom-bourbon",
-        planted="Nothing. Clean label split across a front and a back image.",
+        planted="Nothing planted. A clean label on a front and a back picture.",
         beverage_type="Distilled spirits",
         application=application_data(
             "OLD TOM DISTILLERY",
@@ -400,7 +400,7 @@ SAMPLES = [
     ),
     Sample(
         id="tidewick-pale-ale",
-        planted="Nothing. Clean malt beverage label with US units.",
+        planted="Nothing planted. A clean beer label with US units.",
         beverage_type="Malt beverage",
         application=application_data(
             "TIDEWICK",

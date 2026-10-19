@@ -20,6 +20,8 @@ COPY pyproject.toml uv.lock ./
 RUN uv sync --locked --no-dev --no-install-project
 
 COPY app ./app
+# The sample labels behind the "Try a sample" buttons.
+COPY samples ./samples
 
 RUN useradd --create-home --uid 10001 appuser
 USER appuser

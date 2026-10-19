@@ -1,7 +1,7 @@
 [
   {
     "id": "old-tom-bourbon",
-    "planted": "Nothing. Clean label split across a front and a back image.",
+    "planted": "Nothing planted. A clean label on a front and a back picture.",
     "beverage_type": "Distilled spirits",
     "images": [
       "old-tom-bourbon_front.png",
@@ -434,7 +434,7 @@
   },
   {
     "id": "tidewick-pale-ale",
-    "planted": "Nothing. Clean malt beverage label with US units.",
+    "planted": "Nothing planted. A clean beer label with US units.",
     "beverage_type": "Malt beverage",
     "images": [
       "tidewick-pale-ale.png"
@@ -780,7 +780,7 @@
   },
   {
     "id": "tidewick-pale-ale--far",
-    "planted": "Nothing. Clean malt beverage label with US units. Photographed from far away, so the label is small.",
+    "planted": "Nothing planted. A clean beer label with US units. Photographed from far away, so the label is small.",
     "beverage_type": "Malt beverage",
     "images": [
       "tidewick-pale-ale--far.jpg"

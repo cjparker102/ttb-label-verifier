@@ -1,7 +1,12 @@
 {% extends "base.html" %}
 {% block main %}
 
-{% if outcome %}{% include "_results.html" %}{% endif %}
+{% if outcome %}
+{% include "_results.html" %}
+{% else %}
+<h1 class="page-title">Check alcohol labels</h1>
+<p class="lead">Compare a label with its application and the TTB rules, field by field. Try a sample label first, or check your own below.</p>
+{% endif %}
 
 {% if errors %}
 <div class="error-summary" role="alert" tabindex="-1" id="errors">
@@ -12,12 +17,28 @@
 </div>
 {% endif %}
 
+{% if samples %}
+<section class="card" aria-labelledby="samples-heading" id="samples">
+  <h2 id="samples-heading" class="section-heading">{{ "Try another sample label" if outcome else "Try it with a sample label" }}</h2>
+  <p class="lead">Each sample is a made-up label with a known problem planted in it. One click checks it for real.</p>
+  <div class="sample-grid">
+    {% for sample in samples %}
+    <form method="post" action="/samples/{{ sample.id }}/check" data-busy="Checking…">
+      <button type="submit" class="sample-button">
+        <span class="sample-title">{{ sample.title }}</span>
+        <span class="sample-planted">{{ sample.planted }}</span>
+      </button>
+    </form>
+    {% endfor %}
+  </div>
+  <form method="post" action="/samples/batch" data-busy="Starting the batch…">
+    <button type="submit" class="button-secondary">Try a sample batch of all {{ sample_count }} labels</button>
+  </form>
+</section>
+{% endif %}
+
 <section class="card" aria-labelledby="check-heading">
-  {% if outcome %}
-  <h2 id="check-heading" class="section-heading">Check another label</h2>
-  {% else %}
-  <h1 id="check-heading">Check a label</h1>
-  {% endif %}
+  <h2 id="check-heading" class="section-heading">{{ "Check another label" if outcome else "Check one label" }}</h2>
   <p class="lead">Add the label pictures and what the application says. The app reads the label and compares it for you.</p>
 
   <form method="post" action="/check" enctype="multipart/form-data" id="check-form">

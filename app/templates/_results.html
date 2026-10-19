@@ -4,6 +4,11 @@
   <p class="summary summary-{{ line.css }}"><span aria-hidden="true">{{ line.icon }}</span> {{ line.text }}</p>
   {% endfor %}
   <p class="meta">Checked in {{ seconds }} seconds.</p>
+  {% if sample %}
+  <div class="notice" role="note">
+    <p><strong>Sample label: {{ sample.title }}.</strong> What was planted: {{ sample.planted }}</p>
+  </div>
+  {% endif %}
   {% if outcome.read_by == "ocr" %}
   <div class="notice" role="note">
     <p><strong>The AI reader was not available, so this label was read with basic text reading.</strong> Basic text reading can misread small print and can't see bold type, so nothing is marked as a Problem. Please check the flagged fields by eye.</p>

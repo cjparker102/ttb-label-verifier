@@ -21,15 +21,16 @@ from app.batch import BatchStore, new_job, run_job
 from app.checking import LabelReader, NoReader, NotAnImage, check_one
 from app.config import load_settings
 from app.export import results_workbook
-from app.intake.archives import MAX_PICTURES, ArchiveError, collect_pictures
+from app.intake.archives import MAX_PICTURES, ArchiveError, Skipped, collect_pictures
 from app.intake.images import shrink_to_jpeg
 from app.intake.matching import match_rows
-from app.intake.spreadsheet import HEADINGS, SpreadsheetError, read_spreadsheet
+from app.intake.spreadsheet import HEADINGS, ApplicationRow, SpreadsheetError, read_spreadsheet
 from app.limits import Limits, RequestSizeLimit, SecurityHeaders, visitor_id
 from app.presenting import BEVERAGE_CHOICES, TEXT_FIELDS, batch_view, data_uri, results_view
 from app.reading.claude import ClaudeReader
 from app.reading.ocr import tesseract_available
 from app.rules.application import Application, BeverageType
+from app.samples import SampleLabel, featured, pictures, sample_labels
 
 HERE = Path(__file__).resolve().parent
 PREVIEW_EDGE = 900
@@ -107,6 +108,8 @@ def page(request: Request, status_code: int = 200, **context) -> HTMLResponse:
         "form": {},
         "errors": [],
         "settings": settings,
+        "samples": featured(),
+        "sample_count": len(sample_labels()),
         **context,
     }
     return templates.TemplateResponse(request, "index.html", context, status_code=status_code)
@@ -162,16 +165,25 @@ async def check(request: Request, reader: Annotated[LabelReader | None, Depends(
         await form.close()
         return page(request, 422, errors=errors, form=values)
 
-    # Count the check only now, when it will really reach the reader.
-    refusal = request.app.state.limits.take_check(visitor(request))
-    if refusal:
-        await form.close()
-        return page(request, 429, errors=[refusal], form=values)
-
     images = [(upload.filename or "picture", await upload.read()) for upload in uploads]
     await form.close()
     application = Application(beverage_type, **{f.name: values[f.name] for f in TEXT_FIELDS})
+    return await single_check(request, reader, application, images, values)
 
+
+async def single_check(
+    request: Request,
+    reader: LabelReader | None,
+    application: Application,
+    images: list[tuple[str, bytes]],
+    values: dict[str, str],
+    sample: SampleLabel | None = None,
+) -> HTMLResponse:
+    """Check one label and show the results page. Shared by uploads and sample buttons."""
+    # Count the check only now, when it will really reach the reader.
+    refusal = request.app.state.limits.take_check(visitor(request))
+    if refusal:
+        return page(request, 429, errors=[refusal], form=values)
     try:
         outcome = await check_one(
             application, images, reader, settings.max_image_edge, settings.ocr_fallback
@@ -190,7 +202,7 @@ async def check(request: Request, reader: Annotated[LabelReader | None, Depends(
         data_uri(await asyncio.to_thread(shrink_to_jpeg, image, PREVIEW_EDGE))
         for image in outcome.images
     ]
-    return page(request, outcome=outcome, previews=previews, **results_view(outcome))
+    return page(request, outcome=outcome, previews=previews, sample=sample, **results_view(outcome))
 
 
 TEMPLATE_ROWS = [
@@ -259,8 +271,19 @@ async def start_batch(request: Request, reader: Annotated[LabelReader | None, De
         return page(request, 422, errors=[str(error)])
     del files
 
-    matched, unused = match_rows(rows, collected.pictures)
-    job = new_job(matched, collected.skipped, unused)
+    return await start_job(request, reader, rows, collected.pictures, collected.skipped)
+
+
+async def start_job(
+    request: Request,
+    reader: LabelReader | None,
+    rows: list[ApplicationRow],
+    batch_pictures: dict[str, bytes],
+    skipped: list[Skipped],
+):
+    """Start a batch and go to its page. Shared by uploads and the sample batch."""
+    matched, unused = match_rows(rows, batch_pictures)
+    job = new_job(matched, skipped, unused)
     if job.work:
         refusal = request.app.state.limits.take_batch(visitor(request), len(job.work))
         if refusal:
@@ -277,6 +300,35 @@ async def start_batch(request: Request, reader: Annotated[LabelReader | None, De
         )
     )
     return RedirectResponse(f"/batches/{job.id}", status_code=303)
+
+
+@app.post("/samples/batch", response_class=HTMLResponse)
+async def sample_batch(
+    request: Request, reader: Annotated[LabelReader | None, Depends(get_reader)]
+):
+    labels = list(sample_labels().values())
+    if not labels:
+        return page(request, 404, errors=["The sample labels are not available on this server."])
+    if not can_read(reader):
+        return page(request, 422, errors=[NOT_SET_UP])
+    batch_pictures = {name: data for label in labels for name, data in pictures(label)}
+    return await start_job(request, reader, [label.row for label in labels], batch_pictures, [])
+
+
+@app.post("/samples/{sample_id}/check", response_class=HTMLResponse)
+async def sample_check(
+    request: Request,
+    sample_id: str,
+    reader: Annotated[LabelReader | None, Depends(get_reader)],
+):
+    label = sample_labels().get(sample_id)
+    if label is None:
+        return page(request, 404, errors=["There is no sample label with that name."])
+    if not can_read(reader):
+        return page(request, 422, errors=[NOT_SET_UP])
+    return await single_check(
+        request, reader, label.row.application, pictures(label), {}, sample=label
+    )
 
 
 GONE = (

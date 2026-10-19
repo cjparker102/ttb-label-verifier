@@ -20,7 +20,11 @@ def test_image_copies_only_what_the_app_needs():
         for line in (ROOT / "Dockerfile").read_text(encoding="utf-8").splitlines()
         if line.startswith("COPY") and "--from=" not in line
     ]
-    assert copies == [["pyproject.toml", "uv.lock", "./"], ["app", "./app"]]
+    assert copies == [
+        ["pyproject.toml", "uv.lock", "./"],
+        ["app", "./app"],
+        ["samples", "./samples"],
+    ]
 
 
 def test_app_runs_as_a_non_root_user():
