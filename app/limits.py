@@ -106,58 +106,108 @@ class RequestSizeLimit:
         await send({"type": "http.response.body", "body": body})
 
 
-class RateLimiter:
-    """Counts label checks per visitor over a sliding window, plus a daily total for
-    the whole app. Kept in memory, which works because the app runs as one replica."""
+class VisitorWindow:
+    """How many times each visitor did something within a sliding time window."""
 
-    def __init__(
-        self,
-        per_visitor: int,
-        window_seconds: float,
-        per_day: int,
-        clock=time.monotonic,
-        today=lambda: datetime.now(UTC).date(),
-    ):
-        self.per_visitor = per_visitor
+    def __init__(self, limit: int, window_seconds: float, clock=time.monotonic):
+        self.limit = limit
         self.window_seconds = window_seconds
-        self.per_day = per_day
         self.clock = clock
-        self.today = today
         self.recent: dict[str, deque[float]] = {}
-        self.day = today()
-        self.used_today = 0
 
-    def take(self, visitor: str, labels: int = 1) -> str | None:
-        """Record checks of `labels` labels if allowed. Returns None, or why not."""
-        if self.today() != self.day:
-            self.day, self.used_today = self.today(), 0
-        if self.used_today + labels > self.per_day:
-            return (
-                f"This demo has reached its limit of {self.per_day:,} labels for today. "
-                "Please try again tomorrow."
-            )
+    def has_room(self, visitor: str, count: int = 1) -> bool:
         now = self.clock()
         times = self.recent.setdefault(visitor, deque())
         while times and now - times[0] >= self.window_seconds:
             times.popleft()
-        if len(times) + labels > self.per_visitor:
-            minutes = round(self.window_seconds / 60)
+        return len(times) + count <= self.limit
+
+    def record(self, visitor: str, count: int = 1) -> None:
+        now = self.clock()
+        self.recent.setdefault(visitor, deque()).extend([now] * count)
+        if len(self.recent) > 10_000:  # forget visitors who have gone quiet
+            for idle in [
+                v for v, t in self.recent.items() if not t or now - t[-1] >= self.window_seconds
+            ]:
+                del self.recent[idle]
+
+
+class DailyCap:
+    """Labels checked today by everyone together. Resets at midnight UTC."""
+
+    def __init__(self, limit: int, today=lambda: datetime.now(UTC).date()):
+        self.limit = limit
+        self.today = today
+        self.day = today()
+        self.used = 0
+
+    def remaining(self) -> int:
+        if self.today() != self.day:
+            self.day, self.used = self.today(), 0
+        return self.limit - self.used
+
+    def record(self, labels: int) -> None:
+        self.remaining()
+        self.used += labels
+
+
+class Limits:
+    """All the app's usage limits. Kept in memory, which works because the app runs as
+    one replica. A check or batch is counted only if every limit that applies has room."""
+
+    def __init__(
+        self,
+        checks_per_visitor: int,
+        check_window_seconds: float,
+        batches_per_visitor: int,
+        batch_window_seconds: float,
+        labels_per_day: int,
+        clock=time.monotonic,
+        today=lambda: datetime.now(UTC).date(),
+    ):
+        self.checks = VisitorWindow(checks_per_visitor, check_window_seconds, clock)
+        self.batches = VisitorWindow(batches_per_visitor, batch_window_seconds, clock)
+        self.daily = DailyCap(labels_per_day, today)
+
+    def take_check(self, visitor: str) -> str | None:
+        """Record one single-label check if allowed. Returns None, or why not."""
+        if self.daily.remaining() < 1:
+            return self.daily_message()
+        if not self.checks.has_room(visitor):
+            minutes = round(self.checks.window_seconds / 60)
             return (
-                f"You have checked {self.per_visitor} labels in the last {minutes} minutes, "
+                f"You have checked {self.checks.limit} labels in the last {minutes} minutes, "
                 "which is the limit for this demo. Please wait a few minutes and try again."
             )
-        times.extend([now] * labels)
-        self.used_today += labels
-        self.forget_idle(now)
+        self.checks.record(visitor)
+        self.daily.record(1)
         return None
 
-    def forget_idle(self, now: float) -> None:
-        if len(self.recent) > 10_000:
-            idle = [
-                v for v, t in self.recent.items() if not t or now - t[-1] >= self.window_seconds
-            ]
-            for visitor in idle:
-                del self.recent[visitor]
+    def take_batch(self, visitor: str, labels: int) -> str | None:
+        """Record a batch of this many labels if allowed. Returns None, or why not."""
+        left = self.daily.remaining()
+        if left < 1:
+            return self.daily_message()
+        if labels > left:
+            return (
+                f"This batch has {labels} labels, but this demo can check only {left} more "
+                "today. Please send a smaller batch, or try again tomorrow."
+            )
+        if not self.batches.has_room(visitor):
+            minutes = round(self.batches.window_seconds / 60)
+            return (
+                f"You have sent {self.batches.limit} batches in the last {minutes} minutes, "
+                "which is the limit for this demo. Please try again later."
+            )
+        self.batches.record(visitor)
+        self.daily.record(labels)
+        return None
+
+    def daily_message(self) -> str:
+        return (
+            f"This demo has reached its limit of {self.daily.limit:,} labels for today. "
+            "Please try again tomorrow."
+        )
 
 
 def visitor_id(headers: dict[str, str], client_host: str | None) -> str:

@@ -3,6 +3,7 @@
 import pytest
 from fastapi.testclient import TestClient
 
+from app.limits import Limits
 from app.main import app, get_reader
 from app.reading.schema import FieldReading
 from tests.stand_ins import FailingReader, ReplayReader, recorded_reading
@@ -160,10 +161,8 @@ def test_reader_failure_is_logged_without_label_details(use_reader, caplog):
 
 
 def test_too_many_checks_from_one_visitor_are_refused(use_reader):
-    from app.limits import RateLimiter
-
     use_reader(ReplayReader())
-    app.state.limiter = RateLimiter(per_visitor=1, window_seconds=600, per_day=100)
+    app.state.limits = Limits(1, 600, 3, 3600, 100)
     assert client.post("/check", data=OLD_TOM_FORM, files=label_files()).status_code == 200
     response = client.post("/check", data=OLD_TOM_FORM, files=label_files())
     assert response.status_code == 429
@@ -171,9 +170,7 @@ def test_too_many_checks_from_one_visitor_are_refused(use_reader):
 
 
 def test_form_mistakes_do_not_use_up_the_limit(use_reader):
-    from app.limits import RateLimiter
-
     use_reader(ReplayReader())
-    app.state.limiter = RateLimiter(per_visitor=1, window_seconds=600, per_day=100)
+    app.state.limits = Limits(1, 600, 3, 3600, 100)
     client.post("/check", data=OLD_TOM_FORM)  # no pictures: refused before reading
     assert client.post("/check", data=OLD_TOM_FORM, files=label_files()).status_code == 200

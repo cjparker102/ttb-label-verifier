@@ -1,13 +1,17 @@
 import pytest
 
-from app.limits import RateLimiter
+from app.limits import Limits
 from app.main import app
 
 
+def roomy_limits() -> Limits:
+    return Limits(1000, 600, 1000, 3600, 100_000)
+
+
 @pytest.fixture(autouse=True)
-def fresh_rate_limits():
-    """Every web test starts with empty rate-limit counts, so tests don't affect each other."""
-    saved = app.state.limiter
-    app.state.limiter = RateLimiter(per_visitor=1000, window_seconds=600, per_day=10_000)
+def fresh_limits():
+    """Every web test starts with empty usage counts, so tests don't affect each other."""
+    saved = app.state.limits
+    app.state.limits = roomy_limits()
     yield
-    app.state.limiter = saved
+    app.state.limits = saved

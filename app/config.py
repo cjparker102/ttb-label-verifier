@@ -23,8 +23,10 @@ class Settings:
     max_images_per_label: int = 6
     max_image_bytes: int = 20 * MB
     max_request_bytes: int = 125 * MB  # 6 images of 20 MB plus form fields
-    checks_per_visitor: int = 30  # per visitor, within the window below
-    visitor_window_seconds: int = 600
+    checks_per_visitor: int = 30  # single-label checks per visitor, within the window below
+    check_window_seconds: int = 600
+    batches_per_visitor: int = 3
+    batch_window_seconds: int = 3600
     labels_per_day: int = 2000  # for the whole app
 
 
