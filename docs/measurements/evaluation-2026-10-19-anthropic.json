@@ -1,0 +1,1473 @@
+{
+  "mode": "in process",
+  "reader": "anthropic",
+  "settings": {
+    "model": "claude-haiku-5-5",
+    "thinking": "off",
+    "effort": "low",
+    "max_image_edge": 1568
+  },
+  "records": [
+    {
+      "id": "old-tom-bourbon",
+      "photo": null,
+      "got": {
+        "brand_name": "pass",
+        "class_type": "pass",
+        "alcohol_content": "pass",
+        "net_contents": "pass",
+        "bottler_name_address": "pass",
+        "country_of_origin": "not_needed",
+        "government_warning": "pass"
+      },
+      "judgments": {
+        "brand_name": "exact",
+        "class_type": "exact",
+        "alcohol_content": "exact",
+        "net_contents": "exact",
+        "bottler_name_address": "exact",
+        "country_of_origin": "exact",
+        "government_warning": "exact"
+      },
+      "seconds": 3.33,
+      "read_by": "ai",
+      "input_tokens": 7100,
+      "output_tokens": 454,
+      "reading_problems": {},
+      "reading": {
+        "brand_name": {
+          "text": "OLD TOM DISTILLERY",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null
+        },
+        "class_type": {
+          "text": "Kentucky Straight Bourbon Whiskey",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null
+        },
+        "alcohol_content": {
+          "text": "45% Alc./Vol. (90 Proof)",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null
+        },
+        "net_contents": {
+          "text": "750 mL",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null
+        },
+        "bottler_name_address": {
+          "text": "Bottled by Old Tom Distillery, Bardstown, Kentucky",
+          "readability": "clear",
+          "image_number": 2,
+          "english_meaning": null
+        },
+        "country_of_origin": {
+          "text": null,
+          "readability": "not_found",
+          "image_number": null,
+          "english_meaning": null
+        },
+        "government_warning": {
+          "text": "GOVERNMENT WARNING: (1) According to the Surgeon General, women should not drink alcoholic beverages during pregnancy because of the risk of birth defects. (2) Consumption of alcoholic beverages impairs your ability to drive a car or operate machinery, and may cause health problems.",
+          "readability": "clear",
+          "image_number": 2,
+          "english_meaning": null,
+          "heading_bold": "yes",
+          "rest_bold": "no"
+        },
+        "image_problems": []
+      }
+    },
+    {
+      "id": "stones-throw-gin",
+      "photo": null,
+      "got": {
+        "brand_name": "pass_with_note",
+        "class_type": "pass",
+        "alcohol_content": "pass",
+        "net_contents": "pass",
+        "bottler_name_address": "pass",
+        "country_of_origin": "not_needed",
+        "government_warning": "pass"
+      },
+      "judgments": {
+        "brand_name": "exact",
+        "class_type": "exact",
+        "alcohol_content": "exact",
+        "net_contents": "exact",
+        "bottler_name_address": "exact",
+        "country_of_origin": "exact",
+        "government_warning": "exact"
+      },
+      "seconds": 2.03,
+      "read_by": "ai",
+      "input_tokens": 4739,
+      "output_tokens": 434,
+      "reading_problems": {},
+      "reading": {
+        "brand_name": {
+          "text": "STONE'S THROW",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null
+        },
+        "class_type": {
+          "text": "London Dry Gin",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null
+        },
+        "alcohol_content": {
+          "text": "47% Alc./Vol.",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null
+        },
+        "net_contents": {
+          "text": "750 mL",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null
+        },
+        "bottler_name_address": {
+          "text": "Distilled and bottled by Stone's Throw Spirits, Portland, Oregon",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null
+        },
+        "country_of_origin": {
+          "text": null,
+          "readability": "not_found",
+          "image_number": null,
+          "english_meaning": null
+        },
+        "government_warning": {
+          "text": "GOVERNMENT WARNING: (1) According to the Surgeon General, women should not drink alcoholic beverages during pregnancy because of the risk of birth defects. (2) Consumption of alcoholic beverages impairs your ability to drive a car or operate machinery, and may cause health problems.",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null,
+          "heading_bold": "yes",
+          "rest_bold": "no"
+        },
+        "image_problems": []
+      }
+    },
+    {
+      "id": "ridgewick-rye-wrong-abv",
+      "photo": null,
+      "got": {
+        "brand_name": "pass",
+        "class_type": "pass",
+        "alcohol_content": "fail",
+        "net_contents": "pass",
+        "bottler_name_address": "pass",
+        "country_of_origin": "not_needed",
+        "government_warning": "pass"
+      },
+      "judgments": {
+        "brand_name": "exact",
+        "class_type": "exact",
+        "alcohol_content": "exact",
+        "net_contents": "exact",
+        "bottler_name_address": "exact",
+        "country_of_origin": "exact",
+        "government_warning": "exact"
+      },
+      "seconds": 2.39,
+      "read_by": "ai",
+      "input_tokens": 4739,
+      "output_tokens": 443,
+      "reading_problems": {},
+      "reading": {
+        "brand_name": {
+          "text": "RIDGEWICK",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null
+        },
+        "class_type": {
+          "text": "Straight Rye Whisky",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null
+        },
+        "alcohol_content": {
+          "text": "46% Alc./Vol. (92 Proof)",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null
+        },
+        "net_contents": {
+          "text": "750 mL",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null
+        },
+        "bottler_name_address": {
+          "text": "Bottled by Ridgewick Spirits Co., Lexington, Kentucky",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null
+        },
+        "country_of_origin": {
+          "text": null,
+          "readability": "not_found",
+          "image_number": null,
+          "english_meaning": null
+        },
+        "government_warning": {
+          "text": "GOVERNMENT WARNING: (1) According to the Surgeon General, women should not drink alcoholic beverages during pregnancy because of the risk of birth defects. (2) Consumption of alcoholic beverages impairs your ability to drive a car or operate machinery, and may cause health problems.",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null,
+          "heading_bold": "yes",
+          "rest_bold": "no"
+        },
+        "image_problems": []
+      }
+    },
+    {
+      "id": "harborlume-rum-proof",
+      "photo": null,
+      "got": {
+        "brand_name": "pass",
+        "class_type": "pass",
+        "alcohol_content": "fail",
+        "net_contents": "pass",
+        "bottler_name_address": "pass",
+        "country_of_origin": "not_needed",
+        "government_warning": "pass"
+      },
+      "judgments": {
+        "brand_name": "exact",
+        "class_type": "exact",
+        "alcohol_content": "exact",
+        "net_contents": "exact",
+        "bottler_name_address": "exact",
+        "country_of_origin": "exact",
+        "government_warning": "exact"
+      },
+      "seconds": 2.72,
+      "read_by": "ai",
+      "input_tokens": 4739,
+      "output_tokens": 432,
+      "reading_problems": {},
+      "reading": {
+        "brand_name": {
+          "text": "HARBORLUME",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null
+        },
+        "class_type": {
+          "text": "Gold Rum",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null
+        },
+        "alcohol_content": {
+          "text": "40% Alc./Vol. (90 Proof)",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null
+        },
+        "net_contents": {
+          "text": "1 L",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null
+        },
+        "bottler_name_address": {
+          "text": "Bottled by Harborlume Rum Company, Key West, Florida",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null
+        },
+        "country_of_origin": {
+          "text": null,
+          "readability": "not_found",
+          "image_number": null,
+          "english_meaning": null
+        },
+        "government_warning": {
+          "text": "GOVERNMENT WARNING: (1) According to the Surgeon General, women should not drink alcoholic beverages during pregnancy because of the risk of birth defects. (2) Consumption of alcoholic beverages impairs your ability to drive a car or operate machinery, and may cause health problems.",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null,
+          "heading_bold": "yes",
+          "rest_bold": "no"
+        },
+        "image_problems": []
+      }
+    },
+    {
+      "id": "copperfen-vodka-title-case-warning",
+      "photo": null,
+      "got": {
+        "brand_name": "pass",
+        "class_type": "pass",
+        "alcohol_content": "pass",
+        "net_contents": "pass",
+        "bottler_name_address": "pass",
+        "country_of_origin": "not_needed",
+        "government_warning": "fail"
+      },
+      "judgments": {
+        "brand_name": "exact",
+        "class_type": "exact",
+        "alcohol_content": "exact",
+        "net_contents": "exact",
+        "bottler_name_address": "exact",
+        "country_of_origin": "exact",
+        "government_warning": "exact"
+      },
+      "seconds": 5.37,
+      "read_by": "ai",
+      "input_tokens": 4739,
+      "output_tokens": 428,
+      "reading_problems": {},
+      "reading": {
+        "brand_name": {
+          "text": "COPPERFEN",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null
+        },
+        "class_type": {
+          "text": "Vodka",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null
+        },
+        "alcohol_content": {
+          "text": "40% Alc./Vol. (80 Proof)",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null
+        },
+        "net_contents": {
+          "text": "750 mL",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null
+        },
+        "bottler_name_address": {
+          "text": "Distilled and bottled by Copperfen Distilling, Denver, Colorado",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null
+        },
+        "country_of_origin": {
+          "text": null,
+          "readability": "not_found",
+          "image_number": null,
+          "english_meaning": null
+        },
+        "government_warning": {
+          "text": "Government Warning: (1) According to the Surgeon General, women should not drink alcoholic beverages during pregnancy because of the risk of birth defects. (2) Consumption of alcoholic beverages impairs your ability to drive a car or operate machinery, and may cause health problems.",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null,
+          "heading_bold": "yes",
+          "rest_bold": "no"
+        },
+        "image_problems": []
+      }
+    },
+    {
+      "id": "heronmere-gin-warning-wording",
+      "photo": null,
+      "got": {
+        "brand_name": "pass",
+        "class_type": "pass",
+        "alcohol_content": "pass",
+        "net_contents": "pass",
+        "bottler_name_address": "pass",
+        "country_of_origin": "not_needed",
+        "government_warning": "fail"
+      },
+      "judgments": {
+        "brand_name": "exact",
+        "class_type": "exact",
+        "alcohol_content": "exact",
+        "net_contents": "exact",
+        "bottler_name_address": "exact",
+        "country_of_origin": "exact",
+        "government_warning": "exact"
+      },
+      "seconds": 6.2,
+      "read_by": "ai",
+      "input_tokens": 4739,
+      "output_tokens": 425,
+      "reading_problems": {},
+      "reading": {
+        "brand_name": {
+          "text": "HERONMERE",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null
+        },
+        "class_type": {
+          "text": "Dry Gin",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null
+        },
+        "alcohol_content": {
+          "text": "42% Alc./Vol.",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null
+        },
+        "net_contents": {
+          "text": "750 mL",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null
+        },
+        "bottler_name_address": {
+          "text": "Bottled by Heronmere Distillery, Asheville, North Carolina",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null
+        },
+        "country_of_origin": {
+          "text": null,
+          "readability": "not_found",
+          "image_number": null,
+          "english_meaning": null
+        },
+        "government_warning": {
+          "text": "GOVERNMENT WARNING: (1) According to the Surgeon General, women should not drink alcoholic beverages during pregnancy because of the risk of birth defects. (2) Consumption of alcoholic beverages impairs your ability to drive or operate machinery, and may cause health problems.",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null,
+          "heading_bold": "yes",
+          "rest_bold": "no"
+        },
+        "image_problems": []
+      }
+    },
+    {
+      "id": "northvale-whisky-warning-not-bold",
+      "photo": null,
+      "got": {
+        "brand_name": "pass",
+        "class_type": "pass",
+        "alcohol_content": "pass",
+        "net_contents": "pass",
+        "bottler_name_address": "pass",
+        "country_of_origin": "not_needed",
+        "government_warning": "review"
+      },
+      "judgments": {
+        "brand_name": "exact",
+        "class_type": "exact",
+        "alcohol_content": "exact",
+        "net_contents": "exact",
+        "bottler_name_address": "exact",
+        "country_of_origin": "exact",
+        "government_warning": "exact"
+      },
+      "seconds": 2.46,
+      "read_by": "ai",
+      "input_tokens": 4739,
+      "output_tokens": 439,
+      "reading_problems": {
+        "government_warning": [
+          "heading_bold cant_tell, expected no"
+        ]
+      },
+      "reading": {
+        "brand_name": {
+          "text": "NORTHVALE",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null
+        },
+        "class_type": {
+          "text": "American Single Malt Whisky",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null
+        },
+        "alcohol_content": {
+          "text": "43% Alc./Vol. (86 Proof)",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null
+        },
+        "net_contents": {
+          "text": "700 mL",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null
+        },
+        "bottler_name_address": {
+          "text": "Bottled by Northvale Distillers, Spokane, Washington",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null
+        },
+        "country_of_origin": {
+          "text": null,
+          "readability": "not_found",
+          "image_number": null,
+          "english_meaning": null
+        },
+        "government_warning": {
+          "text": "GOVERNMENT WARNING: (1) According to the Surgeon General, women should not drink alcoholic beverages during pregnancy because of the risk of birth defects. (2) Consumption of alcoholic beverages impairs your ability to drive a car or operate machinery, and may cause health problems.",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null,
+          "heading_bold": "cant_tell",
+          "rest_bold": "no"
+        },
+        "image_problems": []
+      }
+    },
+    {
+      "id": "saltreed-vodka-net-contents",
+      "photo": null,
+      "got": {
+        "brand_name": "pass",
+        "class_type": "pass",
+        "alcohol_content": "pass",
+        "net_contents": "fail",
+        "bottler_name_address": "pass",
+        "country_of_origin": "not_needed",
+        "government_warning": "pass"
+      },
+      "judgments": {
+        "brand_name": "exact",
+        "class_type": "exact",
+        "alcohol_content": "exact",
+        "net_contents": "exact",
+        "bottler_name_address": "exact",
+        "country_of_origin": "exact",
+        "government_warning": "exact"
+      },
+      "seconds": 3.77,
+      "read_by": "ai",
+      "input_tokens": 4739,
+      "output_tokens": 424,
+      "reading_problems": {},
+      "reading": {
+        "brand_name": {
+          "text": "SALTREED",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null
+        },
+        "class_type": {
+          "text": "Vodka",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null
+        },
+        "alcohol_content": {
+          "text": "40% Alc./Vol.",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null
+        },
+        "net_contents": {
+          "text": "700 mL",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null
+        },
+        "bottler_name_address": {
+          "text": "Bottled by Saltreed Spirits, Charleston, South Carolina",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null
+        },
+        "country_of_origin": {
+          "text": null,
+          "readability": "not_found",
+          "image_number": null,
+          "english_meaning": null
+        },
+        "government_warning": {
+          "text": "GOVERNMENT WARNING: (1) According to the Surgeon General, women should not drink alcoholic beverages during pregnancy because of the risk of birth defects. (2) Consumption of alcoholic beverages impairs your ability to drive a car or operate machinery, and may cause health problems.",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null,
+          "heading_bold": "yes",
+          "rest_bold": "no"
+        },
+        "image_problems": []
+      }
+    },
+    {
+      "id": "chateau-landrevin-wine",
+      "photo": null,
+      "got": {
+        "brand_name": "review",
+        "class_type": "pass",
+        "alcohol_content": "review",
+        "net_contents": "pass",
+        "bottler_name_address": "pass",
+        "country_of_origin": "pass",
+        "government_warning": "pass"
+      },
+      "judgments": {
+        "brand_name": "exact",
+        "class_type": "exact",
+        "alcohol_content": "exact",
+        "net_contents": "exact",
+        "bottler_name_address": "exact",
+        "country_of_origin": "exact",
+        "government_warning": "exact"
+      },
+      "seconds": 3.08,
+      "read_by": "ai",
+      "input_tokens": 4739,
+      "output_tokens": 469,
+      "reading_problems": {
+        "bottler_name_address": [
+          "text 'Mis en bouteille au château Imported by Landrevin Imports, New York, NY', expected 'Imported by Landrevin Imports, New York, NY'"
+        ]
+      },
+      "reading": {
+        "brand_name": {
+          "text": "CHÂTEAU LANDREVIN",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null
+        },
+        "class_type": {
+          "text": "Bordeaux Red Wine",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null
+        },
+        "alcohol_content": {
+          "text": "13,5% vol",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null
+        },
+        "net_contents": {
+          "text": "750 ml",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null
+        },
+        "bottler_name_address": {
+          "text": "Mis en bouteille au château Imported by Landrevin Imports, New York, NY",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": "Bottled at the château. Imported by Landrevin Imports, New York, NY"
+        },
+        "country_of_origin": {
+          "text": "Product of France",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null
+        },
+        "government_warning": {
+          "text": "GOVERNMENT WARNING: (1) According to the Surgeon General, women should not drink alcoholic beverages during pregnancy because of the risk of birth defects. (2) Consumption of alcoholic beverages impairs your ability to drive a car or operate machinery, and may cause health problems.",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null,
+          "heading_bold": "yes",
+          "rest_bold": "no"
+        },
+        "image_problems": []
+      }
+    },
+    {
+      "id": "tidewick-pale-ale",
+      "photo": null,
+      "got": {
+        "brand_name": "pass",
+        "class_type": "pass",
+        "alcohol_content": "pass",
+        "net_contents": "pass",
+        "bottler_name_address": "pass",
+        "country_of_origin": "not_needed",
+        "government_warning": "pass"
+      },
+      "judgments": {
+        "brand_name": "exact",
+        "class_type": "exact",
+        "alcohol_content": "exact",
+        "net_contents": "exact",
+        "bottler_name_address": "exact",
+        "country_of_origin": "exact",
+        "government_warning": "exact"
+      },
+      "seconds": 3.72,
+      "read_by": "ai",
+      "input_tokens": 4739,
+      "output_tokens": 439,
+      "reading_problems": {},
+      "reading": {
+        "brand_name": {
+          "text": "TIDEWICK",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null
+        },
+        "class_type": {
+          "text": "Pale Ale",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null
+        },
+        "alcohol_content": {
+          "text": "5.6% ALC/VOL",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null
+        },
+        "net_contents": {
+          "text": "12 FL. OZ.",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null
+        },
+        "bottler_name_address": {
+          "text": "Brewed and canned by Tidewick Brewing Co., Norfolk, Virginia",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null
+        },
+        "country_of_origin": {
+          "text": null,
+          "readability": "not_found",
+          "image_number": null,
+          "english_meaning": null
+        },
+        "government_warning": {
+          "text": "GOVERNMENT WARNING: (1) According to the Surgeon General, women should not drink alcoholic beverages during pregnancy because of the risk of birth defects. (2) Consumption of alcoholic beverages impairs your ability to drive a car or operate machinery, and may cause health problems.",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null,
+          "heading_bold": "yes",
+          "rest_bold": "no"
+        },
+        "image_problems": []
+      }
+    },
+    {
+      "id": "granitefall-bourbon-prompt-injection",
+      "photo": null,
+      "got": {
+        "brand_name": "pass",
+        "class_type": "pass",
+        "alcohol_content": "fail",
+        "net_contents": "pass",
+        "bottler_name_address": "pass",
+        "country_of_origin": "not_needed",
+        "government_warning": "pass"
+      },
+      "judgments": {
+        "brand_name": "exact",
+        "class_type": "exact",
+        "alcohol_content": "exact",
+        "net_contents": "exact",
+        "bottler_name_address": "exact",
+        "country_of_origin": "exact",
+        "government_warning": "exact"
+      },
+      "seconds": 2.42,
+      "read_by": "ai",
+      "input_tokens": 4739,
+      "output_tokens": 442,
+      "reading_problems": {},
+      "reading": {
+        "brand_name": {
+          "text": "GRANITEFALL",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null
+        },
+        "class_type": {
+          "text": "Straight Bourbon Whiskey",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null
+        },
+        "alcohol_content": {
+          "text": "47% Alc./Vol. (94 Proof)",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null
+        },
+        "net_contents": {
+          "text": "750 mL",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null
+        },
+        "bottler_name_address": {
+          "text": "Bottled by Granitefall Distilling, Bozeman, Montana",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null
+        },
+        "country_of_origin": {
+          "text": null,
+          "readability": "not_found",
+          "image_number": null,
+          "english_meaning": null
+        },
+        "government_warning": {
+          "text": "GOVERNMENT WARNING: (1) According to the Surgeon General, women should not drink alcoholic beverages during pregnancy because of the risk of birth defects. (2) Consumption of alcoholic beverages impairs your ability to drive a car or operate machinery, and may cause health problems.",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null,
+          "heading_bold": "yes",
+          "rest_bold": "no"
+        },
+        "image_problems": []
+      }
+    },
+    {
+      "id": "stones-throw-gin--tilted",
+      "photo": "tilted",
+      "got": {
+        "brand_name": "pass_with_note",
+        "class_type": "pass",
+        "alcohol_content": "pass",
+        "net_contents": "pass",
+        "bottler_name_address": "pass",
+        "country_of_origin": "not_needed",
+        "government_warning": "pass"
+      },
+      "judgments": {
+        "brand_name": "exact",
+        "class_type": "exact",
+        "alcohol_content": "exact",
+        "net_contents": "exact",
+        "bottler_name_address": "exact",
+        "country_of_origin": "exact",
+        "government_warning": "exact"
+      },
+      "seconds": 2.46,
+      "read_by": "ai",
+      "input_tokens": 4739,
+      "output_tokens": 434,
+      "reading_problems": {},
+      "reading": {
+        "brand_name": {
+          "text": "STONE'S THROW",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null
+        },
+        "class_type": {
+          "text": "London Dry Gin",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null
+        },
+        "alcohol_content": {
+          "text": "47% Alc./Vol.",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null
+        },
+        "net_contents": {
+          "text": "750 mL",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null
+        },
+        "bottler_name_address": {
+          "text": "Distilled and bottled by Stone's Throw Spirits, Portland, Oregon",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null
+        },
+        "country_of_origin": {
+          "text": null,
+          "readability": "not_found",
+          "image_number": null,
+          "english_meaning": null
+        },
+        "government_warning": {
+          "text": "GOVERNMENT WARNING: (1) According to the Surgeon General, women should not drink alcoholic beverages during pregnancy because of the risk of birth defects. (2) Consumption of alcoholic beverages impairs your ability to drive a car or operate machinery, and may cause health problems.",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null,
+          "heading_bold": "yes",
+          "rest_bold": "no"
+        },
+        "image_problems": []
+      }
+    },
+    {
+      "id": "ridgewick-rye-wrong-abv--angled",
+      "photo": "angled",
+      "got": {
+        "brand_name": "pass",
+        "class_type": "pass",
+        "alcohol_content": "fail",
+        "net_contents": "pass",
+        "bottler_name_address": "pass",
+        "country_of_origin": "not_needed",
+        "government_warning": "pass"
+      },
+      "judgments": {
+        "brand_name": "exact",
+        "class_type": "exact",
+        "alcohol_content": "exact",
+        "net_contents": "exact",
+        "bottler_name_address": "exact",
+        "country_of_origin": "exact",
+        "government_warning": "exact"
+      },
+      "seconds": 2.36,
+      "read_by": "ai",
+      "input_tokens": 4739,
+      "output_tokens": 443,
+      "reading_problems": {},
+      "reading": {
+        "brand_name": {
+          "text": "RIDGEWICK",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null
+        },
+        "class_type": {
+          "text": "Straight Rye Whisky",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null
+        },
+        "alcohol_content": {
+          "text": "46% Alc./Vol. (92 Proof)",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null
+        },
+        "net_contents": {
+          "text": "750 mL",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null
+        },
+        "bottler_name_address": {
+          "text": "Bottled by Ridgewick Spirits Co., Lexington, Kentucky",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null
+        },
+        "country_of_origin": {
+          "text": null,
+          "readability": "not_found",
+          "image_number": null,
+          "english_meaning": null
+        },
+        "government_warning": {
+          "text": "GOVERNMENT WARNING: (1) According to the Surgeon General, women should not drink alcoholic beverages during pregnancy because of the risk of birth defects. (2) Consumption of alcoholic beverages impairs your ability to drive a car or operate machinery, and may cause health problems.",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null,
+          "heading_bold": "yes",
+          "rest_bold": "no"
+        },
+        "image_problems": []
+      }
+    },
+    {
+      "id": "heronmere-gin-warning-wording--blurry",
+      "photo": "blurry",
+      "got": {
+        "brand_name": "pass",
+        "class_type": "pass",
+        "alcohol_content": "pass",
+        "net_contents": "pass",
+        "bottler_name_address": "pass",
+        "country_of_origin": "not_needed",
+        "government_warning": "review"
+      },
+      "judgments": {
+        "brand_name": "exact",
+        "class_type": "exact",
+        "alcohol_content": "exact",
+        "net_contents": "exact",
+        "bottler_name_address": "exact",
+        "country_of_origin": "exact",
+        "government_warning": "review_instead_of_fail"
+      },
+      "seconds": 2.56,
+      "read_by": "ai",
+      "input_tokens": 4739,
+      "output_tokens": 433,
+      "reading_problems": {
+        "government_warning": [
+          "readability unclear, expected clear"
+        ]
+      },
+      "reading": {
+        "brand_name": {
+          "text": "HERONMERE",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null
+        },
+        "class_type": {
+          "text": "Dry Gin",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null
+        },
+        "alcohol_content": {
+          "text": "42% Alc./Vol.",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null
+        },
+        "net_contents": {
+          "text": "750 mL",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null
+        },
+        "bottler_name_address": {
+          "text": "Bottled by Heronmere Distillery, Asheville, North Carolina",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null
+        },
+        "country_of_origin": {
+          "text": null,
+          "readability": "not_found",
+          "image_number": null,
+          "english_meaning": null
+        },
+        "government_warning": {
+          "text": "GOVERNMENT WARNING: (1) According to the Surgeon General, women should not drink alcoholic beverages during pregnancy because of the risk of birth defects. (2) Consumption of alcoholic beverages impairs your ability to drive or operate machinery, and may cause health problems.",
+          "readability": "unclear",
+          "image_number": 1,
+          "english_meaning": null,
+          "heading_bold": "yes",
+          "rest_bold": "no"
+        },
+        "image_problems": [
+          "blur",
+          "too_small"
+        ]
+      }
+    },
+    {
+      "id": "copperfen-vodka-title-case-warning--dim",
+      "photo": "dim",
+      "got": {
+        "brand_name": "pass",
+        "class_type": "pass",
+        "alcohol_content": "pass",
+        "net_contents": "pass",
+        "bottler_name_address": "pass",
+        "country_of_origin": "not_needed",
+        "government_warning": "fail"
+      },
+      "judgments": {
+        "brand_name": "exact",
+        "class_type": "exact",
+        "alcohol_content": "exact",
+        "net_contents": "exact",
+        "bottler_name_address": "exact",
+        "country_of_origin": "exact",
+        "government_warning": "exact"
+      },
+      "seconds": 2.33,
+      "read_by": "ai",
+      "input_tokens": 4739,
+      "output_tokens": 428,
+      "reading_problems": {},
+      "reading": {
+        "brand_name": {
+          "text": "COPPERFEN",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null
+        },
+        "class_type": {
+          "text": "Vodka",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null
+        },
+        "alcohol_content": {
+          "text": "40% Alc./Vol. (80 Proof)",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null
+        },
+        "net_contents": {
+          "text": "750 mL",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null
+        },
+        "bottler_name_address": {
+          "text": "Distilled and bottled by Copperfen Distilling, Denver, Colorado",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null
+        },
+        "country_of_origin": {
+          "text": null,
+          "readability": "not_found",
+          "image_number": null,
+          "english_meaning": null
+        },
+        "government_warning": {
+          "text": "Government Warning: (1) According to the Surgeon General, women should not drink alcoholic beverages during pregnancy because of the risk of birth defects. (2) Consumption of alcoholic beverages impairs your ability to drive a car or operate machinery, and may cause health problems.",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null,
+          "heading_bold": "yes",
+          "rest_bold": "no"
+        },
+        "image_problems": []
+      }
+    },
+    {
+      "id": "saltreed-vodka-net-contents--glare",
+      "photo": "glare",
+      "got": {
+        "brand_name": "pass",
+        "class_type": "pass",
+        "alcohol_content": "review",
+        "net_contents": "fail",
+        "bottler_name_address": "pass",
+        "country_of_origin": "not_needed",
+        "government_warning": "pass"
+      },
+      "judgments": {
+        "brand_name": "exact",
+        "class_type": "exact",
+        "alcohol_content": "extra_review",
+        "net_contents": "exact",
+        "bottler_name_address": "exact",
+        "country_of_origin": "exact",
+        "government_warning": "exact"
+      },
+      "seconds": 3.83,
+      "read_by": "ai",
+      "input_tokens": 4739,
+      "output_tokens": 425,
+      "reading_problems": {
+        "alcohol_content": [
+          "readability unclear, expected clear"
+        ]
+      },
+      "reading": {
+        "brand_name": {
+          "text": "SALTREED",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null
+        },
+        "class_type": {
+          "text": "Vodka",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null
+        },
+        "alcohol_content": {
+          "text": "40% Alc./Vol.",
+          "readability": "unclear",
+          "image_number": 1,
+          "english_meaning": null
+        },
+        "net_contents": {
+          "text": "700 mL",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null
+        },
+        "bottler_name_address": {
+          "text": "Bottled by Saltreed Spirits, Charleston, South Carolina",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null
+        },
+        "country_of_origin": {
+          "text": null,
+          "readability": "not_found",
+          "image_number": null,
+          "english_meaning": null
+        },
+        "government_warning": {
+          "text": "GOVERNMENT WARNING: (1) According to the Surgeon General, women should not drink alcoholic beverages during pregnancy because of the risk of birth defects. (2) Consumption of alcoholic beverages impairs your ability to drive a car or operate machinery, and may cause health problems.",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null,
+          "heading_bold": "yes",
+          "rest_bold": "no"
+        },
+        "image_problems": []
+      }
+    },
+    {
+      "id": "tidewick-pale-ale--far",
+      "photo": "far",
+      "got": {
+        "brand_name": "pass",
+        "class_type": "pass",
+        "alcohol_content": "pass",
+        "net_contents": "pass",
+        "bottler_name_address": "pass",
+        "country_of_origin": "not_needed",
+        "government_warning": "pass"
+      },
+      "judgments": {
+        "brand_name": "exact",
+        "class_type": "exact",
+        "alcohol_content": "exact",
+        "net_contents": "exact",
+        "bottler_name_address": "exact",
+        "country_of_origin": "exact",
+        "government_warning": "exact"
+      },
+      "seconds": 2.25,
+      "read_by": "ai",
+      "input_tokens": 4739,
+      "output_tokens": 443,
+      "reading_problems": {},
+      "reading": {
+        "brand_name": {
+          "text": "TIDEWICK",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null
+        },
+        "class_type": {
+          "text": "Pale Ale",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null
+        },
+        "alcohol_content": {
+          "text": "5.6% ALC/VOL",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null
+        },
+        "net_contents": {
+          "text": "12 FL. OZ.",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null
+        },
+        "bottler_name_address": {
+          "text": "Brewed and canned by Tidewick Brewing Co., Norfolk, Virginia",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null
+        },
+        "country_of_origin": {
+          "text": null,
+          "readability": "not_found",
+          "image_number": null,
+          "english_meaning": null
+        },
+        "government_warning": {
+          "text": "GOVERNMENT WARNING: (1) According to the Surgeon General, women should not drink alcoholic beverages during pregnancy because of the risk of birth defects. (2) Consumption of alcoholic beverages impairs your ability to drive a car or operate machinery, and may cause health problems.",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null,
+          "heading_bold": "yes",
+          "rest_bold": "no"
+        },
+        "image_problems": [
+          "too_small"
+        ]
+      }
+    },
+    {
+      "id": "northvale-whisky-warning-not-bold--tilted",
+      "photo": "tilted",
+      "got": {
+        "brand_name": "pass",
+        "class_type": "pass",
+        "alcohol_content": "pass",
+        "net_contents": "pass",
+        "bottler_name_address": "pass",
+        "country_of_origin": "not_needed",
+        "government_warning": "review"
+      },
+      "judgments": {
+        "brand_name": "exact",
+        "class_type": "exact",
+        "alcohol_content": "exact",
+        "net_contents": "exact",
+        "bottler_name_address": "exact",
+        "country_of_origin": "exact",
+        "government_warning": "exact"
+      },
+      "seconds": 2.03,
+      "read_by": "ai",
+      "input_tokens": 4739,
+      "output_tokens": 443,
+      "reading_problems": {
+        "government_warning": [
+          "heading_bold cant_tell, expected no",
+          "rest_bold cant_tell, expected no"
+        ]
+      },
+      "reading": {
+        "brand_name": {
+          "text": "NORTHVALE",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null
+        },
+        "class_type": {
+          "text": "American Single Malt Whisky",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null
+        },
+        "alcohol_content": {
+          "text": "43% Alc./Vol. (86 Proof)",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null
+        },
+        "net_contents": {
+          "text": "700 mL",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null
+        },
+        "bottler_name_address": {
+          "text": "Bottled by Northvale Distillers, Spokane, Washington",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null
+        },
+        "country_of_origin": {
+          "text": null,
+          "readability": "not_found",
+          "image_number": null,
+          "english_meaning": null
+        },
+        "government_warning": {
+          "text": "GOVERNMENT WARNING: (1) According to the Surgeon General, women should not drink alcoholic beverages during pregnancy because of the risk of birth defects. (2) Consumption of alcoholic beverages impairs your ability to drive a car or operate machinery, and may cause health problems.",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null,
+          "heading_bold": "cant_tell",
+          "rest_bold": "cant_tell"
+        },
+        "image_problems": []
+      }
+    },
+    {
+      "id": "harborlume-rum-proof--glare",
+      "photo": "glare",
+      "got": {
+        "brand_name": "pass",
+        "class_type": "pass",
+        "alcohol_content": "fail",
+        "net_contents": "pass",
+        "bottler_name_address": "pass",
+        "country_of_origin": "not_needed",
+        "government_warning": "pass"
+      },
+      "judgments": {
+        "brand_name": "exact",
+        "class_type": "exact",
+        "alcohol_content": "exact",
+        "net_contents": "exact",
+        "bottler_name_address": "exact",
+        "country_of_origin": "exact",
+        "government_warning": "exact"
+      },
+      "seconds": 2.46,
+      "read_by": "ai",
+      "input_tokens": 4739,
+      "output_tokens": 432,
+      "reading_problems": {},
+      "reading": {
+        "brand_name": {
+          "text": "HARBORLUME",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null
+        },
+        "class_type": {
+          "text": "Gold Rum",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null
+        },
+        "alcohol_content": {
+          "text": "40% Alc./Vol. (90 Proof)",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null
+        },
+        "net_contents": {
+          "text": "1 L",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null
+        },
+        "bottler_name_address": {
+          "text": "Bottled by Harborlume Rum Company, Key West, Florida",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null
+        },
+        "country_of_origin": {
+          "text": null,
+          "readability": "not_found",
+          "image_number": null,
+          "english_meaning": null
+        },
+        "government_warning": {
+          "text": "GOVERNMENT WARNING: (1) According to the Surgeon General, women should not drink alcoholic beverages during pregnancy because of the risk of birth defects. (2) Consumption of alcoholic beverages impairs your ability to drive a car or operate machinery, and may cause health problems.",
+          "readability": "clear",
+          "image_number": 1,
+          "english_meaning": null,
+          "heading_bold": "yes",
+          "rest_bold": "no"
+        },
+        "image_problems": []
+      }
+    }
+  ],
+  "measured_at": "2026-10-19T08:00:58",
+  "commit": "7283a69",
+  "summary": {
+    "labels": 19,
+    "errors": 0,
+    "fields": 133,
+    "judgments": {
+      "exact": 131,
+      "review_instead_of_fail": 1,
+      "extra_review": 1
+    },
+    "clean_labels_all_exact": 11,
+    "clean_labels": 11,
+    "photo_fields_acceptable": 56,
+    "photo_fields": 56,
+    "false_passes": [],
+    "false_fails": [],
+    "read_by_ocr": 0,
+    "seconds": {
+      "median": 2.46,
+      "p95": 6.2,
+      "max": 6.2,
+      "under_5_seconds": 17,
+      "timed": 19
+    },
+    "clean_fields_read_exactly": 75,
+    "clean_fields_read": 77,
+    "cost_usd": 0.0134
+  }
+}
