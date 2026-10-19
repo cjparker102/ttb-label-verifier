@@ -117,7 +117,8 @@ up to date as of Oct 15, 2026). The rules differ by beverage type:
 ## What the agent sees
 
 - **One row per field,** with Matches, Check this, Problem, or Not needed, and one plain
-  sentence saying why. In a batch, labels with problems come first.
+  sentence saying why. Fields to look at come first; fields that match are folded away. In a
+  batch, labels with problems come first.
 - **The warning's wording differences** are shown like tracked changes: missing words struck
   through, extra words underlined, so the agent doesn't have to compare two paragraphs by eye.
 - **Each field lists the rules it was checked against,** with links to the eCFR paragraphs.
@@ -187,6 +188,10 @@ Everything skipped is listed with the reason.
 
 In the first real batch run, 11 sample labels finished in 5.8 seconds, and all 77 field
 results matched the expected results (`docs/measurements/batch-smoke-2026-10-19.md`).
+
+A batch upload can be up to 200 MB. Azure doesn't document a size limit for its front door,
+so a 200 MB batch was sent to the live app: Azure let it through, it uploaded and unpacked
+in 13 seconds, and the batch finished (`docs/measurements/large-upload-2026-10-19.md`).
 
 ## Limits and spending
 
