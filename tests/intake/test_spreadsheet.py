@@ -148,3 +148,16 @@ def test_too_many_rows():
 def test_unusable_files_say_why(name, data, message):
     with pytest.raises(SpreadsheetError, match=message):
         read_spreadsheet(name, data)
+
+
+def test_reading_uploaded_spreadsheets_writes_nothing_to_disk():
+    from tests.disk_watch import watch_disk_writes
+
+    excel = xlsx_bytes([HEADINGS, *([OLD_TOM] * 50)], percent_cells=["E2"])
+    text = csv_bytes([HEADINGS, *([OLD_TOM] * 50)])
+    read_spreadsheet("batch.xlsx", excel)  # warm-up: loads any lazy imports
+    read_spreadsheet("batch.csv", text)
+    with watch_disk_writes() as writes:
+        assert len(read_spreadsheet("batch.xlsx", excel)) == 50
+        assert len(read_spreadsheet("batch.csv", text)) == 50
+    assert list(writes) == []

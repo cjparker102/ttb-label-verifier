@@ -12,6 +12,7 @@ dependencies = [
     "pillow>=13.0.0",
     "python-multipart>=0.0.32",
     "uvicorn>=0.54.0",
+    "xlsxwriter>=3.2.9",
 ]
 
 [dependency-groups]
