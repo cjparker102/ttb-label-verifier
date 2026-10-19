@@ -108,3 +108,10 @@ def test_bottler_name_containing_by_is_not_cut():
 
 def test_bottler_missing_from_label_fails():
     assert check_bottler("Old Tom Distillery", read(None)).status == Status.FAIL
+
+
+def test_bottled_for_counts_as_a_lead_in():
+    result = check_bottler(
+        "Landrevin Imports, New York, NY", read("Bottled for Landrevin Imports, New York, NY")
+    )
+    assert result.status == Status.PASS

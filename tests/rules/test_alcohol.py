@@ -83,3 +83,8 @@ def test_missing_from_both_is_not_needed():
 )
 def test_needs_review(application, label):
     assert check_alcohol(application, label).status == Status.REVIEW
+
+
+def test_label_may_leave_out_alcohol_when_rules_allow_it():
+    result = check_alcohol("12%", read(None), optional_on_label=True)
+    assert result.status == Status.NOT_NEEDED

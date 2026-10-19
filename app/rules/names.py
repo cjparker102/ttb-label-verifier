@@ -15,8 +15,9 @@ from app.rules.text import (
     without_accents,
 )
 
-# Words such as "Bottled by", "Distilled and bottled by", or "Imported by" at the start.
-LEAD_IN = re.compile(r"^\s*(?:[^\W\d_]+[\s,&]+){1,6}?by\b\s*:?\s*", re.IGNORECASE)
+# Words such as "Bottled by", "Distilled and bottled by", "Imported by", or
+# "Bottled for" at the start.
+LEAD_IN = re.compile(r"^\s*(?:[^\W\d_]+[\s,&]+){1,6}?(?:by|for)\b\s*:?\s*", re.IGNORECASE)
 
 
 def check_name(what: str, application: str, label: FieldReading) -> Check:

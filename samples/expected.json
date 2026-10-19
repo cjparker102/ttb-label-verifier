@@ -386,7 +386,7 @@
   },
   {
     "id": "chateau-landrevin-wine",
-    "planted": "Imported French wine. Brand has an accent the application leaves out; decimal comma in 13,5% vol; French phrase near the importer statement.",
+    "planted": "Imported French wine. Brand has an accent the application leaves out; \"13,5% vol\" matches 13.5% but is not in a TTB form (27 CFR 4.36(b)); French phrase near the importer statement.",
     "beverage_type": "Wine",
     "images": [
       "chateau-landrevin-wine.png"
@@ -425,7 +425,7 @@
     "expected": {
       "brand_name": "review",
       "class_type": "pass",
-      "alcohol_content": "pass",
+      "alcohol_content": "review",
       "net_contents": "pass",
       "bottler_name_address": "pass",
       "country_of_origin": "pass",

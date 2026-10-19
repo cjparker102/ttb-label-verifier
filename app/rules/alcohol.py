@@ -59,13 +59,20 @@ def parse_alcohol(text: str) -> AlcoholStatement:
     raise CannotParse("no alcohol figure")
 
 
-def check_alcohol(application: str, label: FieldReading) -> Check:
+def check_alcohol(application: str, label: FieldReading, optional_on_label: bool = False) -> Check:
+    """Compare the alcohol content. `optional_on_label` is set when TTB rules let
+    this product's label leave the alcohol content out."""
     said = tidy(application)
     if is_missing(label):
         if not said:
             return Check(
                 Status.NOT_NEEDED,
                 "Neither the application nor the label states the alcohol content.",
+            )
+        if optional_on_label:
+            return Check(
+                Status.NOT_NEEDED,
+                f'The application says "{said}", but this label may leave the alcohol content out.',
             )
         return Check(
             Status.FAIL,

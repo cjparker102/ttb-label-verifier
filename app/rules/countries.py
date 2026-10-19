@@ -186,6 +186,18 @@ def find_countries(text: str) -> list[tuple[str, str]]:
     return [(country, name) for country, name in found.items() if country not in parents]
 
 
+def is_us(country: str) -> bool:
+    return country == "United States" or PARENTS.get(country) == "United States"
+
+
+def is_domestic(country_text: str) -> bool:
+    """True when no country is given, or it is the United States or a US territory."""
+    if not tidy(country_text):
+        return True
+    found = find_countries(country_text)
+    return len(found) == 1 and is_us(found[0][0])
+
+
 def check_country(application: str, label: FieldReading) -> Check:
     said = tidy(application)
     if is_missing(label):
@@ -193,6 +205,12 @@ def check_country(application: str, label: FieldReading) -> Check:
             return Check(
                 Status.NOT_NEEDED,
                 "The application lists no country of origin, so this is a domestic product.",
+            )
+        if is_domestic(said):
+            return Check(
+                Status.NOT_NEEDED,
+                f"The application says {said}, so this is a domestic product and needs no "
+                "country of origin on the label.",
             )
         return Check(
             Status.FAIL,
@@ -223,7 +241,7 @@ def check_country(application: str, label: FieldReading) -> Check:
     label_country, label_name = on_label[0]
 
     if not said:
-        if label_country == "United States" or PARENTS.get(label_country) == "United States":
+        if is_us(label_country):
             return Check(Status.NOT_NEEDED, f'Domestic product. The label says "{shown}".')
         return Check(
             Status.REVIEW,

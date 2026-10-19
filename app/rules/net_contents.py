@@ -37,7 +37,8 @@ class CannotParse(ValueError):
 @dataclass(frozen=True)
 class Volume:
     ml: Decimal
-    units: tuple[str, ...]  # the units written, such as ("pint", "fl oz")
+    units: tuple[str, ...]  # the units counted, such as ("pint", "fl oz")
+    all_units: tuple[str, ...]  # every unit written, including any not counted
 
 
 def to_number(text: str) -> Decimal:
@@ -57,7 +58,11 @@ def parse_volume(text: str) -> Volume:
     amounts = metric or us
     if not amounts:
         raise CannotParse("no amount with a unit")
-    return Volume(ml=sum(ml for _, ml in amounts), units=tuple(name for name, _ in amounts))
+    return Volume(
+        ml=sum(ml for _, ml in amounts),
+        units=tuple(name for name, _ in amounts),
+        all_units=tuple(name for name, _ in metric + us),
+    )
 
 
 def show_ml(ml: Decimal) -> str:

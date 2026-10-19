@@ -65,7 +65,7 @@ def test_label_status_is_the_worst_field_and_counts_add_up():
     entry = next(e for e in EXPECTED if e["id"] == "chateau-landrevin-wine")
     result = check_label(application_for(entry["id"]), perfect_reading(entry["truth"]))
     assert result.status == Status.REVIEW
-    assert result.counts[Status.REVIEW] == 1
+    assert result.counts[Status.REVIEW] == 2  # accented brand, alcohol statement form
     assert sum(result.counts.values()) == 7
 
 

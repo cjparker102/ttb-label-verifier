@@ -93,3 +93,8 @@ def test_import_missing_its_country_fails():
 )
 def test_needs_review(application, label):
     assert check(application, label).status == Status.REVIEW
+
+
+def test_domestic_application_needs_no_country_on_the_label():
+    for said in ("USA", "United States", "Puerto Rico"):
+        assert check(said, read(None)).status == Status.NOT_NEEDED

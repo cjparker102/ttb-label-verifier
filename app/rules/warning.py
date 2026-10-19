@@ -4,7 +4,9 @@ import re
 from difflib import SequenceMatcher
 
 from app.reading.schema import BoldLook, WarningReading
-from app.rules.results import Check, Citation, Status, WordChange
+from app.rules.citations import WARNING_FORMAT as WARNING_FORMAT_RULE
+from app.rules.citations import WARNING_TEXT as WARNING_TEXT_RULE
+from app.rules.results import Check, Status, WordChange
 from app.rules.text import is_missing, is_unclear, tidy
 
 # 27 CFR 16.21, https://www.ecfr.gov/current/title-27/section-16.21
@@ -18,18 +20,9 @@ GOVERNMENT_WARNING = (
     "operate machinery, and may cause health problems."
 )
 
-WARNING_TEXT_RULE = Citation(
-    "27 CFR 16.21", "https://www.ecfr.gov/current/title-27/section-16.21", "2026-10-19"
-)
 # 16.22(a)(2): "The first two words of the statement required by § 16.21, i.e.,
 # "GOVERNMENT WARNING," shall appear in capital letters and in bold type. The
 # remainder of the warning statement may not appear in bold type."
-WARNING_FORMAT_RULE = Citation(
-    "27 CFR 16.22(a)(2)",
-    "https://www.ecfr.gov/current/title-27/section-16.22#p-16.22(a)(2)",
-    "2026-10-19",
-)
-
 HEADING = "GOVERNMENT WARNING"
 HEADING_ANYWHERE = re.compile(r"government\s+warning", re.IGNORECASE)
 

@@ -10,6 +10,7 @@ from app.rules.countries import check_country
 from app.rules.names import check_bottler, check_name
 from app.rules.net_contents import check_net_contents
 from app.rules.results import Check, Status, worst
+from app.rules.ttb import alcohol_may_be_left_out, ttb_checks
 from app.rules.warning import GOVERNMENT_WARNING, check_warning
 
 
@@ -45,11 +46,16 @@ class LabelResult:
 
 
 def check_label(application: Application, reading: LabelReading) -> LabelResult:
+    """Match checks first, then the TTB rule checks for the same field."""
+    rules = ttb_checks(application, reading)
+
     def field(name: str, title: str, said: str, checks: list[Check]) -> FieldResult:
         label = getattr(reading, name)
+        checks = checks + rules.get(name, [])
         return FieldResult(name, title, said, label.text, label.image_number, tuple(checks))
 
     a, r = application, reading
+    alcohol_optional = alcohol_may_be_left_out(a.beverage_type, r)
     return LabelResult(
         (
             field(
@@ -68,7 +74,7 @@ def check_label(application: Application, reading: LabelReading) -> LabelResult:
                 "alcohol_content",
                 "Alcohol content",
                 a.alcohol_content,
-                [check_alcohol(a.alcohol_content, r.alcohol_content)],
+                [check_alcohol(a.alcohol_content, r.alcohol_content, alcohol_optional)],
             ),
             field(
                 "net_contents",
