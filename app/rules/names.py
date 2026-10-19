@@ -67,6 +67,22 @@ def strip_lead_in(text: str) -> str:
     return LEAD_IN.sub("", tidy(text), count=1)
 
 
+def statements(text: str) -> list[str]:
+    """A bottler field split into its statements. Labels often carry more than one,
+    such as "Distilled by ..." and "Bottled by ...", or a French "Mis en bouteille au
+    château" next to "Imported by ...". A statement starts at the nearest capitalized
+    word within three words before "by" or "for"."""
+    words = tidy(text).split()
+    starts = {0}
+    for i, word in enumerate(words):
+        if word.casefold() in ("by", "for", "by:", "for:"):
+            capitalized = [j for j in range(max(0, i - 3), i) if words[j][:1].isupper()]
+            if capitalized:
+                starts.add(capitalized[-1])
+    bounds = sorted(starts) + [len(words)]
+    return [" ".join(words[a:b]) for a, b in zip(bounds, bounds[1:], strict=False) if a < b]
+
+
 def check_bottler(application: str, label: FieldReading) -> Check:
     """Compare the bottler or importer name and address, ignoring words like "Bottled by"."""
     what = "bottler name and address"
@@ -83,6 +99,14 @@ def check_bottler(application: str, label: FieldReading) -> Check:
             f"Part of the {what} is hard to read on the label. Please check it by eye.",
         )
     result = compare_names(what, said, shown)
+    if result.status == Status.PASS:
+        return result
+    parts = statements(label.text or "")
+    if len(parts) > 1:
+        for part in parts:
+            part_result = compare_names(what, said, strip_lead_in(part))
+            if part_result.status == Status.PASS:
+                return part_result
     if result.status != Status.FAIL:
         return result
     said_name, shown_name = said.split(",")[0], shown.split(",")[0]

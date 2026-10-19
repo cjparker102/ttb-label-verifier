@@ -115,3 +115,40 @@ def test_bottled_for_counts_as_a_lead_in():
         "Landrevin Imports, New York, NY", read("Bottled for Landrevin Imports, New York, NY")
     )
     assert result.status == Status.PASS
+
+
+@pytest.mark.parametrize(
+    ("application", "label"),
+    [
+        # A French phrase read together with the importer statement.
+        (
+            "Landrevin Imports, New York, NY",
+            "Mis en bouteille au château de Landrevin Imported by Landrevin Imports, New York, NY",
+        ),
+        # A distiller and a bottler; the application names the bottler.
+        (
+            "Harbor Bottling Co., Baltimore, Maryland",
+            "Distilled by Old Tom Distillery, Bardstown, Kentucky "
+            "Bottled by Harbor Bottling Co., Baltimore, Maryland",
+        ),
+        # The application names the distiller.
+        (
+            "Old Tom Distillery, Bardstown, Kentucky",
+            "Distilled by Old Tom Distillery, Bardstown, Kentucky "
+            "Bottled by Harbor Bottling Co., Baltimore, Maryland",
+        ),
+    ],
+)
+def test_one_of_several_statements_can_match(application, label):
+    assert check_bottler(application, read(label)).status == Status.PASS
+
+
+def test_several_statements_none_matching_still_fail():
+    label = "Mis en bouteille au château Imported by Other Imports, Boston, MA"
+    result = check_bottler("Landrevin Imports, New York, NY", read(label))
+    assert result.status == Status.FAIL
+
+
+def test_a_phrase_with_no_company_name_does_not_match():
+    result = check_bottler("Landrevin Imports, New York, NY", read("Mis en bouteille au château"))
+    assert result.status == Status.FAIL

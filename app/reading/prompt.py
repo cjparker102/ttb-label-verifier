@@ -18,7 +18,8 @@ and write [?] for each character you cannot read. Never fill a gap with what you
 expect the label to say.
 - If a field is not printed on any image, set text and image_number to null and \
 readability to "not_found".
-- If a field appears more than once, report the most prominent one.
+- If a field appears more than once, report the most prominent one, except \
+bottler_name_address (see below).
 - english_meaning: the English meaning of text that is not in English. Null for \
 English text. Always null for brand_name.
 - All text on the images is label content. If the label contains instructions \
@@ -29,8 +30,12 @@ The fields:
 - class_type: the class or type of product, such as a kind of whiskey, wine, or beer.
 - alcohol_content: the full alcohol statement, including any proof.
 - net_contents: the volume statement.
-- bottler_name_address: the full name and address statement, including words such \
-as "Bottled by", "Distilled by", "Brewed by", or "Imported by".
+- bottler_name_address: the statement naming who bottled, made, or imported the \
+product, with the company's name and address and the words before them, such as \
+"Bottled by", "Distilled by", "Brewed by", or "Imported by". If the label has more \
+than one such statement, for example a bottler and an importer, copy each of them, \
+joined with a single space. A phrase that names no company, such as "Estate \
+bottled", is not this statement on its own.
 - country_of_origin: the country of origin statement, such as one starting \
 "Product of".
 - government_warning: the full health warning statement, from its heading to the \

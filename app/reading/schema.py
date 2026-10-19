@@ -73,8 +73,8 @@ class LabelReading(BaseModel):
     net_contents: FieldReading
     bottler_name_address: FieldReading = Field(
         description=(
-            "The full name and address statement, including words such as "
-            '"Bottled by" or "Imported by".'
+            "Each statement naming who bottled, made, or imported the product, with the "
+            'company\'s name and address and words such as "Bottled by" or "Imported by".'
         )
     )
     country_of_origin: FieldReading = Field(
