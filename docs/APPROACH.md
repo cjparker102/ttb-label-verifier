@@ -58,7 +58,8 @@ marks the field unclear, which can only lead to "Check this".
   evaluation on 31 labels, 8 of them photo-like, then confirmed both settings
   ([EVALUATION.md](EVALUATION.md)).
 - **Several pictures per label** (front, back, neck) are read together, so a warning on the back
-  label counts. A label can have up to 8 pictures.
+  label counts. A single check takes up to 6 files, and up to 8 pictures once PDF and TIFF
+  pages are counted.
 - **File types:** JPEG, PNG, WebP, GIF, HEIC (iPhone photos), TIFF, and PDF. Each page of a PDF
   or multi-page TIFF counts as a picture, up to 4 pages.
 

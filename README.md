@@ -32,7 +32,8 @@ Ordinary, tested Python code compares the reading with the application and appli
 rules. Every TTB check cites the eCFR paragraph it comes from.
 
 See [docs/APPROACH.md](docs/APPROACH.md) for the approach, the rules, the assumptions, and the
-limits.
+limits, and [docs/ACCESSIBILITY.md](docs/ACCESSIBILITY.md) for how the pages are made easy to
+use and what was checked.
 
 ## Accuracy and speed
 
@@ -125,7 +126,7 @@ app/
 tools/             sample label generator, evaluation, and timing scripts
 samples/           sample labels, applications, expected results
 tests/
-docs/              approach, evaluation, deployment, measurements
+docs/              approach, evaluation, accessibility, deployment, measurements
 ```
 
 ## Deployment
