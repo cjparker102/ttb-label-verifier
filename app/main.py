@@ -18,7 +18,7 @@ from starlette.exceptions import HTTPException
 from starlette.formparsers import MultiPartParser
 
 from app.batch import BatchStore, new_job, run_job
-from app.checking import LabelReader, NotAnImage, check_one
+from app.checking import LabelReader, NoReader, NotAnImage, check_one
 from app.config import load_settings
 from app.export import results_workbook
 from app.intake.archives import MAX_PICTURES, ArchiveError, collect_pictures
@@ -27,7 +27,8 @@ from app.intake.matching import match_rows
 from app.intake.spreadsheet import HEADINGS, SpreadsheetError, read_spreadsheet
 from app.limits import Limits, RequestSizeLimit, SecurityHeaders, visitor_id
 from app.presenting import BEVERAGE_CHOICES, TEXT_FIELDS, batch_view, data_uri, results_view
-from app.reading.claude import ClaudeReader, ReadingFailed
+from app.reading.claude import ClaudeReader
+from app.reading.ocr import tesseract_available
 from app.rules.application import Application, BeverageType
 
 HERE = Path(__file__).resolve().parent
@@ -62,7 +63,10 @@ templates = Jinja2Templates(directory=HERE / "templates")
 
 
 def get_reader() -> LabelReader | None:
-    """The Claude reader, or None if this server has no Anthropic credentials."""
+    """The Claude reader, or None if this server is set to basic text reading only or
+    has no Anthropic credentials."""
+    if settings.reader == "ocr":
+        return None
     if not hasattr(app.state, "reader"):
         try:
             client = anthropic.AsyncAnthropic(max_retries=1, timeout=30)
@@ -72,6 +76,14 @@ def get_reader() -> LabelReader | None:
             client, thinking=settings.thinking, effort=settings.effort, model=settings.model
         )
     return app.state.reader
+
+
+def can_read(reader: LabelReader | None) -> bool:
+    return reader is not None or (settings.ocr_fallback and tesseract_available())
+
+
+NOT_SET_UP = "The label reader is not set up on this server. Please tell the administrator."
+COULD_NOT_READ = "The label could not be read just now. Please try again in a moment."
 
 
 def visitor(request: Request) -> str:
@@ -130,10 +142,8 @@ async def check(request: Request, reader: Annotated[LabelReader | None, Depends(
     for upload in uploads:
         if (upload.size or 0) > settings.max_image_bytes:
             errors.append(f'"{upload.filename}" is larger than {max_mb} MB.')
-    if reader is None:
-        errors.append(
-            "The label reader is not set up on this server. Please tell the administrator."
-        )
+    if not can_read(reader):
+        errors.append(NOT_SET_UP)
     if errors:
         if uploads:
             errors.append(
@@ -153,7 +163,9 @@ async def check(request: Request, reader: Annotated[LabelReader | None, Depends(
     application = Application(beverage_type, **{f.name: values[f.name] for f in TEXT_FIELDS})
 
     try:
-        outcome = await check_one(application, images, reader, settings.max_image_edge)
+        outcome = await check_one(
+            application, images, reader, settings.max_image_edge, settings.ocr_fallback
+        )
     except NotAnImage as error:
         return page(
             request,
@@ -161,19 +173,8 @@ async def check(request: Request, reader: Annotated[LabelReader | None, Depends(
             errors=[f"{error} Please choose a JPEG, PNG, WebP, or GIF picture."],
             form=values,
         )
-    except (ReadingFailed, anthropic.APIError) as error:
-        log.warning(
-            "Label reading failed: %s status=%s request_id=%s",
-            type(error).__name__,
-            getattr(error, "status_code", None),
-            getattr(error, "request_id", None),
-        )
-        return page(
-            request,
-            503,
-            errors=["The label reader could not read this label just now. Please try again."],
-            form=values,
-        )
+    except NoReader:
+        return page(request, 503, errors=[COULD_NOT_READ], form=values)
 
     previews = [
         data_uri(await asyncio.to_thread(shrink_to_jpeg, image, PREVIEW_EDGE))
@@ -232,10 +233,8 @@ async def start_batch(request: Request, reader: Annotated[LabelReader | None, De
         errors.append("Add the spreadsheet of applications.")
     if not uploads:
         errors.append("Add the label pictures, or a ZIP file of them.")
-    if reader is None:
-        errors.append(
-            "The label reader is not set up on this server. Please tell the administrator."
-        )
+    if not can_read(reader):
+        errors.append(NOT_SET_UP)
     if errors:
         await form.close()
         return page(request, 422, errors=errors)
@@ -264,6 +263,7 @@ async def start_batch(request: Request, reader: Annotated[LabelReader | None, De
             settings.max_image_edge,
             request.app.state.batch_concurrency,
             request.app.state.one_batch_at_a_time,
+            ocr_fallback=settings.ocr_fallback,
         )
     )
     return RedirectResponse(f"/batches/{job.id}", status_code=303)

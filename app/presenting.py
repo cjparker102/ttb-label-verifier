@@ -122,6 +122,7 @@ def item_view(item: BatchItem) -> dict:
         "brand": item.brand or "(no brand name)",
         "files": ", ".join(item.file_names),
         "has_preview": item.preview is not None,
+        "read_by_ocr": False,
         "reasons": [],
         "fields": [],
     }
@@ -139,6 +140,7 @@ def item_view(item: BatchItem) -> dict:
     lines = summary(result.counts)
     return {
         **view,
+        "read_by_ocr": item.outcome.read_by == "ocr",
         "kind": lines[0]["css"],
         "icon": lines[0]["icon"],
         "word": " / ".join(line["text"] for line in lines),
@@ -189,6 +191,7 @@ def batch_view(job: BatchJob) -> dict:
         # While a batch runs, show only the problems found so far, to keep updates small.
         "items": items if finished else [v for v in items if v["kind"] not in ("pass", "waiting")],
         "passed_so_far": count["pass"],
+        "read_by_ocr": sum(1 for view in items if view["read_by_ocr"]),
         "skipped": job.skipped_files,
         "unused": job.unused_pictures,
     }

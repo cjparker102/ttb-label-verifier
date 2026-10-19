@@ -13,13 +13,10 @@ import time
 from dataclasses import dataclass, field
 from enum import StrEnum
 
-import anthropic
-
-from app.checking import CheckOutcome, LabelReader, NotAnImage, check_one
+from app.checking import CheckOutcome, LabelReader, NoReader, NotAnImage, check_one
 from app.intake.archives import Skipped
 from app.intake.images import shrink_to_jpeg
 from app.intake.matching import MatchedRow
-from app.reading.claude import ReadingFailed
 from app.rules.application import Application
 
 PREVIEW_EDGE = 320
@@ -90,19 +87,15 @@ def new_job(matched: list[MatchedRow], skipped: list[Skipped], unused: list[str]
     return BatchJob(secrets.token_urlsafe(16), items, skipped, unused, work=work)
 
 
-async def check_item(work: Work, reader: LabelReader, max_edge: int) -> None:
+async def check_item(
+    work: Work, reader: LabelReader | None, max_edge: int, ocr_fallback: bool
+) -> None:
     item = work.item
     try:
-        outcome = await check_one(work.application, work.pictures, reader, max_edge)
+        outcome = await check_one(work.application, work.pictures, reader, max_edge, ocr_fallback)
     except NotAnImage as error:
         item.state, item.problem = ItemState.NOT_CHECKED, str(error)
-    except (ReadingFailed, anthropic.APIError) as error:
-        log.warning(
-            "Label reading failed in a batch: %s status=%s request_id=%s",
-            type(error).__name__,
-            getattr(error, "status_code", None),
-            getattr(error, "request_id", None),
-        )
+    except NoReader:
         item.state = ItemState.NOT_CHECKED
         item.problem = "The label reader could not read this label. Please check it on its own."
     else:
@@ -115,11 +108,12 @@ async def check_item(work: Work, reader: LabelReader, max_edge: int) -> None:
 
 async def run_job(
     job: BatchJob,
-    reader: LabelReader,
+    reader: LabelReader | None,
     max_edge: int,
     concurrency: int,
     one_at_a_time: asyncio.Semaphore,
     clock=time.monotonic,
+    ocr_fallback: bool = True,
 ) -> None:
     """Check every waiting label. Only one batch runs at a time across the app."""
     async with one_at_a_time:
@@ -128,7 +122,7 @@ async def run_job(
 
         async def one(work: Work) -> None:
             async with slots:
-                await check_item(work, reader, max_edge)
+                await check_item(work, reader, max_edge, ocr_fallback)
 
         try:
             await asyncio.gather(*(one(work) for work in job.work))

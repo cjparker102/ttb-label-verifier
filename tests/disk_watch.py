@@ -18,6 +18,10 @@ def _hook(event: str, args: tuple) -> None:
         return
     if event == "open":
         path, mode, flags = args
+        if isinstance(path, int):
+            # Reopening an already-open descriptor, such as the pipe to a helper program.
+            # It can't create a file: making one needs a path, and those are all checked.
+            return
         if isinstance(mode, str) and any(c in mode for c in "wax+"):
             _writes.append((event, path, mode))
         elif mode is None and isinstance(flags, int) and flags & WRITE_FLAGS:

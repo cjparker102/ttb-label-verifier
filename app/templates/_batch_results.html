@@ -10,6 +10,12 @@
 <p class="summary summary-{{ line.css }}"><span aria-hidden="true">{{ line.icon }}</span> {{ line.text }}</p>
 {% endfor %}
 
+{% if read_by_ocr %}
+<div class="notice" role="note">
+  <p><strong>{{ read_by_ocr }} label{{ "s were" if read_by_ocr != 1 else " was" }} read with basic text reading</strong>, because the AI reader was not available. Basic text reading can misread small print and can't see bold type, so for those labels nothing is marked as a Problem. Please check their flagged fields by eye.</p>
+</div>
+{% endif %}
+
 {% if finished %}
 <p><a class="button-primary button-link" href="/batches/{{ job_id }}/results.xlsx">Download results (Excel)</a></p>
 {% elif passed_so_far %}
@@ -36,6 +42,7 @@
       </th>
       <td data-label="Result" class="result result-{{ item.kind }}">
         <span class="badge"><span aria-hidden="true">{{ item.icon }}</span> {{ item.word }}</span>
+        {% if item.read_by_ocr %}<span class="where">Read with basic text reading</span>{% endif %}
         {% if item.reasons %}
         <ul class="reasons">
           {% for reason in item.reasons %}<li>{{ reason }}</li>{% endfor %}

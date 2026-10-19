@@ -14,8 +14,13 @@ EFFORTS = ("low", "medium", "high", "xhigh", "max")
 EFFORTS_WITHOUT_THINKING = ("low", "medium", "high")
 
 
+READERS = ("anthropic", "ocr")
+
+
 @dataclass(frozen=True)
 class Settings:
+    reader: str = "anthropic"  # "ocr" uses only basic text reading
+    ocr_fallback: bool = True  # use basic text reading when the AI reader fails
     model: str = "claude-haiku-5-5"
     thinking: bool = False  # picked from the Oct 19 timing test
     effort: str = "low"
@@ -46,7 +51,15 @@ def load_settings(env: Mapping[str, str] = os.environ) -> Settings:
             f'TTB_CLAUDE_EFFORT "{effort}" needs thinking on. With TTB_CLAUDE_THINKING=off, '
             f"use {', '.join(EFFORTS_WITHOUT_THINKING)}."
         )
+    reader = env.get("TTB_READER", defaults.reader).strip().lower()
+    if reader not in READERS:
+        raise ValueError(f"TTB_READER must be one of {', '.join(READERS)}")
+    fallback = env.get("TTB_OCR_FALLBACK", "on").strip().lower()
+    if fallback not in ("on", "off"):
+        raise ValueError('TTB_OCR_FALLBACK must be "on" or "off"')
     return Settings(
+        reader=reader,
+        ocr_fallback=fallback == "on",
         model=env.get("TTB_CLAUDE_MODEL", defaults.model),
         thinking=thinking == "adaptive",
         effort=effort,

@@ -1,17 +1,26 @@
 """Checks one label: prepare the images, read them, and apply the rules."""
 
 import asyncio
+import dataclasses
+import logging
 import time
 from dataclasses import dataclass
 from typing import Protocol
 
+import anthropic
 from PIL import UnidentifiedImageError
 
 from app.intake.images import shrink_to_jpeg
-from app.reading.claude import ReadResult
+from app.reading.claude import ReadingFailed, ReadResult
+from app.reading.ocr import OcrFailed, ocr_reading, tesseract_available
 from app.reading.schema import LabelReading
 from app.rules.application import Application
+from app.rules.results import Status
 from app.rules.verdict import LabelResult, check_label
+
+log = logging.getLogger("ttb_label_verifier")
+
+OCR_CAUTION = "Basic text reading can't be sure about this, so please check it by eye. "
 
 
 class LabelReader(Protocol):
@@ -26,6 +35,10 @@ class NotAnImage(ValueError):
         self.name = name
 
 
+class NoReader(Exception):
+    """Neither the AI reader nor basic text reading could read the label."""
+
+
 @dataclass(frozen=True)
 class CheckOutcome:
     result: LabelResult
@@ -33,15 +46,46 @@ class CheckOutcome:
     images: list[bytes]  # the shrunken JPEGs, kept only to show in the response
     seconds: float  # from receiving the images to the finished result
     reading_seconds: float
+    read_by: str = "ai"  # "ai", or "ocr" for basic text reading
+
+
+def soften_for_ocr(result: LabelResult) -> LabelResult:
+    """Basic text reading misreads small print, drops accents, and can't see bold.
+    So nothing it finds is called a Problem: every Fail becomes Needs review. And a
+    match that passed only by overlooking capitals, punctuation, or spacing needs
+    review too, because OCR can't tell those apart from a lost accent."""
+
+    def soften(check):
+        if check.status == Status.FAIL:
+            return dataclasses.replace(
+                check, status=Status.REVIEW, reason=OCR_CAUTION + check.reason
+            )
+        if check.status == Status.PASS and check.note:
+            return dataclasses.replace(
+                check,
+                status=Status.REVIEW,
+                reason=OCR_CAUTION + "It can't see accents reliably. " + check.reason,
+                note=None,
+            )
+        return check
+
+    fields = [
+        dataclasses.replace(field, checks=tuple(soften(c) for c in field.checks))
+        for field in result.fields
+    ]
+    return LabelResult(tuple(fields))
 
 
 async def check_one(
     application: Application,
     images: list[tuple[str, bytes]],
-    reader: LabelReader,
+    reader: LabelReader | None,
     max_edge: int,
+    ocr_fallback: bool = True,
 ) -> CheckOutcome:
-    """Check one product's label images, given as (file name, bytes), against its application."""
+    """Check one product's label images, given as (file name, bytes), against its
+    application. Uses the AI reader, or basic text reading when there is no AI reader
+    or it fails, if `ocr_fallback` allows."""
     start = time.perf_counter()
     prepared = []
     for name, data in images:
@@ -50,12 +94,41 @@ async def check_one(
             prepared.append(await asyncio.to_thread(shrink_to_jpeg, data, max_edge))
         except (UnidentifiedImageError, OSError) as error:
             raise NotAnImage(name) from error
-    read = await reader.read(prepared)
-    result = check_label(application, read.reading)
+
+    if reader is not None:
+        try:
+            read = await reader.read(prepared)
+        except (ReadingFailed, anthropic.APIError) as error:
+            log.warning(
+                "Label reading failed: %s status=%s request_id=%s",
+                type(error).__name__,
+                getattr(error, "status_code", None),
+                getattr(error, "request_id", None),
+            )
+            if not ocr_fallback:
+                raise NoReader from error
+        else:
+            return CheckOutcome(
+                result=check_label(application, read.reading),
+                reading=read.reading,
+                images=prepared,
+                seconds=time.perf_counter() - start,
+                reading_seconds=read.seconds,
+            )
+
+    if not (ocr_fallback and tesseract_available()):
+        raise NoReader
+    reading_start = time.perf_counter()
+    try:
+        reading = await asyncio.to_thread(ocr_reading, prepared, application)
+    except OcrFailed as error:
+        log.warning("Basic text reading failed: %s", type(error).__name__)
+        raise NoReader from error
     return CheckOutcome(
-        result=result,
-        reading=read.reading,
+        result=soften_for_ocr(check_label(application, reading)),
+        reading=reading,
         images=prepared,
         seconds=time.perf_counter() - start,
-        reading_seconds=read.seconds,
+        reading_seconds=time.perf_counter() - reading_start,
+        read_by="ocr",
     )

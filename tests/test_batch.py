@@ -73,9 +73,20 @@ def test_running_a_job_checks_every_label_and_lets_go_of_pictures():
     assert job.work == []
 
 
-def test_reader_failure_marks_only_that_label():
+def test_reader_failure_falls_back_to_basic_text_reading():
     job = new_job([good_row(2)], [], [])
     run(job, reader=FailingReader())
+    assert job.items[0].state == ItemState.DONE
+    assert job.items[0].outcome.read_by == "ocr"
+
+
+def test_reader_failure_without_fallback_marks_only_that_label():
+    job = new_job([good_row(2)], [], [])
+
+    async def go():
+        await run_job(job, FailingReader(), 1568, 4, asyncio.Semaphore(1), ocr_fallback=False)
+
+    asyncio.run(go())
     assert job.items[0].state == ItemState.NOT_CHECKED
     assert "could not read this label" in job.items[0].problem
     assert job.state == "finished"

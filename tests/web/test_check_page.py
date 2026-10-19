@@ -114,14 +114,31 @@ def test_too_many_pictures(use_reader):
     assert "no more than 6 pictures" in response.text
 
 
-def test_reader_failure_gives_a_plain_message(use_reader):
+def test_reader_failure_falls_back_to_basic_text_reading(use_reader):
+    use_reader(FailingReader())
+    response = client.post("/check", data=OLD_TOM_FORM, files=label_files())
+    assert response.status_code == 200
+    assert "read with basic text reading" in response.text
+    assert "Problems found" not in response.text  # basic text reading never fails a label
+
+
+def test_reader_failure_without_basic_text_reading(use_reader, monkeypatch):
+    monkeypatch.setattr("app.checking.tesseract_available", lambda: False)
     use_reader(FailingReader())
     response = client.post("/check", data=OLD_TOM_FORM, files=label_files())
     assert response.status_code == 503
-    assert "could not read this label just now" in response.text
+    assert "could not be read just now" in response.text
 
 
-def test_missing_reader_setup_is_reported(use_reader):
+def test_no_ai_reader_uses_basic_text_reading(use_reader):
+    use_reader(None)
+    response = client.post("/check", data=OLD_TOM_FORM, files=label_files())
+    assert response.status_code == 200
+    assert "read with basic text reading" in response.text
+
+
+def test_no_reader_at_all_is_reported(use_reader, monkeypatch):
+    monkeypatch.setattr("app.main.tesseract_available", lambda: False)
     use_reader(None)
     response = client.post("/check", data=OLD_TOM_FORM, files=label_files())
     assert response.status_code == 422
