@@ -84,3 +84,22 @@ def test_missing_from_label_fails():
 )
 def test_needs_review(application, label):
     assert check_net_contents(application, label).status == Status.REVIEW
+
+
+@pytest.mark.parametrize(
+    ("application", "label"),
+    [
+        ("16.9 fl oz", "16.9 FL. OZ. (500 mL)"),
+        ("500 mL", "16.9 FL. OZ. (500 mL)"),
+        ("750 mL", "750 mL (25.4 FL. OZ.)"),
+        ("25.4 fl oz", "750 mL (25.4 FL. OZ.)"),
+    ],
+)
+def test_a_label_with_both_systems_is_compared_in_the_applications_units(application, label):
+    result = check_net_contents(application, read(label))
+    assert (result.status, result.note) == (Status.PASS, None)
+
+
+def test_both_systems_still_catch_a_real_difference():
+    result = check_net_contents("12 fl oz", read("16.9 FL. OZ. (500 mL)"))
+    assert result.status == Status.FAIL

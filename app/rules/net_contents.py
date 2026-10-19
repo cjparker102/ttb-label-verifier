@@ -34,11 +34,38 @@ class CannotParse(ValueError):
     """The statement has no amount with a known unit."""
 
 
+Amounts = tuple[tuple[str, Decimal], ...]  # (unit name, milliliters) for each amount
+
+
 @dataclass(frozen=True)
 class Volume:
-    ml: Decimal
-    units: tuple[str, ...]  # the units counted, such as ("pint", "fl oz")
-    all_units: tuple[str, ...]  # every unit written, including any not counted
+    metric: Amounts
+    us: Amounts
+
+    def counted(self, prefer_us: bool = False) -> Amounts:
+        """The amounts that count. When a label gives both systems, metric counts,
+        unless asked for US units and the label has them."""
+        if (prefer_us and self.us) or not self.metric:
+            return self.us
+        return self.metric
+
+    @property
+    def ml(self) -> Decimal:
+        return sum((ml for _, ml in self.counted()), Decimal(0))
+
+    @property
+    def units(self) -> tuple[str, ...]:
+        return tuple(name for name, _ in self.counted())
+
+    @property
+    def all_units(self) -> tuple[str, ...]:
+        return tuple(name for name, _ in self.metric + self.us)
+
+    def like(self, other: "Volume") -> tuple[Decimal, tuple[str, ...]]:
+        """This volume measured the way `other` was written: in US units if `other`
+        used only US units and this volume has them, otherwise as usual."""
+        amounts = self.counted(prefer_us=not other.metric)
+        return sum((ml for _, ml in amounts), Decimal(0)), tuple(name for name, _ in amounts)
 
 
 def to_number(text: str) -> Decimal:
@@ -48,21 +75,16 @@ def to_number(text: str) -> Decimal:
 
 
 def parse_volume(text: str) -> Volume:
-    """Total volume in mL. When both metric and US units are given, the metric one counts."""
+    """The metric and US amounts in a net contents statement, in mL."""
     metric: list[tuple[str, Decimal]] = []
     us: list[tuple[str, Decimal]] = []
     for match in AMOUNT.finditer(text.replace("℮", " ")):
         index = next(i for i in range(len(UNITS)) if match.group(f"u{i}"))
         name, _, per_unit, is_metric = UNITS[index]
         (metric if is_metric else us).append((name, to_number(match.group(1)) * per_unit))
-    amounts = metric or us
-    if not amounts:
+    if not metric and not us:
         raise CannotParse("no amount with a unit")
-    return Volume(
-        ml=sum(ml for _, ml in amounts),
-        units=tuple(name for name, _ in amounts),
-        all_units=tuple(name for name, _ in metric + us),
-    )
+    return Volume(metric=tuple(metric), us=tuple(us))
 
 
 def show_ml(ml: Decimal) -> str:
@@ -101,12 +123,13 @@ def check_net_contents(application: str, label: FieldReading) -> Check:
             "Please check it by eye.",
         )
 
-    same_units = on_label.units == on_application.units
-    larger = max(on_label.ml, on_application.ml)
-    if abs(on_label.ml - on_application.ml) > TOLERANCE * larger:
-        converted = (
-            "" if same_units else f" ({show_ml(on_label.ml)} vs {show_ml(on_application.ml)})"
-        )
+    # "16.9 FL. OZ. (500 mL)" is compared in fluid ounces with an application that says
+    # "16.9 fl oz", and in milliliters with one that says "500 mL".
+    label_ml, label_units = on_label.like(on_application)
+    same_units = label_units == on_application.units
+    larger = max(label_ml, on_application.ml)
+    if abs(label_ml - on_application.ml) > TOLERANCE * larger:
+        converted = "" if same_units else f" ({show_ml(label_ml)} vs {show_ml(on_application.ml)})"
         return Check(
             Status.FAIL,
             f'The label says "{shown}" but the application says "{said}".{converted}',
