@@ -1,0 +1,101 @@
+"""Turns check results into what the page shows: plain words, icons, and order."""
+
+from dataclasses import dataclass
+
+from app.checking import CheckOutcome
+from app.rules.application import BeverageType
+from app.rules.results import Status
+from app.rules.verdict import FieldResult
+
+
+@dataclass(frozen=True)
+class TextField:
+    name: str
+    label: str
+    hint: str
+    required: bool = True
+
+
+TEXT_FIELDS = [
+    TextField(
+        "brand_name", "Brand name", "As written in the application, for example OLD TOM DISTILLERY."
+    ),
+    TextField("class_type", "Class or type", "For example Kentucky Straight Bourbon Whiskey."),
+    TextField(
+        "alcohol_content",
+        "Alcohol content",
+        "For example 45% or 45% Alc./Vol. (90 Proof). Some beers and wines may leave it out.",
+        required=False,
+    ),
+    TextField("net_contents", "Net contents", "For example 750 mL or 12 fl oz."),
+    TextField(
+        "bottler_name_address",
+        "Bottler or importer name and address",
+        "For example Old Tom Distillery, Bardstown, Kentucky.",
+    ),
+    TextField(
+        "country_of_origin",
+        "Country of origin",
+        "Leave blank for products made in the United States.",
+        required=False,
+    ),
+]
+
+BEVERAGE_CHOICES = [
+    (BeverageType.DISTILLED_SPIRITS.value, "Distilled spirits"),
+    (BeverageType.WINE.value, "Wine"),
+    (BeverageType.MALT_BEVERAGE.value, "Malt beverage (beer)"),
+]
+
+STATUS_VIEW = {
+    Status.FAIL: {"icon": "❌", "word": "Problem", "css": "fail"},
+    Status.REVIEW: {"icon": "⚠️", "word": "Check this", "css": "review"},
+    Status.PASS: {"icon": "✅", "word": "Matches", "css": "pass"},
+    Status.NOT_NEEDED: {"icon": "➖", "word": "Not needed", "css": "not-needed"},
+}
+
+
+def summary(counts) -> list[dict]:
+    """The top line: All good, Needs review (n), and/or Problems found (n)."""
+    lines = []
+    if counts[Status.FAIL]:
+        lines.append(
+            {"css": "fail", "icon": "❌", "text": f"Problems found ({counts[Status.FAIL]})"}
+        )
+    if counts[Status.REVIEW]:
+        lines.append(
+            {"css": "review", "icon": "⚠️", "text": f"Needs review ({counts[Status.REVIEW]})"}
+        )
+    if not lines:
+        lines.append({"css": "pass", "icon": "✅", "text": "All good"})
+    return lines
+
+
+def field_row(field: FieldResult) -> dict:
+    status = field.status
+    problems = [c for c in field.checks if c.status in (Status.FAIL, Status.REVIEW)]
+    shown = problems or [field.checks[0]]
+    word = STATUS_VIEW[status]["word"]
+    if status == Status.PASS and field.notes:
+        word = field.notes[0]
+    return {
+        "title": field.title,
+        "is_warning": field.field == "government_warning",
+        "application_says": field.application_says or "(blank)",
+        "label_says": field.label_says,
+        "image": f"Image {field.image_number}" if field.image_number else None,
+        "view": STATUS_VIEW[status],
+        "word": word,
+        "reasons": [{"text": c.reason, "citation": c.citation} for c in shown],
+    }
+
+
+def results_view(outcome: CheckOutcome) -> dict:
+    rows = [field_row(field) for field in outcome.result.fields]
+    needs_attention = {"fail", "review"}
+    return {
+        "summary": summary(outcome.result.counts),
+        "problem_rows": [r for r in rows if r["view"]["css"] in needs_attention],
+        "ok_rows": [r for r in rows if r["view"]["css"] not in needs_attention],
+        "seconds": f"{outcome.seconds:.1f}",
+    }

@@ -1,0 +1,32 @@
+<thead>
+  <tr>
+    <th scope="col">Field</th>
+    <th scope="col">Application says</th>
+    <th scope="col">Label says</th>
+    <th scope="col">Result</th>
+  </tr>
+</thead>
+<tbody>
+  {% for row in rows %}
+  <tr class="row-{{ row.view.css }}">
+    <th scope="row">{{ row.title }}</th>
+    <td data-label="Application says">{% if row.is_warning %}The required warning text{% else %}{{ row.application_says }}{% endif %}</td>
+    <td data-label="Label says">
+      {% if row.label_says %}
+      <span class="label-text{% if row.is_warning %} warning-text{% endif %}">{{ row.label_says }}</span>
+      {% if row.image %}<span class="where">{{ row.image }}</span>{% endif %}
+      {% else %}
+      <em>Not found on the label</em>
+      {% endif %}
+    </td>
+    <td data-label="Result" class="result result-{{ row.view.css }}">
+      <span class="badge"><span aria-hidden="true">{{ row.view.icon }}</span> {{ row.word }}</span>
+      <ul class="reasons">
+        {% for reason in row.reasons %}
+        <li>{{ reason.text }}{% if reason.citation %} <a href="{{ reason.citation.url }}" target="_blank" rel="noopener noreferrer">{{ reason.citation.section }}</a>{% endif %}</li>
+        {% endfor %}
+      </ul>
+    </td>
+  </tr>
+  {% endfor %}
+</tbody>

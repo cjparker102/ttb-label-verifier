@@ -1,19 +1,15 @@
 import asyncio
-import json
 from io import BytesIO
-from pathlib import Path
 
 import pytest
 from PIL import Image
 
 from app.checking import NotAnImage, check_one
 from app.config import Settings, load_settings
-from app.reading.claude import ReadResult
-from app.reading.schema import LabelReading
 from app.rules.application import Application, BeverageType
 from app.rules.results import Status
+from tests.stand_ins import ReplayReader
 
-RECORDED = Path(__file__).resolve().parent / "fixtures" / "recorded" / "old-tom-bourbon.json"
 OLD_TOM = Application(
     BeverageType.DISTILLED_SPIRITS,
     "OLD TOM DISTILLERY",
@@ -22,19 +18,6 @@ OLD_TOM = Application(
     "750 mL",
     "Old Tom Distillery, Bardstown, Kentucky",
 )
-
-
-class ReplayReader:
-    """Stands in for Claude: returns a reading recorded from a real run."""
-
-    def __init__(self):
-        recorded = json.loads(RECORDED.read_text(encoding="utf-8"))
-        self.reading = LabelReading.model_validate(recorded["reading"])
-        self.received = []
-
-    async def read(self, images):
-        self.received.append(images)
-        return ReadResult(self.reading, seconds=0.01, input_tokens=0, output_tokens=0)
 
 
 def png(width=3000, height=2000):
