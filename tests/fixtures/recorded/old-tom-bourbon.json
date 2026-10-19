@@ -1,0 +1,53 @@
+{
+  "about": "A real reading recorded from Claude, not written by hand. Copied from docs/measurements/timing-2026-10-19-old-tom-bourbon.json (run 1, 1568 px, thinking off).",
+  "model": "claude-haiku-5-5",
+  "measured_at": "2026-10-19T06:26:37",
+  "sample": "old-tom-bourbon",
+  "reading": {
+    "brand_name": {
+      "text": "OLD TOM DISTILLERY",
+      "readability": "clear",
+      "image_number": 1,
+      "english_meaning": null
+    },
+    "class_type": {
+      "text": "Kentucky Straight Bourbon Whiskey",
+      "readability": "clear",
+      "image_number": 1,
+      "english_meaning": null
+    },
+    "alcohol_content": {
+      "text": "45% Alc./Vol. (90 Proof)",
+      "readability": "clear",
+      "image_number": 1,
+      "english_meaning": null
+    },
+    "net_contents": {
+      "text": "750 mL",
+      "readability": "clear",
+      "image_number": 1,
+      "english_meaning": null
+    },
+    "bottler_name_address": {
+      "text": "Bottled by Old Tom Distillery, Bardstown, Kentucky",
+      "readability": "clear",
+      "image_number": 2,
+      "english_meaning": null
+    },
+    "country_of_origin": {
+      "text": null,
+      "readability": "not_found",
+      "image_number": null,
+      "english_meaning": null
+    },
+    "government_warning": {
+      "text": "GOVERNMENT WARNING: (1) According to the Surgeon General, women should not drink alcoholic beverages during pregnancy because of the risk of birth defects. (2) Consumption of alcoholic beverages impairs your ability to drive a car or operate machinery, and may cause health problems.",
+      "readability": "clear",
+      "image_number": 2,
+      "english_meaning": null,
+      "heading_bold": "yes",
+      "rest_bold": "no"
+    },
+    "image_problems": []
+  }
+}
