@@ -1,0 +1,70 @@
+#!/bin/sh
+# Blocks the commit if the author or committer is not Christopher Parker,
+# if an env file or private Claude Code file is staged, or if an added
+# line looks like an API key or other secret.
+
+expected="Christopher Parker <cjparker102@gmail.com>"
+status=0
+
+fail() {
+  echo "pre-commit: $1" >&2
+  status=1
+}
+
+# Identity. git var reflects --author, -c user.*, and GIT_* overrides.
+for role in AUTHOR COMMITTER; do
+  ident=$(git var "GIT_${role}_IDENT" 2>/dev/null | sed 's/ [0-9][0-9]* [-+][0-9][0-9]*$//')
+  if [ "$ident" != "$expected" ]; then
+    fail "$(echo "$role" | tr 'A-Z' 'a-z') is '$ident', expected '$expected'."
+  fi
+done
+
+# Known key formats: Anthropic/OpenAI, AWS, GitHub, Google, Slack,
+# private key blocks, Azure connection strings.
+key_patterns='(^|[^A-Za-z0-9])sk-[A-Za-z0-9_-]{20,}
+(AKIA|ASIA)[0-9A-Z]{16}
+gh[pousr]_[A-Za-z0-9]{36,}
+github_pat_[A-Za-z0-9_]{22,}
+AIza[0-9A-Za-z_-]{35}
+xox[abposr]-[A-Za-z0-9-]{10,}
+-----BEGIN [A-Z ]*PRIVATE KEY-----
+(AccountKey|SharedAccessKey)=[A-Za-z0-9+/=]{20,}'
+
+# Generic "api_key = <value>" assignments. A hit counts only if the value
+# mixes letters and digits, so placeholders like your_api_key_here pass.
+generic_name="(api[_-]?key|secret|token|passw(or)?d)[\"']?[[:space:]]*[:=][[:space:]]*[\"']?"
+generic_value='[A-Za-z0-9_+/=-]{20,}'
+
+staged=$(git diff --cached --name-only --diff-filter=ACMR)
+
+while IFS= read -r path; do
+  [ -n "$path" ] || continue
+
+  case "${path##*/}" in
+    .env.example) ;;
+    .env | .env.*) fail "env file staged: $path" ;;
+  esac
+
+  case "$path" in
+    .claude/* | */.claude/*) fail "private Claude Code file staged: $path" ;;
+  esac
+
+  added=$(git diff --cached --no-color --no-ext-diff -U0 --src-prefix=a/ --dst-prefix=b/ -- "$path" \
+    | grep '^+' | grep -v '^+++ b/')
+  [ -n "$added" ] || continue
+
+  if printf '%s\n' "$added" | grep -qE -e "$key_patterns"; then
+    fail "possible API key or private key in $path"
+  elif printf '%s\n' "$added" | grep -ioE -e "$generic_name$generic_value" \
+      | tr 'A-Z' 'a-z' | sed -E "s/^$generic_name//" \
+      | grep '[0-9]' | grep -q '[a-z]'; then
+    fail "possible hard-coded secret in $path"
+  fi
+done <<EOF
+$staged
+EOF
+
+if [ "$status" -ne 0 ]; then
+  echo "pre-commit: commit blocked. Fix the problems above and commit again." >&2
+fi
+exit "$status"

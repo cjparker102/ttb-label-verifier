@@ -1,0 +1,21 @@
+# Environment files: ignore all except the template
+.env
+.env.*
+!.env.example
+
+# Private files
+private/
+
+# Claude Code local settings (kept on this machine only)
+.claude/
+.claude/settings.local.json
+
+# Python
+.venv
+__pycache__/
+
+# Node
+node_modules/
+
+# macOS
+.DS_Store

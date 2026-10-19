@@ -1,0 +1,16 @@
+#!/bin/sh
+# Removes AI attribution from the commit message: Co-Authored-By and
+# Claude-Session trailers, and "Generated with" lines that mention Claude.
+# Matching ignores case. All other lines are kept as written.
+
+msg_file=$1
+tmp="$msg_file.tmp.$$"
+
+grep -viE '^[[:space:]]*(co-authored-by|claude-session):|generated with.*claude|claude.*generated with' \
+  "$msg_file" > "$tmp"
+
+# grep exits 1 when every line was removed; only 2 or higher is an error.
+case $? in
+  0 | 1) mv "$tmp" "$msg_file" ;;
+  *) rm -f "$tmp"; echo "commit-msg: could not read the commit message." >&2; exit 1 ;;
+esac
