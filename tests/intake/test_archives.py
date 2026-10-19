@@ -157,3 +157,33 @@ def test_rows_are_matched_to_pictures_ignoring_folders_and_capitals():
     assert matched[1].pictures == ()
     assert matched[1].missing == ("gone.png",)
     assert unused == ["extra.png"]
+
+
+def test_a_batch_can_mix_loose_pictures_and_zip_files():
+    from app.intake.archives import collect_pictures
+
+    files = [
+        ("front.png", PNG),
+        ("more.zip", make_zip(("back.jpg", JPEG), ("FRONT.png", PNG))),
+        ("notes.txt", b"hello"),
+    ]
+    collected = collect_pictures(files)
+    assert collected.pictures == {"front.png": PNG, "back.jpg": JPEG}
+    found = {s.name: s.reason for s in collected.skipped}
+    assert "Another picture is also named" in found["more.zip: FRONT.png"]
+    assert "Not a JPEG" in found["notes.txt"]
+
+
+def test_a_batch_is_capped_at_the_picture_limit(monkeypatch):
+    from app.intake.archives import collect_pictures
+
+    monkeypatch.setattr(archives, "MAX_PICTURES", 1)
+    with pytest.raises(ArchiveError, match="more than 1 pictures"):
+        collect_pictures([("a.png", PNG), ("b.png", PNG)])
+
+
+def test_a_damaged_zip_in_a_batch_says_so():
+    from app.intake.archives import collect_pictures
+
+    with pytest.raises(ArchiveError, match="could not be opened"):
+        collect_pictures([("labels.zip", b"not a zip")])

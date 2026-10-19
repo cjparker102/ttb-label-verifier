@@ -47,4 +47,28 @@
   </form>
 </section>
 
+<section class="card" aria-labelledby="batch-heading">
+  <h2 id="batch-heading" class="section-heading">Check many labels at once</h2>
+  <p class="lead">Upload a spreadsheet with one row per application, and the label pictures or a ZIP file of them. Each row lists its pictures by file name.</p>
+
+  <form method="post" action="/batches" enctype="multipart/form-data" id="batch-form">
+    <fieldset>
+      <legend>1. Spreadsheet of applications</legend>
+      <label for="spreadsheet">CSV or Excel file, one row per application</label>
+      <p class="hint" id="spreadsheet-hint">Columns: file names, beverage type, brand name, class or type, alcohol content, net contents, bottler name and address, country of origin. Separate several file names with a semicolon. <a href="/template.csv">Download a spreadsheet template</a>.</p>
+      <input type="file" id="spreadsheet" name="spreadsheet" accept=".csv,.xlsx,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" required aria-describedby="spreadsheet-hint">
+    </fieldset>
+
+    <fieldset>
+      <legend>2. Label pictures</legend>
+      <label for="pictures">Pictures, or ZIP files of pictures</label>
+      <p class="hint" id="pictures-hint">Up to 300 applications and 600 pictures, 200 MB in total.</p>
+      <input type="file" id="pictures" name="pictures" accept="image/jpeg,image/png,image/webp,image/gif,.zip,application/zip" multiple required aria-describedby="pictures-hint">
+    </fieldset>
+
+    <button type="submit" class="button-primary" id="batch-button">Check all labels</button>
+    <p class="hint busy" id="batch-busy" role="status" hidden>Uploading and unpacking. The results page opens next.</p>
+  </form>
+</section>
+
 {% endblock %}

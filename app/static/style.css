@@ -125,6 +125,23 @@ details.ok-fields > summary { cursor: pointer; font-weight: 700; padding: 10px 0
   overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
 }
 
+/* Batch */
+
+.section-heading { font-size: 1.6rem; margin: 40px 0 8px; }
+.button-link { display: inline-block; text-decoration: none; text-align: center; line-height: 1.6; }
+.progress-block { margin: 8px 0 16px; }
+.progress-text { font-size: 1.1rem; font-weight: 700; margin: 0 0 6px; }
+progress { width: 100%; max-width: 40rem; height: 28px; accent-color: var(--brand); }
+.summary-not-checked { color: var(--not-needed); background: var(--not-needed-bg); }
+.result-not-checked .badge, .result-waiting .badge { color: var(--not-needed); background: var(--not-needed-bg); }
+.batch-table > tbody > tr > td:first-child { width: 4.5rem; }
+.batch-table > tbody > tr > th { width: 28%; }
+.item-details > summary { cursor: pointer; font-weight: 700; margin-top: 8px; }
+.item-detail-layout { display: grid; grid-template-columns: minmax(0, 1fr) 180px; gap: 16px; align-items: start; margin-top: 8px; }
+.item-detail-layout table { font-size: 0.9rem; }
+.item-preview { width: 100%; height: auto; border: 2px solid var(--line); border-radius: 6px; }
+details.skipped > summary { cursor: pointer; font-weight: 700; padding: 10px 0; }
+
 /* Narrow screens: one column, and each table row becomes a card. */
 @media (max-width: 760px) {
   html { font-size: 18px; }
@@ -137,6 +154,8 @@ details.ok-fields > summary { cursor: pointer; font-weight: 700; padding: 10px 0
   td { border-bottom: 1px solid var(--panel); }
   td::before { content: attr(data-label); display: block; font-weight: 700; font-size: 0.85rem; color: var(--muted); }
   .result { width: 100%; }
+  .item-detail-layout { grid-template-columns: minmax(0, 1fr); }
+  .batch-table > tbody > tr > td:first-child, .batch-table > tbody > tr > th { width: 100%; }
 }
 
 @media (forced-colors: active) {

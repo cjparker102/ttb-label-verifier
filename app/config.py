@@ -22,7 +22,10 @@ class Settings:
     max_image_edge: int = 1568  # picked from the Oct 19 timing test
     max_images_per_label: int = 6
     max_image_bytes: int = 20 * MB
-    max_request_bytes: int = 125 * MB  # 6 images of 20 MB plus form fields
+    max_request_bytes: int = 210 * MB  # a 200 MB batch upload plus the spreadsheet
+    max_batch_files: int = 610  # pictures or ZIP files, plus the spreadsheet
+    batch_concurrency: int = 8  # labels read at the same time within a batch
+    batch_keep_seconds: int = 1800  # finished batch results are deleted after this
     checks_per_visitor: int = 30  # single-label checks per visitor, within the window below
     check_window_seconds: int = 600
     batches_per_visitor: int = 3

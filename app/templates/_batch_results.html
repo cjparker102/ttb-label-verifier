@@ -1,0 +1,73 @@
+<div class="progress-block" data-state="{{ state }}" data-done="{{ done }}" data-total="{{ total }}">
+  <p class="progress-text">
+    {{ done }} of {{ total }} label{{ "s" if total != 1 }} checked.
+    {% if state == "queued" %}Waiting for another batch to finish.{% elif not finished %}This page updates by itself.{% endif %}
+  </p>
+  <progress max="{{ total or 1 }}" value="{{ done }}">{{ done }} of {{ total }}</progress>
+</div>
+
+{% for line in batch_summary %}
+<p class="summary summary-{{ line.css }}"><span aria-hidden="true">{{ line.icon }}</span> {{ line.text }}</p>
+{% endfor %}
+
+{% if finished %}
+<p><a class="button-primary button-link" href="/batches/{{ job_id }}/results.xlsx">Download results (Excel)</a></p>
+{% elif passed_so_far %}
+<p class="meta">{{ passed_so_far }} label{{ "s" if passed_so_far != 1 }} all good so far. The full list appears when the batch finishes.</p>
+{% endif %}
+
+{% if items %}
+<table class="batch-table">
+  <caption>{{ "Labels, problems first" if finished else "Problems found so far" }}</caption>
+  <thead>
+    <tr>
+      <th scope="col">Row</th>
+      <th scope="col">Brand (application)</th>
+      <th scope="col">Result</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for item in items %}
+    <tr class="row-{{ item.kind }}">
+      <td data-label="Row">{{ item.row_number }}</td>
+      <th scope="row" data-label="Brand">
+        {{ item.brand }}
+        <span class="where">{{ item.files }}</span>
+      </th>
+      <td data-label="Result" class="result result-{{ item.kind }}">
+        <span class="badge"><span aria-hidden="true">{{ item.icon }}</span> {{ item.word }}</span>
+        {% if item.reasons %}
+        <ul class="reasons">
+          {% for reason in item.reasons %}<li>{{ reason }}</li>{% endfor %}
+        </ul>
+        {% endif %}
+        {% if item.fields %}
+        <details class="item-details" data-key="row-{{ item.row_number }}">
+          <summary>Show every field for row {{ item.row_number }}</summary>
+          <div class="item-detail-layout">
+            <table>
+              <caption class="visually-hidden">Every field for row {{ item.row_number }}</caption>
+              {% with rows = item.fields %}{% include "_table_body.html" %}{% endwith %}
+            </table>
+            {% if item.has_preview %}
+            <img class="item-preview" src="/batches/{{ job_id }}/previews/{{ item.row_number }}.jpg" alt="Label picture for row {{ item.row_number }}" loading="lazy">
+            {% endif %}
+          </div>
+        </details>
+        {% endif %}
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endif %}
+
+{% if skipped or unused %}
+<details class="skipped">
+  <summary>{{ (skipped|length) + (unused|length) }} file{{ "s" if (skipped|length) + (unused|length) != 1 }} not used (show)</summary>
+  <ul>
+    {% for item in skipped %}<li><strong>{{ item.name }}</strong>: {{ item.reason }}</li>{% endfor %}
+    {% for name in unused %}<li><strong>{{ name }}</strong>: No row in the spreadsheet lists this picture.</li>{% endfor %}
+  </ul>
+</details>
+{% endif %}

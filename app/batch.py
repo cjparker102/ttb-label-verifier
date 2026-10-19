@@ -130,10 +130,19 @@ async def run_job(
             async with slots:
                 await check_item(work, reader, max_edge)
 
-        await asyncio.gather(*(one(work) for work in job.work))
-        job.work = []
-        job.state = "finished"
-        job.finished_at = clock()
+        try:
+            await asyncio.gather(*(one(work) for work in job.work))
+        except Exception:
+            log.exception("A batch stopped unexpectedly")
+        finally:
+            # Whatever happened, the batch ends, and nothing is left waiting forever.
+            for item in job.items:
+                if item.state == ItemState.WAITING:
+                    item.state = ItemState.NOT_CHECKED
+                    item.problem = "Something went wrong before this label was checked."
+            job.work = []
+            job.state = "finished"
+            job.finished_at = clock()
 
 
 class BatchStore:

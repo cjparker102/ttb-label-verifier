@@ -9,33 +9,10 @@ from app.reading.schema import LabelReading
 from app.rules.application import Application, BeverageType
 from app.rules.results import Status
 from app.rules.verdict import check_label
+from tests.stand_ins import expected_word, perfect_reading
 from tools.make_samples import SAMPLES, SAMPLES_DIR
 
 RECORDED = Path(__file__).resolve().parent.parent / "fixtures" / "recorded"
-
-
-def perfect_reading(truth: dict) -> LabelReading:
-    """What a reader that makes no mistakes would return for a sample's printed text."""
-    fields = {}
-    for name, printed in truth.items():
-        found = printed["text"] is not None
-        fields[name] = {
-            "text": printed["text"],
-            "readability": "clear" if found else "not_found",
-            "image_number": printed["image_number"],
-            "english_meaning": None,
-        }
-    warning = truth["government_warning"]
-    fields["government_warning"]["heading_bold"] = "yes" if warning.get("heading_bold") else "no"
-    fields["government_warning"]["rest_bold"] = "no"
-    return LabelReading.model_validate({**fields, "image_problems": []})
-
-
-def as_expected(field) -> str:
-    """Turn a field result into the words used in samples/expected.json."""
-    if field.status == Status.PASS and field.notes:
-        return "pass_with_note"
-    return str(field.status)
 
 
 def application_for(sample_id: str) -> Application:
@@ -49,7 +26,7 @@ EXPECTED = json.loads((SAMPLES_DIR / "expected.json").read_text(encoding="utf-8"
 @pytest.mark.parametrize("entry", EXPECTED, ids=[e["id"] for e in EXPECTED])
 def test_each_sample_gets_its_expected_results(entry):
     result = check_label(application_for(entry["id"]), perfect_reading(entry["truth"]))
-    got = {field.field: as_expected(field) for field in result.fields}
+    got = {field.field: expected_word(field) for field in result.fields}
     assert got == entry["expected"]
 
 

@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block head %}
+{% if not finished %}<noscript><meta http-equiv="refresh" content="5"></noscript>{% endif %}
+{% endblock %}
+
+{% block main %}
+<section class="results" aria-labelledby="batch-heading" id="batch" data-job="{{ job_id }}" data-state="{{ state }}">
+  <h1 id="batch-heading">Batch results</h1>
+  <p class="visually-hidden" id="batch-announce" aria-live="polite"></p>
+  <div id="batch-results">
+    {% include "_batch_results.html" %}
+  </div>
+  <p class="meta">Results are kept for 30 minutes after the batch finishes, then deleted. Download them to keep them.</p>
+  <p><a href="/">Check more labels</a></p>
+</section>
+{% endblock %}

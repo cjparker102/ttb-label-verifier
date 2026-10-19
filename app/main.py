@@ -1,25 +1,32 @@
 """Web entry point for the TTB Label Verifier."""
 
 import asyncio
-import base64
+import csv
+import io
 import logging
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Annotated
 
 import anthropic
 from fastapi import Depends, FastAPI, Request
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, Response
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from starlette.datastructures import UploadFile
 from starlette.exceptions import HTTPException
 from starlette.formparsers import MultiPartParser
 
+from app.batch import BatchStore, new_job, run_job
 from app.checking import LabelReader, NotAnImage, check_one
 from app.config import load_settings
+from app.export import results_workbook
+from app.intake.archives import MAX_PICTURES, ArchiveError, collect_pictures
 from app.intake.images import shrink_to_jpeg
+from app.intake.matching import match_rows
+from app.intake.spreadsheet import HEADINGS, SpreadsheetError, read_spreadsheet
 from app.limits import Limits, RequestSizeLimit, SecurityHeaders, visitor_id
-from app.presenting import BEVERAGE_CHOICES, TEXT_FIELDS, results_view
+from app.presenting import BEVERAGE_CHOICES, TEXT_FIELDS, batch_view, data_uri, results_view
 from app.reading.claude import ClaudeReader, ReadingFailed
 from app.rules.application import Application, BeverageType
 
@@ -48,6 +55,9 @@ app.state.limits = Limits(
     settings.batch_window_seconds,
     settings.labels_per_day,
 )
+app.state.batches = BatchStore(settings.batch_keep_seconds)
+app.state.batch_concurrency = settings.batch_concurrency
+app.state.one_batch_at_a_time = asyncio.Semaphore(1)
 templates = Jinja2Templates(directory=HERE / "templates")
 
 
@@ -64,6 +74,10 @@ def get_reader() -> LabelReader | None:
     return app.state.reader
 
 
+def visitor(request: Request) -> str:
+    return visitor_id(request.headers, request.client.host if request.client else None)
+
+
 def page(request: Request, status_code: int = 200, **context) -> HTMLResponse:
     context = {
         "beverage_types": BEVERAGE_CHOICES,
@@ -74,10 +88,6 @@ def page(request: Request, status_code: int = 200, **context) -> HTMLResponse:
         **context,
     }
     return templates.TemplateResponse(request, "index.html", context, status_code=status_code)
-
-
-def data_uri(jpeg: bytes) -> str:
-    return "data:image/jpeg;base64," + base64.b64encode(jpeg).decode("ascii")
 
 
 @app.get("/", response_class=HTMLResponse)
@@ -133,8 +143,7 @@ async def check(request: Request, reader: Annotated[LabelReader | None, Depends(
         return page(request, 422, errors=errors, form=values)
 
     # Count the check only now, when it will really reach the reader.
-    visitor = visitor_id(request.headers, request.client.host if request.client else None)
-    refusal = request.app.state.limits.take_check(visitor)
+    refusal = request.app.state.limits.take_check(visitor(request))
     if refusal:
         await form.close()
         return page(request, 429, errors=[refusal], form=values)
@@ -171,3 +180,150 @@ async def check(request: Request, reader: Annotated[LabelReader | None, Depends(
         for image in outcome.images
     ]
     return page(request, outcome=outcome, previews=previews, **results_view(outcome))
+
+
+TEMPLATE_ROWS = [
+    list(HEADINGS),
+    [
+        "old-tom-front.jpg; old-tom-back.jpg",
+        "Distilled spirits",
+        "OLD TOM DISTILLERY",
+        "Kentucky Straight Bourbon Whiskey",
+        "45% Alc./Vol. (90 Proof)",
+        "750 mL",
+        "Old Tom Distillery, Bardstown, Kentucky",
+        "",
+    ],
+    [
+        "landrevin.jpg",
+        "Wine",
+        "Chateau Landrevin",
+        "Bordeaux Red Wine",
+        "Alcohol 13.5% by volume",
+        "750 mL",
+        "Landrevin Imports, New York, NY",
+        "France",
+    ],
+]
+
+
+@app.get("/template.csv")
+def spreadsheet_template() -> Response:
+    out = io.StringIO()
+    csv.writer(out).writerows(TEMPLATE_ROWS)
+    return Response(
+        out.getvalue(),
+        media_type="text/csv",
+        headers={"content-disposition": 'attachment; filename="batch-template.csv"'},
+    )
+
+
+@app.post("/batches", response_class=HTMLResponse)
+async def start_batch(request: Request, reader: Annotated[LabelReader | None, Depends(get_reader)]):
+    try:
+        form = await request.form(max_files=settings.max_batch_files, max_fields=10)
+    except HTTPException:
+        return page(request, 422, errors=[f"Please send no more than {MAX_PICTURES} pictures."])
+
+    sheet = form.get("spreadsheet")
+    uploads = [f for f in form.getlist("pictures") if isinstance(f, UploadFile) and f.filename]
+    errors = []
+    if not isinstance(sheet, UploadFile) or not sheet.filename:
+        errors.append("Add the spreadsheet of applications.")
+    if not uploads:
+        errors.append("Add the label pictures, or a ZIP file of them.")
+    if reader is None:
+        errors.append(
+            "The label reader is not set up on this server. Please tell the administrator."
+        )
+    if errors:
+        await form.close()
+        return page(request, 422, errors=errors)
+
+    try:
+        rows = read_spreadsheet(sheet.filename, await sheet.read())
+        files = [(upload.filename, await upload.read()) for upload in uploads]
+        await form.close()
+        collected = await asyncio.to_thread(collect_pictures, files)
+    except (SpreadsheetError, ArchiveError) as error:
+        await form.close()
+        return page(request, 422, errors=[str(error)])
+    del files
+
+    matched, unused = match_rows(rows, collected.pictures)
+    job = new_job(matched, collected.skipped, unused)
+    if job.work:
+        refusal = request.app.state.limits.take_batch(visitor(request), len(job.work))
+        if refusal:
+            return page(request, 429, errors=[refusal])
+    request.app.state.batches.add(job)
+    job.task = asyncio.create_task(
+        run_job(
+            job,
+            reader,
+            settings.max_image_edge,
+            request.app.state.batch_concurrency,
+            request.app.state.one_batch_at_a_time,
+        )
+    )
+    return RedirectResponse(f"/batches/{job.id}", status_code=303)
+
+
+GONE = (
+    "These batch results are no longer available. Results are kept for 30 minutes after "
+    "a batch finishes, then deleted."
+)
+
+
+@app.get("/batches/{job_id}", response_class=HTMLResponse)
+async def batch_page(request: Request, job_id: str):
+    job = request.app.state.batches.get(job_id)
+    if job is None:
+        return page(request, 404, errors=[GONE])
+    return templates.TemplateResponse(request, "batch.html", batch_view(job))
+
+
+@app.get("/batches/{job_id}/results", response_class=HTMLResponse)
+async def batch_results(request: Request, job_id: str):
+    """The changing part of the batch page, which the page's script fetches as it updates."""
+    job = request.app.state.batches.get(job_id)
+    if job is None:
+        return HTMLResponse(f"<p>{GONE}</p>", status_code=404)
+    return templates.TemplateResponse(request, "_batch_results.html", batch_view(job))
+
+
+@app.get("/batches/{job_id}/progress")
+async def batch_progress(request: Request, job_id: str):
+    job = request.app.state.batches.get(job_id)
+    if job is None:
+        return JSONResponse({"state": "gone"}, status_code=404)
+    return {"state": job.state, "done": job.done, "total": job.total}
+
+
+@app.get("/batches/{job_id}/previews/{row_number}.jpg")
+async def batch_preview(request: Request, job_id: str, row_number: int):
+    job = request.app.state.batches.get(job_id)
+    item = next((i for i in job.items if i.row_number == row_number), None) if job else None
+    if item is None or item.preview is None:
+        return Response(status_code=404)
+    return Response(item.preview, media_type="image/jpeg")
+
+
+@app.get("/batches/{job_id}/results.xlsx")
+async def batch_excel(request: Request, job_id: str):
+    job = request.app.state.batches.get(job_id)
+    if job is None:
+        return page(request, 404, errors=[GONE])
+    if job.state != "finished":
+        return page(
+            request,
+            409,
+            errors=["The batch is still running. Download the results when it finishes."],
+        )
+    workbook = await asyncio.to_thread(results_workbook, job)
+    day = datetime.now(UTC).strftime("%Y-%m-%d")
+    return Response(
+        workbook,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"content-disposition": f'attachment; filename="label-results-{day}.xlsx"'},
+    )

@@ -1,7 +1,10 @@
 """Turns check results into what the page shows: plain words, icons, and order."""
 
+import base64
+from collections import Counter
 from dataclasses import dataclass
 
+from app.batch import BatchItem, BatchJob, ItemState
 from app.checking import CheckOutcome
 from app.rules.application import BeverageType
 from app.rules.results import Status
@@ -98,4 +101,94 @@ def results_view(outcome: CheckOutcome) -> dict:
         "problem_rows": [r for r in rows if r["view"]["css"] in needs_attention],
         "ok_rows": [r for r in rows if r["view"]["css"] not in needs_attention],
         "seconds": f"{outcome.seconds:.1f}",
+    }
+
+
+def data_uri(jpeg: bytes) -> str:
+    return "data:image/jpeg;base64," + base64.b64encode(jpeg).decode("ascii")
+
+
+# Batch labels, problems first.
+ITEM_ORDER = {"fail": 0, "not-checked": 1, "review": 2, "waiting": 3, "pass": 4}
+
+
+def labels(count: int) -> str:
+    return f"{count} label{'s' if count != 1 else ''}"
+
+
+def item_view(item: BatchItem) -> dict:
+    view = {
+        "row_number": item.row_number,
+        "brand": item.brand or "(no brand name)",
+        "files": ", ".join(item.file_names),
+        "has_preview": item.preview is not None,
+        "reasons": [],
+        "fields": [],
+    }
+    if item.state == ItemState.WAITING:
+        return {**view, "kind": "waiting", "icon": "⏳", "word": "Waiting"}
+    if item.state == ItemState.NOT_CHECKED or item.outcome is None:
+        return {
+            **view,
+            "kind": "not-checked",
+            "icon": "⛔",
+            "word": "Not checked",
+            "reasons": [item.problem or ""],
+        }
+    result = item.outcome.result
+    lines = summary(result.counts)
+    return {
+        **view,
+        "kind": lines[0]["css"],
+        "icon": lines[0]["icon"],
+        "word": " / ".join(line["text"] for line in lines),
+        "reasons": [
+            f"{field.title}: {check.reason}"
+            for field in result.fields
+            for check in field.checks
+            if check.status in (Status.FAIL, Status.REVIEW)
+        ],
+        "fields": [field_row(field) for field in result.fields],
+    }
+
+
+def batch_view(job: BatchJob) -> dict:
+    items = sorted(
+        (item_view(item) for item in job.items),
+        key=lambda view: (ITEM_ORDER[view["kind"]], view["row_number"]),
+    )
+    count = Counter(view["kind"] for view in items)
+    lines = []
+    if count["fail"]:
+        lines.append(
+            {"css": "fail", "icon": "❌", "text": f"Problems found in {labels(count['fail'])}"}
+        )
+    if count["review"]:
+        verb = "needs" if count["review"] == 1 else "need"
+        lines.append(
+            {"css": "review", "icon": "⚠️", "text": f"{labels(count['review'])} {verb} review"}
+        )
+    if count["not-checked"]:
+        lines.append(
+            {
+                "css": "not-checked",
+                "icon": "⛔",
+                "text": f"{labels(count['not-checked'])} could not be checked",
+            }
+        )
+    if count["pass"]:
+        lines.append({"css": "pass", "icon": "✅", "text": f"{labels(count['pass'])} all good"})
+    finished = job.state == "finished"
+    return {
+        "job_id": job.id,
+        "state": job.state,
+        "finished": finished,
+        "done": job.done,
+        "total": job.total,
+        "batch_summary": lines,
+        # While a batch runs, show only the problems found so far, to keep updates small.
+        "items": items if finished else [v for v in items if v["kind"] not in ("pass", "waiting")],
+        "passed_so_far": count["pass"],
+        "skipped": job.skipped_files,
+        "unused": job.unused_pictures,
     }

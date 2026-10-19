@@ -145,3 +145,32 @@ def unpack_zip(data: bytes) -> Unpacked:
             seen.add(name.casefold())
             unpacked.pictures[name] = content
     return unpacked
+
+
+def collect_pictures(files: list[tuple[str, bytes]]) -> Unpacked:
+    """Gather the pictures from a batch upload: loose pictures, ZIP files, or both."""
+    collected = Unpacked()
+    seen: set[str] = set()
+
+    def add(name: str, content: bytes, shown: str) -> None:
+        if name.casefold() in seen:
+            collected.skipped.append(Skipped(shown, f'Another picture is also named "{name}".'))
+            return
+        if len(collected.pictures) == MAX_PICTURES:
+            raise ArchiveError(f"This upload holds more than {MAX_PICTURES} pictures.")
+        seen.add(name.casefold())
+        collected.pictures[name] = content
+
+    for name, data in files:
+        if data.startswith(b"PK\x03\x04") or name.casefold().endswith(".zip"):
+            unpacked = unpack_zip(data)
+            collected.skipped += [Skipped(f"{name}: {s.name}", s.reason) for s in unpacked.skipped]
+            for inner, content in unpacked.pictures.items():
+                add(inner, content, f"{name}: {inner}")
+        elif image_kind(data):
+            add(base_name(name), data, name)
+        else:
+            collected.skipped.append(
+                Skipped(name, "Not a JPEG, PNG, WebP, or GIF picture, or a ZIP file of them.")
+            )
+    return collected
