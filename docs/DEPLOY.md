@@ -13,6 +13,7 @@ Live URL: https://ttb-label-verifier.kindmoss-39b6eae5.eastus2.azurecontainerapp
 | Container registry | `ttblabelverifier` | Basic tier, admin user off. Images are built in the cloud for linux/amd64. |
 | Container Apps environment | `cae-ttb-label-verifier` | Consumption plan. **No log storage** (`--logs-destination none`). Live log streaming still works. |
 | Container app | `ttb-label-verifier` | 1 vCPU, 2 GiB (for large batches held in memory), scales 0 to 1 replica, public HTTPS. System-assigned managed identity pulls images from the registry. |
+| Foundry resource | `ttb-foundry-cp` | Azure AI Foundry (AI Services), East US 2, for the optional Foundry reader. No Claude deployment yet (see below). |
 | Budget | `ttb-label-verifier-monthly` | $40 a month for the subscription, email alerts at 50%, 80%, and 100%. Azure budgets alert; they do not stop spending. |
 
 The app runs as **one replica at most**: usage limits and batch jobs are kept in memory, so a
@@ -100,6 +101,29 @@ Claude hosted in its own Azure subscription instead of the Anthropic API. The co
 Then set `TTB_READER=foundry`, `TTB_FOUNDRY_RESOURCE=<resource name>`, and
 `TTB_CLAUDE_MODEL=<deployment name>` on the container app. Foundry needs
 `TTB_CLAUDE_THINKING=adaptive`, which is the default when `TTB_READER=foundry`.
+
+**Status on Oct 19, 2026:**
+
+- **Done:** the Foundry resource `ttb-foundry-cp` exists in `rg-ttb-label-verifier`, and the
+  container app's identity has the "Cognitive Services User" role on it.
+- **Keyless sign-in works.** A call to the real endpoint, signed in with Microsoft Entra ID, was
+  accepted. It answered "deployment not found", not "unauthorized".
+- **The Claude Haiku 5.5 deployment is not made yet, for two reasons:**
+  - The subscription's quota for it is 0, so a quota request is needed.
+  - Anthropic requires "model provider data" (industry, organization name, country) for every
+    deployment.
+- **So Foundry has been tested offline only** (`tests/reading/test_providers.py`), not on a live
+  deployment.
+
+```sh
+az provider register -n Microsoft.CognitiveServices --wait
+az cognitiveservices account create -n ttb-foundry-cp -g rg-ttb-label-verifier -l eastus2 \
+  --kind AIServices --sku S0 --custom-domain ttb-foundry-cp --allow-project-management true \
+  --tags project=ttb-label-verifier
+az role assignment create --role "Cognitive Services User" \
+  --assignee-object-id <container app principal id> --assignee-principal-type ServicePrincipal \
+  --scope <Foundry resource id>
+```
 
 ## Checking a deployment
 
