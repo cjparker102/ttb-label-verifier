@@ -173,6 +173,7 @@ def test_summary_reports_time_inside_the_app():
     results = {
         "mode": "deployed app",
         "url": "https://app",
+        "deployed_as": "revision app--0000017, image 223172b",
         "measured_at": "2026-10-19T12:00:00",
         "commit": "abc1234",
         "records": [
@@ -185,3 +186,7 @@ def test_summary_reports_time_inside_the_app():
     assert summary["server_seconds"] == {"median": 3.0, "p95": 4.0, "max": 4.0}
     report = markdown(results, summary)
     assert "| Of that, time inside the app (median / p95 / max) | 3.0 s / 4.0 s / 4.0 s |" in report
+    assert (
+        "Commit of this evaluation tool: `abc1234`. "
+        "The deployed app: revision app--0000017, image 223172b." in report
+    )

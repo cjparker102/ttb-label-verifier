@@ -6,7 +6,7 @@ Two ways to run it, from the project root:
     uv run --env-file .env python -m tools.evaluate
 
   Against a deployed app, end to end through its web pages:
-    uv run python -m tools.evaluate --url https://...
+    uv run python -m tools.evaluate --url https://... --deployed-as "revision ..., image ..."
   The app lets one visitor make only so many checks in ten minutes. When a run reaches
   that limit, it waits a minute and tries again; the wait isn't counted in the times.
 
@@ -455,7 +455,13 @@ def markdown(results: dict, summary: dict) -> str:
         f"{kind.replace('_', ' ')} {n}" for kind, n in sorted(summary["judgments"].items())
     )
     lines = [f"# Evaluation, {results['measured_at']}", "", mode, ""]
-    lines += [f"Commit: `{results['commit']}`.", "", "## Summary", ""]
+    if results["mode"] == "deployed app":
+        version = f"Commit of this evaluation tool: `{results['commit']}`."
+        if results.get("deployed_as"):
+            version += f" The deployed app: {results['deployed_as']}."
+    else:
+        version = f"Commit: `{results['commit']}`."
+    lines += [version, "", "## Summary", ""]
     lines += [
         "| Measure | Result |",
         "|---|---|",
@@ -483,18 +489,24 @@ def main() -> None:
     parser.add_argument("--url", help="evaluate a deployed app instead of running in this process")
     parser.add_argument("--reader", choices=["anthropic", "ocr"], default="anthropic")
     parser.add_argument("--only", help="comma-separated sample ids")
+    parser.add_argument(
+        "--deployed-as", help="what the deployed app runs, for the report: its revision and image"
+    )
     args = parser.parse_args()
 
+    # Taken before the run, so it is the code that ran. "-dirty" marks a run made with
+    # changes that weren't committed yet.
+    commit = subprocess.run(
+        ["git", "describe", "--always", "--dirty"], capture_output=True, text=True, check=False
+    ).stdout.strip()
     entries = load_entries(args.only.split(",") if args.only else None)
     if args.url:
         results = evaluate_deployed(entries, args.url)
+        results["deployed_as"] = args.deployed_as
     else:
         results = asyncio.run(evaluate_here(entries, args.reader))
     results["measured_at"] = datetime.now().isoformat(timespec="seconds")
-    # "-dirty" marks a run made with changes that weren't committed yet.
-    results["commit"] = subprocess.run(
-        ["git", "describe", "--always", "--dirty"], capture_output=True, text=True, check=False
-    ).stdout.strip()
+    results["commit"] = commit
     summary = summarize(results)
     results["summary"] = summary
 
