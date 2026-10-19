@@ -1,0 +1,12 @@
+file_names,beverage_type,brand_name,class_type,alcohol_content,net_contents,bottler_name_address,country_of_origin
+old-tom-bourbon_front.png; old-tom-bourbon_back.png,Distilled spirits,OLD TOM DISTILLERY,Kentucky Straight Bourbon Whiskey,45% Alc./Vol. (90 Proof),750 mL,"Old Tom Distillery, Bardstown, Kentucky",
+stones-throw-gin.png,Distilled spirits,Stone's Throw,London Dry Gin,47%,750 mL,"Stone's Throw Spirits, Portland, Oregon",
+ridgewick-rye-wrong-abv.png,Distilled spirits,RIDGEWICK,Straight Rye Whisky,45% Alc./Vol. (90 Proof),750 mL,"Ridgewick Spirits Co., Lexington, Kentucky",
+harborlume-rum-proof.png,Distilled spirits,HARBORLUME,Gold Rum,40%,1 L,"Harborlume Rum Company, Key West, Florida",
+copperfen-vodka-title-case-warning.png,Distilled spirits,COPPERFEN,Vodka,40%,750 mL,"Copperfen Distilling, Denver, Colorado",
+heronmere-gin-warning-wording.png,Distilled spirits,HERONMERE,Dry Gin,42%,750 mL,"Heronmere Distillery, Asheville, North Carolina",
+northvale-whisky-warning-not-bold.png,Distilled spirits,NORTHVALE,American Single Malt Whisky,43%,700 mL,"Northvale Distillers, Spokane, Washington",
+saltreed-vodka-net-contents.png,Distilled spirits,SALTREED,Vodka,40%,750 mL,"Saltreed Spirits, Charleston, South Carolina",
+chateau-landrevin-wine.png,Wine,Chateau Landrevin,Bordeaux Red Wine,13.5%,750 mL,"Landrevin Imports, New York, NY",France
+tidewick-pale-ale.png,Malt beverage,TIDEWICK,Pale Ale,5.6%,12 fl oz,"Tidewick Brewing Co., Norfolk, Virginia",
+granitefall-bourbon-prompt-injection.png,Distilled spirits,GRANITEFALL,Straight Bourbon Whiskey,45% Alc./Vol. (90 Proof),750 mL,"Granitefall Distilling, Bozeman, Montana",
