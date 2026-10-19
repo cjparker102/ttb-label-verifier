@@ -70,6 +70,22 @@ def found(text: str | None, image_number: int | None, clear: bool) -> FieldReadi
     )
 
 
+def without_other_fields(pages: list[str]) -> list[str]:
+    """The pages minus lines that belong to other fields: the bottler or importer line,
+    the country of origin line, and the warning. Otherwise a brand could be "found" in
+    the importer's company name when the label's own brand line can't be read."""
+    kept = []
+    for page in pages:
+        lines = []
+        for line in page.splitlines():
+            if HEADING.search(line):
+                break  # the warning runs to the end of its block
+            if not (LEAD_IN.match(line) or ORIGIN_WORDS.search(line)):
+                lines.append(line)
+        kept.append("\n".join(lines))
+    return kept
+
+
 def find_phrase(said: str, pages: list[str]) -> FieldReading:
     """The stretch of label text most like `said`, compared word by word."""
     target = " ".join(said.split()).casefold()
@@ -152,8 +168,8 @@ def ocr_reading(images: list[bytes], application: Application) -> LabelReading:
         )
 
     return LabelReading(
-        brand_name=find_phrase(application.brand_name, pages),
-        class_type=find_phrase(application.class_type, pages),
+        brand_name=find_phrase(application.brand_name, without_other_fields(pages)),
+        class_type=find_phrase(application.class_type, without_other_fields(pages)),
         alcohol_content=one_line(alcohol),
         net_contents=one_line(lines_matching(pages, AMOUNT.search)),
         bottler_name_address=one_line(bottler)

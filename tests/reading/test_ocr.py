@@ -88,3 +88,20 @@ def test_tesseract_gets_pictures_through_stdin_and_writes_no_files(tmp_path, mon
         ocr_reading([jpeg], application_for(sample))
     assert list(writes) == []
     assert list(tmp_path.iterdir()) == []
+
+
+def test_a_brand_only_inside_the_importer_line_is_not_found():
+    from app.reading.ocr import without_other_fields
+
+    pages = [
+        "青嵐\nJapanese Whisky\nImported by Seiran Imports, Seattle, Washington\nProduct of Japan"
+    ]
+    assert find_phrase("Seiran", without_other_fields(pages)).readability == "not_found"
+    assert find_phrase("Japanese Whisky", without_other_fields(pages)).readability == "clear"
+
+
+def test_the_warning_is_left_out_when_looking_for_names():
+    from app.reading.ocr import without_other_fields
+
+    page = "RIDGEWICK\n" + GOVERNMENT_WARNING
+    assert "Surgeon" not in without_other_fields([page])[0]
