@@ -27,3 +27,22 @@ def flatten_to_rgb(image: Image.Image) -> Image.Image:
     background = Image.new("RGB", rgba.size, "white")
     background.paste(rgba, mask=rgba.getchannel("A"))
     return background
+
+
+# The first bytes of each picture format the reader accepts.
+SIGNATURES = {
+    b"\xff\xd8\xff": "JPEG",
+    b"\x89PNG\r\n\x1a\n": "PNG",
+    b"GIF87a": "GIF",
+    b"GIF89a": "GIF",
+}
+
+
+def image_kind(data: bytes) -> str | None:
+    """The picture format, judged by the file's content rather than its name."""
+    for signature, kind in SIGNATURES.items():
+        if data.startswith(signature):
+            return kind
+    if data[:4] == b"RIFF" and data[8:12] == b"WEBP":
+        return "WebP"
+    return None
