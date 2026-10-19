@@ -29,10 +29,10 @@
         "country_of_origin": "exact",
         "government_warning": "exact"
       },
-      "seconds": 3.36,
+      "seconds": 2.86,
       "read_by": "ai",
-      "input_tokens": 7100,
-      "output_tokens": 480,
+      "input_tokens": 7196,
+      "output_tokens": 454,
       "reading_problems": {},
       "reading": {
         "brand_name": {
@@ -105,10 +105,10 @@
         "country_of_origin": "exact",
         "government_warning": "exact"
       },
-      "seconds": 2.05,
+      "seconds": 2.13,
       "read_by": "ai",
-      "input_tokens": 4739,
-      "output_tokens": 434,
+      "input_tokens": 4835,
+      "output_tokens": 460,
       "reading_problems": {},
       "reading": {
         "brand_name": {
@@ -181,9 +181,9 @@
         "country_of_origin": "exact",
         "government_warning": "exact"
       },
-      "seconds": 2.94,
+      "seconds": 2.46,
       "read_by": "ai",
-      "input_tokens": 4739,
+      "input_tokens": 4835,
       "output_tokens": 443,
       "reading_problems": {},
       "reading": {
@@ -261,9 +261,9 @@
         "country_of_origin": "exact",
         "government_warning": "exact"
       },
-      "seconds": 2.25,
+      "seconds": 2.29,
       "read_by": "ai",
-      "input_tokens": 4739,
+      "input_tokens": 4835,
       "output_tokens": 432,
       "reading_problems": {},
       "reading": {
@@ -341,9 +341,9 @@
         "country_of_origin": "exact",
         "government_warning": "exact"
       },
-      "seconds": 2.37,
+      "seconds": 2.7,
       "read_by": "ai",
-      "input_tokens": 4739,
+      "input_tokens": 4835,
       "output_tokens": 428,
       "reading_problems": {},
       "reading": {
@@ -421,9 +421,9 @@
         "country_of_origin": "exact",
         "government_warning": "exact"
       },
-      "seconds": 2.38,
+      "seconds": 2.11,
       "read_by": "ai",
-      "input_tokens": 4739,
+      "input_tokens": 4835,
       "output_tokens": 425,
       "reading_problems": {},
       "reading": {
@@ -501,14 +501,13 @@
         "country_of_origin": "exact",
         "government_warning": "exact"
       },
-      "seconds": 2.52,
+      "seconds": 4.15,
       "read_by": "ai",
-      "input_tokens": 4739,
-      "output_tokens": 443,
+      "input_tokens": 4835,
+      "output_tokens": 439,
       "reading_problems": {
         "government_warning": [
-          "heading_bold cant_tell, expected no",
-          "rest_bold cant_tell, expected no"
+          "heading_bold cant_tell, expected no"
         ]
       },
       "reading": {
@@ -554,7 +553,7 @@
           "image_number": 1,
           "english_meaning": null,
           "heading_bold": "cant_tell",
-          "rest_bold": "cant_tell"
+          "rest_bold": "no"
         },
         "image_problems": []
       },
@@ -586,10 +585,10 @@
         "country_of_origin": "exact",
         "government_warning": "exact"
       },
-      "seconds": 2.15,
+      "seconds": 2.14,
       "read_by": "ai",
-      "input_tokens": 4739,
-      "output_tokens": 424,
+      "input_tokens": 4835,
+      "output_tokens": 450,
       "reading_problems": {},
       "reading": {
         "brand_name": {
@@ -653,7 +652,7 @@
         "class_type": "pass",
         "alcohol_content": "review",
         "net_contents": "pass",
-        "bottler_name_address": "fail",
+        "bottler_name_address": "pass",
         "country_of_origin": "pass",
         "government_warning": "pass"
       },
@@ -662,17 +661,17 @@
         "class_type": "exact",
         "alcohol_content": "exact",
         "net_contents": "exact",
-        "bottler_name_address": "false_fail",
+        "bottler_name_address": "exact",
         "country_of_origin": "exact",
         "government_warning": "exact"
       },
-      "seconds": 2.71,
+      "seconds": 2.76,
       "read_by": "ai",
-      "input_tokens": 4739,
-      "output_tokens": 444,
+      "input_tokens": 4835,
+      "output_tokens": 469,
       "reading_problems": {
         "bottler_name_address": [
-          "text 'Mis en bouteille au château', expected 'Imported by Landrevin Imports, New York, NY'"
+          "text 'Mis en bouteille au château Imported by Landrevin Imports, New York, NY', expected 'Imported by Landrevin Imports, New York, NY'"
         ]
       },
       "reading": {
@@ -692,7 +691,7 @@
           "text": "13,5% vol",
           "readability": "clear",
           "image_number": 1,
-          "english_meaning": "13.5% alcohol by volume"
+          "english_meaning": null
         },
         "net_contents": {
           "text": "750 ml",
@@ -701,10 +700,10 @@
           "english_meaning": null
         },
         "bottler_name_address": {
-          "text": "Mis en bouteille au château",
+          "text": "Mis en bouteille au château Imported by Landrevin Imports, New York, NY",
           "readability": "clear",
           "image_number": 1,
-          "english_meaning": "Bottled at the château"
+          "english_meaning": "Bottled at the château. Imported by Landrevin Imports, New York, NY"
         },
         "country_of_origin": {
           "text": "Product of France",
@@ -724,13 +723,11 @@
       },
       "flagged_on_label": [
         "brand_name",
-        "alcohol_content",
-        "bottler_name_address"
+        "alcohol_content"
       ],
       "outlined": [
         "brand_name",
-        "alcohol_content",
-        "bottler_name_address"
+        "alcohol_content"
       ]
     },
     {
@@ -754,9 +751,9 @@
         "country_of_origin": "exact",
         "government_warning": "exact"
       },
-      "seconds": 2.61,
+      "seconds": 2.37,
       "read_by": "ai",
-      "input_tokens": 4739,
+      "input_tokens": 4835,
       "output_tokens": 439,
       "reading_problems": {},
       "reading": {
@@ -830,9 +827,9 @@
         "country_of_origin": "exact",
         "government_warning": "exact"
       },
-      "seconds": 2.56,
+      "seconds": 2.87,
       "read_by": "ai",
-      "input_tokens": 4739,
+      "input_tokens": 4835,
       "output_tokens": 442,
       "reading_problems": {},
       "reading": {
@@ -910,9 +907,9 @@
         "country_of_origin": "exact",
         "government_warning": "exact"
       },
-      "seconds": 2.18,
+      "seconds": 2.45,
       "read_by": "ai",
-      "input_tokens": 4739,
+      "input_tokens": 4835,
       "output_tokens": 433,
       "reading_problems": {},
       "reading": {
@@ -988,9 +985,9 @@
         "country_of_origin": "exact",
         "government_warning": "exact"
       },
-      "seconds": 2.49,
+      "seconds": 2.44,
       "read_by": "ai",
-      "input_tokens": 4739,
+      "input_tokens": 4835,
       "output_tokens": 462,
       "reading_problems": {},
       "reading": {
@@ -1064,10 +1061,10 @@
         "country_of_origin": "exact",
         "government_warning": "exact"
       },
-      "seconds": 2.5,
+      "seconds": 2.18,
       "read_by": "ai",
-      "input_tokens": 4739,
-      "output_tokens": 429,
+      "input_tokens": 4835,
+      "output_tokens": 455,
       "reading_problems": {},
       "reading": {
         "brand_name": {
@@ -1144,9 +1141,9 @@
         "country_of_origin": "exact",
         "government_warning": "exact"
       },
-      "seconds": 2.13,
+      "seconds": 2.44,
       "read_by": "ai",
-      "input_tokens": 4739,
+      "input_tokens": 4835,
       "output_tokens": 355,
       "reading_problems": {},
       "reading": {
@@ -1220,9 +1217,9 @@
         "country_of_origin": "exact",
         "government_warning": "exact"
       },
-      "seconds": 2.91,
+      "seconds": 2.36,
       "read_by": "ai",
-      "input_tokens": 4739,
+      "input_tokens": 4835,
       "output_tokens": 419,
       "reading_problems": {},
       "reading": {
@@ -1296,9 +1293,9 @@
         "country_of_origin": "exact",
         "government_warning": "exact"
       },
-      "seconds": 2.12,
+      "seconds": 2.56,
       "read_by": "ai",
-      "input_tokens": 4739,
+      "input_tokens": 4835,
       "output_tokens": 429,
       "reading_problems": {},
       "reading": {
@@ -1376,10 +1373,10 @@
         "country_of_origin": "exact",
         "government_warning": "exact"
       },
-      "seconds": 2.76,
+      "seconds": 2.83,
       "read_by": "ai",
-      "input_tokens": 4739,
-      "output_tokens": 428,
+      "input_tokens": 4835,
+      "output_tokens": 454,
       "reading_problems": {},
       "reading": {
         "brand_name": {
@@ -1456,9 +1453,9 @@
         "country_of_origin": "exact",
         "government_warning": "exact"
       },
-      "seconds": 2.1,
+      "seconds": 2.5,
       "read_by": "ai",
-      "input_tokens": 4739,
+      "input_tokens": 4835,
       "output_tokens": 430,
       "reading_problems": {},
       "reading": {
@@ -1536,10 +1533,10 @@
         "country_of_origin": "exact",
         "government_warning": "exact"
       },
-      "seconds": 2.1,
+      "seconds": 2.17,
       "read_by": "ai",
-      "input_tokens": 4739,
-      "output_tokens": 422,
+      "input_tokens": 4835,
+      "output_tokens": 448,
       "reading_problems": {},
       "reading": {
         "brand_name": {
@@ -1612,9 +1609,9 @@
         "country_of_origin": "exact",
         "government_warning": "exact"
       },
-      "seconds": 2.23,
+      "seconds": 2.53,
       "read_by": "ai",
-      "input_tokens": 7100,
+      "input_tokens": 7196,
       "output_tokens": 448,
       "reading_problems": {},
       "reading": {
@@ -1692,9 +1689,9 @@
         "country_of_origin": "exact",
         "government_warning": "exact"
       },
-      "seconds": 2.79,
+      "seconds": 2.05,
       "read_by": "ai",
-      "input_tokens": 4739,
+      "input_tokens": 4835,
       "output_tokens": 431,
       "reading_problems": {},
       "reading": {
@@ -1772,10 +1769,10 @@
         "country_of_origin": "exact",
         "government_warning": "exact"
       },
-      "seconds": 2.37,
+      "seconds": 2.74,
       "read_by": "ai",
-      "input_tokens": 4739,
-      "output_tokens": 449,
+      "input_tokens": 4835,
+      "output_tokens": 477,
       "reading_problems": {},
       "reading": {
         "brand_name": {
@@ -1848,10 +1845,10 @@
         "country_of_origin": "exact",
         "government_warning": "exact"
       },
-      "seconds": 2.44,
+      "seconds": 2.95,
       "read_by": "ai",
-      "input_tokens": 4739,
-      "output_tokens": 434,
+      "input_tokens": 4835,
+      "output_tokens": 460,
       "reading_problems": {},
       "reading": {
         "brand_name": {
@@ -1924,9 +1921,9 @@
         "country_of_origin": "exact",
         "government_warning": "exact"
       },
-      "seconds": 2.39,
+      "seconds": 2.5,
       "read_by": "ai",
-      "input_tokens": 4739,
+      "input_tokens": 4835,
       "output_tokens": 443,
       "reading_problems": {},
       "reading": {
@@ -1993,7 +1990,7 @@
         "net_contents": "pass",
         "bottler_name_address": "pass",
         "country_of_origin": "not_needed",
-        "government_warning": "review"
+        "government_warning": "fail"
       },
       "judgments": {
         "brand_name": "exact",
@@ -2002,17 +1999,13 @@
         "net_contents": "exact",
         "bottler_name_address": "exact",
         "country_of_origin": "exact",
-        "government_warning": "review_instead_of_fail"
+        "government_warning": "exact"
       },
-      "seconds": 3.35,
+      "seconds": 2.64,
       "read_by": "ai",
-      "input_tokens": 4739,
-      "output_tokens": 433,
-      "reading_problems": {
-        "government_warning": [
-          "readability unclear, expected clear"
-        ]
-      },
+      "input_tokens": 4835,
+      "output_tokens": 425,
+      "reading_problems": {},
       "reading": {
         "brand_name": {
           "text": "HERONMERE",
@@ -2052,16 +2045,13 @@
         },
         "government_warning": {
           "text": "GOVERNMENT WARNING: (1) According to the Surgeon General, women should not drink alcoholic beverages during pregnancy because of the risk of birth defects. (2) Consumption of alcoholic beverages impairs your ability to drive or operate machinery, and may cause health problems.",
-          "readability": "unclear",
+          "readability": "clear",
           "image_number": 1,
           "english_meaning": null,
           "heading_bold": "yes",
           "rest_bold": "no"
         },
-        "image_problems": [
-          "blur",
-          "too_small"
-        ]
+        "image_problems": []
       },
       "flagged_on_label": [
         "government_warning"
@@ -2089,10 +2079,10 @@
         "country_of_origin": "exact",
         "government_warning": "exact"
       },
-      "seconds": 2.56,
+      "seconds": 2.38,
       "read_by": "ai",
-      "input_tokens": 4739,
-      "output_tokens": 428,
+      "input_tokens": 4835,
+      "output_tokens": 454,
       "reading_problems": {},
       "reading": {
         "brand_name": {
@@ -2169,10 +2159,10 @@
         "country_of_origin": "exact",
         "government_warning": "exact"
       },
-      "seconds": 2.23,
+      "seconds": 2.46,
       "read_by": "ai",
-      "input_tokens": 4739,
-      "output_tokens": 456,
+      "input_tokens": 4835,
+      "output_tokens": 424,
       "reading_problems": {},
       "reading": {
         "brand_name": {
@@ -2219,9 +2209,7 @@
           "heading_bold": "yes",
           "rest_bold": "no"
         },
-        "image_problems": [
-          "too_small"
-        ]
+        "image_problems": []
       },
       "flagged_on_label": [
         "net_contents"
@@ -2238,7 +2226,7 @@
         "net_contents": "pass",
         "bottler_name_address": "pass",
         "country_of_origin": "not_needed",
-        "government_warning": "review"
+        "government_warning": "pass"
       },
       "judgments": {
         "brand_name": "exact",
@@ -2247,17 +2235,13 @@
         "net_contents": "exact",
         "bottler_name_address": "exact",
         "country_of_origin": "exact",
-        "government_warning": "extra_review"
+        "government_warning": "exact"
       },
-      "seconds": 2.46,
+      "seconds": 2.33,
       "read_by": "ai",
-      "input_tokens": 4739,
-      "output_tokens": 444,
-      "reading_problems": {
-        "government_warning": [
-          "readability unclear, expected clear"
-        ]
-      },
+      "input_tokens": 4835,
+      "output_tokens": 443,
+      "reading_problems": {},
       "reading": {
         "brand_name": {
           "text": "TIDEWICK",
@@ -2297,7 +2281,7 @@
         },
         "government_warning": {
           "text": "GOVERNMENT WARNING: (1) According to the Surgeon General, women should not drink alcoholic beverages during pregnancy because of the risk of birth defects. (2) Consumption of alcoholic beverages impairs your ability to drive a car or operate machinery, and may cause health problems.",
-          "readability": "unclear",
+          "readability": "clear",
           "image_number": 1,
           "english_meaning": null,
           "heading_bold": "yes",
@@ -2307,9 +2291,7 @@
           "too_small"
         ]
       },
-      "flagged_on_label": [
-        "government_warning"
-      ],
+      "flagged_on_label": [],
       "outlined": []
     },
     {
@@ -2333,9 +2315,9 @@
         "country_of_origin": "exact",
         "government_warning": "exact"
       },
-      "seconds": 2.22,
+      "seconds": 2.7,
       "read_by": "ai",
-      "input_tokens": 4739,
+      "input_tokens": 4835,
       "output_tokens": 446,
       "reading_problems": {
         "government_warning": [
@@ -2418,9 +2400,9 @@
         "country_of_origin": "exact",
         "government_warning": "exact"
       },
-      "seconds": 2.37,
+      "seconds": 2.34,
       "read_by": "ai",
-      "input_tokens": 4739,
+      "input_tokens": 4835,
       "output_tokens": 432,
       "reading_problems": {},
       "reading": {
@@ -2476,38 +2458,33 @@
       "outlined": []
     }
   ],
-  "measured_at": "2026-10-19T09:19:12",
-  "commit": "1e08341",
+  "measured_at": "2026-10-19T09:24:01",
+  "commit": "fa442c7-dirty",
   "summary": {
     "labels": 31,
     "errors": 0,
     "fields": 217,
     "judgments": {
-      "exact": 214,
-      "false_fail": 1,
-      "review_instead_of_fail": 1,
-      "extra_review": 1
+      "exact": 217
     },
-    "clean_labels_all_exact": 22,
+    "clean_labels_all_exact": 23,
     "clean_labels": 23,
     "photo_fields_acceptable": 56,
     "photo_fields": 56,
     "false_passes": [],
-    "false_fails": [
-      "chateau-landrevin-wine: bottler_name_address"
-    ],
+    "false_fails": [],
     "read_by_ocr": 0,
     "seconds": {
-      "median": 2.39,
-      "p95": 3.35,
-      "max": 3.36,
+      "median": 2.46,
+      "p95": 2.95,
+      "max": 4.15,
       "under_5_seconds": 31,
       "timed": 31
     },
     "clean_fields_read_exactly": 159,
     "clean_fields_read": 161,
-    "outlined": 18,
-    "flagged_on_label": 24,
-    "cost_usd": 0.0219
+    "outlined": 17,
+    "flagged_on_label": 22,
+    "cost_usd": 0.0223
   }
 }
