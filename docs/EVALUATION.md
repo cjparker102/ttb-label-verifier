@@ -107,6 +107,40 @@ If slow answers come back, one option is to send the same request a second time 
 first hasn't answered within about 3.5 seconds, and use whichever answer arrives first. It
 would add roughly a cent per hundred labels. It is not built.
 
+## On the live app, end to end
+
+The same 31 labels were sent to the deployed app through its web pages
+(`tools/evaluate.py --url`), on Oct 19 with the API key set. Each label was checked once on
+its own, as an agent would, and once more in a batch of all 31. Full results:
+[evaluation-2026-10-19-deployed.md](measurements/evaluation-2026-10-19-deployed.md).
+More timing, with phone-sized photos and after a cold start:
+[live-single-check-2026-10-19.md](measurements/live-single-check-2026-10-19.md).
+
+| Measure | Result |
+|---|---|
+| Read by Claude | 31 of 31, on their own and in the batch |
+| False passes / false fails | **0** / **0** |
+| Field results as expected (from the batch) | 217 of 217 |
+| Single check, end to end (median / p95 / max) | 2.95 s / 4.65 s / 8.79 s |
+| Of that, inside the app | 2.8 s / 4.5 s / 8.6 s |
+| Single checks done in under 5 seconds | 30 of 31 |
+| Fields to look at that were outlined | 17 of 22, the same fields as in process |
+| Batch of 31 labels, upload to finished | 16.1 s |
+| Phone-sized photo (6 MB JPEG), end to end (median of 5) | 3.47 s |
+| Two phone-sized photos (12 MB), end to end (median of 3) | 4.17 s |
+| First check after the app scaled to zero | 26.6 s, of which 3.4 s was the check |
+
+End to end includes the outline wait: a check waits at most 1 second for the outlines
+once Claude has answered. The app's logs show the wait never reached that limit. The one
+check over 5 seconds was a slow answer from the API, like the ones seen in process. A big
+photo adds its upload time (about 0.8 s for 6 MB on a home connection) but nothing inside
+the app, because every picture is shrunk before Claude sees it.
+
+The slow first check is Azure starting the app after it has scaled to zero: pulling the
+image, creating the container, starting it, and a health probe. It happens after about 5
+minutes without requests. Keeping one replica running would remove it; that's an open cost
+decision.
+
 ## Results with basic text reading (offline)
 
 The same 31 labels, read with Tesseract OCR only, as when Claude can't be reached. Full
@@ -135,18 +169,19 @@ These times are on a laptop; on the app's one Azure CPU, basic text reading is s
 - **The set is small.** No false passes in 217 field results is encouraging, but it does not
   prove the rate is zero.
 - **Each label was read once per run.** Claude's times vary from run to run.
-- **These runs were in process.** They leave out uploading the pictures and loading the page.
-  The same script can test the deployed app end to end (`--url`); that run waits until the
-  API key is set on Azure.
+- **The live runs were from one home connection,** one check at a time. An agency network,
+  or many agents at once, would give different times.
 
 ## Run it again
 
 ```sh
 uv run --env-file .env python -m tools.evaluate            # Claude, in this process
 uv run python -m tools.evaluate --reader ocr               # offline reader only, no cost
-uv run python -m tools.evaluate --url https://...          # a deployed app, end to end
+uv run python -m tools.evaluate --url https://... --deployed-as "revision ..., image ..."
+uv run python -m tools.time_live --url https://... --phone  # phone-sized photos, timed
 uv run python -m tools.evaluate --only old-tom-bourbon     # some labels only
 ```
 
-Each run with Claude costs about two cents. Results are saved to `docs/measurements/` as JSON
-and Markdown, exactly as measured.
+Each run with Claude costs about two cents; against a deployed app, about four, because each
+label is read twice. Results are saved to `docs/measurements/` as JSON and Markdown, exactly
+as measured.

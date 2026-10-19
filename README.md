@@ -42,7 +42,11 @@ On 31 sample labels (23 clean, 8 made to look like poor photos), with Claude Hai
 
 - **Every field result was as expected,** 217 of 217: no planted problem was shown as
   Matches, and no fine field was shown as a Problem.
-- **Every label was checked in under 5 seconds** (median 2.5 s, slowest 4.2 s).
+- **Every label was checked in under 5 seconds** in process (median 2.5 s, slowest 4.2 s). On
+  the live app, end to end from a home connection, the median was 2.95 s and 30 of 31 were
+  under 5 seconds; one slow answer from the API took 8.8 s.
+- **The first check after a quiet spell** waits about 23 seconds more, while Azure starts the
+  app. It scales to zero after 5 minutes without requests.
 - **The AI cost** was about 0.07 cents a label.
 
 An earlier run found one false Problem, on a French wine's importer statement. It was fixed
@@ -108,7 +112,9 @@ versions (tilted, blurry, dim, glare, and so on). One label carries a prompt-inj
 attempt. Regenerate with `uv run python -m tools.make_samples`.
 
 `tools/evaluate.py` checks every sample and records accuracy, speed, and cost in
-`docs/measurements/`. See [docs/EVALUATION.md](docs/EVALUATION.md).
+`docs/measurements/`, in process or against the deployed app. `tools/time_live.py` times
+single checks on the deployed app, with phone-sized photos if asked. See
+[docs/EVALUATION.md](docs/EVALUATION.md).
 
 ## Project layout
 

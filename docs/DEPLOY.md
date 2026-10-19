@@ -134,7 +134,9 @@ az containerapp revision list -n ttb-label-verifier -g rg-ttb-label-verifier -o 
 az containerapp logs show -n ttb-label-verifier -g rg-ttb-label-verifier --follow
 ```
 
-The first request after the app has scaled to zero waits for a container to start.
+The first request after the app has scaled to zero waits for a container to start: about 23
+seconds, measured on Oct 19, 2026 (`docs/measurements/live-single-check-2026-10-19.md`).
+Setting `--min-replicas 1` removes the wait, at the cost of a replica that never stops.
 
 ## Removing everything
 

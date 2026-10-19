@@ -260,6 +260,20 @@ def post_check(client, url: str, form: dict, files: list):
     raise SystemExit("The app kept refusing checks: HTTP 429")
 
 
+def check_form(entry: dict) -> dict[str, str]:
+    """A sample's application, as the single-check form sends it."""
+    application = application_for(entry)
+    return {
+        "beverage_type": application.beverage_type.value,
+        "brand_name": application.brand_name,
+        "class_type": application.class_type,
+        "alcohol_content": application.alcohol_content,
+        "net_contents": application.net_contents,
+        "bottler_name_address": application.bottler_name_address,
+        "country_of_origin": application.country_of_origin,
+    }
+
+
 def evaluate_deployed(entries: list[dict], url: str) -> dict:
     import httpx
 
@@ -267,16 +281,7 @@ def evaluate_deployed(entries: list[dict], url: str) -> dict:
     records = []
     with httpx.Client(timeout=120) as client:
         for entry in entries:
-            application = application_for(entry)
-            form = {
-                "beverage_type": application.beverage_type.value,
-                "brand_name": application.brand_name,
-                "class_type": application.class_type,
-                "alcohol_content": application.alcohol_content,
-                "net_contents": application.net_contents,
-                "bottler_name_address": application.bottler_name_address,
-                "country_of_origin": application.country_of_origin,
-            }
+            form = check_form(entry)
             files = [("images", (n, (LABELS_DIR / n).read_bytes())) for n in entry["images"]]
             response, seconds = post_check(client, url, form, files)
             record = {
