@@ -142,6 +142,12 @@ def test_a_new_visitor_can_try_every_sample_and_then_the_sample_batch():
     assert rate.checks.limit >= 300
 
 
+def test_an_office_on_one_address_can_send_30_batches_an_hour():
+    rate = Limits.from_settings(Settings())
+    assert all(rate.take_batch("office", 10) is None for _ in range(30))
+    assert rate.take_batch("office", 10).endswith("Please wait 60 minutes and try again.")
+
+
 def test_visitor_is_the_last_forwarded_address():
     # A visitor can put anything in X-Forwarded-For; Azure's ingress appends the real address.
     headers = {"x-forwarded-for": "1.2.3.4, 203.0.113.9"}

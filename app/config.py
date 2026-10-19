@@ -31,12 +31,12 @@ class Settings:
     max_batch_files: int = 610  # pictures or ZIP files, plus the spreadsheet
     batch_concurrency: int = 8  # labels read at the same time within a batch
     batch_keep_seconds: int = 1800  # finished batch results are deleted after this
-    # Single-label checks per visitor, within the window below. A visitor is an address,
-    # and a whole office may share one, so this is generous; the daily limit and the
-    # spend limit on the Anthropic workspace are the real protection.
-    checks_per_visitor: int = 300
+    # Per visitor, within the windows below. A visitor is an address, and a whole office
+    # may share one, so these are generous; the daily limit and the spend limit on the
+    # Anthropic workspace are the real protection.
+    checks_per_visitor: int = 300  # single-label checks
     check_window_seconds: int = 600
-    batches_per_visitor: int = 3
+    batches_per_visitor: int = 30
     batch_window_seconds: int = 3600
     labels_per_day: int = 2000  # for the whole app
 

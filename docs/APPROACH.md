@@ -210,9 +210,9 @@ in 13 seconds, and the batch finished (`docs/measurements/large-upload-2026-10-1
 
 ## Limits and spending
 
-- **Usage limits:** each visitor can check 300 labels per 10 minutes and send 3 batches per hour.
-  The whole app checks at most 2,000 labels a day. A visitor is an internet address, and a whole
-  office may share one, so the per-visitor limit is generous: a new visitor can try every sample
+- **Usage limits:** each visitor can check 300 labels per 10 minutes and send 30 batches per
+  hour. The whole app checks at most 2,000 labels a day. A visitor is an internet address, and a
+  whole office may share one, so the per-visitor limits are generous: a new visitor can try every sample
   and then the sample batch, with room to spare, and a test makes sure of it. The daily limit and
   the spend limit are the real protection. When a limit is reached, the message says how long to
   wait, rounded up.
