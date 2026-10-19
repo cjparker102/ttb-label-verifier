@@ -12,11 +12,11 @@ Live URL: https://ttb-label-verifier.kindmoss-39b6eae5.eastus2.azurecontainerapp
 | Resource group | `rg-ttb-label-verifier` | East US 2, a region where Claude in Microsoft Foundry is offered |
 | Container registry | `ttblabelverifier` | Basic tier, admin user off. Images are built in the cloud for linux/amd64. |
 | Container Apps environment | `cae-ttb-label-verifier` | Consumption plan. **No log storage** (`--logs-destination none`). Live log streaming still works. |
-| Container app | `ttb-label-verifier` | 0.5 vCPU, 1 GiB, scales 0 to 1 replica, public HTTPS. System-assigned managed identity pulls images from the registry. |
+| Container app | `ttb-label-verifier` | 1 vCPU, 2 GiB (for large batches held in memory), scales 0 to 1 replica, public HTTPS. System-assigned managed identity pulls images from the registry. |
 | Budget | `ttb-label-verifier-monthly` | $40 a month for the subscription, email alerts at 50%, 80%, and 100%. Azure budgets alert; they do not stop spending. |
 
-The app runs as **one replica at most**: rate limits (and, later, batch jobs) are kept in
-memory, so a second replica would not see them.
+The app runs as **one replica at most**: usage limits and batch jobs are kept in memory, so a
+second replica would not see them.
 
 ## One-time setup
 
@@ -52,7 +52,7 @@ az containerapp create -n ttb-label-verifier -g rg-ttb-label-verifier \
   --image ttblabelverifier.azurecr.io/ttb-label-verifier:$SHA \
   --registry-server ttblabelverifier.azurecr.io --registry-identity system --system-assigned \
   --ingress external --target-port 8000 \
-  --cpu 0.5 --memory 1.0Gi --min-replicas 0 --max-replicas 1 \
+  --cpu 1.0 --memory 2.0Gi --min-replicas 0 --max-replicas 1 \
   --tags project=ttb-label-verifier
 ```
 
