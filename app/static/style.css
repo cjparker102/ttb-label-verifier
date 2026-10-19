@@ -134,8 +134,10 @@ details.ok-fields > summary { cursor: pointer; font-weight: 700; padding: 10px 0
 progress { width: 100%; max-width: 40rem; height: 28px; accent-color: var(--brand); }
 .summary-not-checked { color: var(--not-needed); background: var(--not-needed-bg); }
 .result-not-checked .badge, .result-waiting .badge { color: var(--not-needed); background: var(--not-needed-bg); }
-.batch-table > tbody > tr > td:first-child { width: 4.5rem; }
-.batch-table > tbody > tr > th { width: 28%; }
+.batch-table { table-layout: fixed; }
+.batch-table > thead th:nth-child(1) { width: 5rem; }
+.batch-table > thead th:nth-child(2) { width: 30%; }
+.batch-table > tbody > tr > .result { width: auto; }
 .item-details > summary { cursor: pointer; font-weight: 700; margin-top: 8px; }
 .item-detail-layout { display: grid; grid-template-columns: minmax(0, 1fr) 180px; gap: 16px; align-items: start; margin-top: 8px; }
 .item-detail-layout table { font-size: 0.9rem; }
@@ -155,7 +157,7 @@ details.skipped > summary { cursor: pointer; font-weight: 700; padding: 10px 0; 
   td::before { content: attr(data-label); display: block; font-weight: 700; font-size: 0.85rem; color: var(--muted); }
   .result { width: 100%; }
   .item-detail-layout { grid-template-columns: minmax(0, 1fr); }
-  .batch-table > tbody > tr > td:first-child, .batch-table > tbody > tr > th { width: 100%; }
+  .batch-table { table-layout: auto; }
 }
 
 @media (forced-colors: active) {
