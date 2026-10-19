@@ -1,6 +1,6 @@
 import pytest
 
-from app.rules.names import check_bottler, check_name
+from app.rules.names import check_bottler, check_name, statements
 from app.rules.results import Status
 from tests.rules.helpers import read
 
@@ -152,3 +152,64 @@ def test_several_statements_none_matching_still_fail():
 def test_a_phrase_with_no_company_name_does_not_match():
     result = check_bottler("Landrevin Imports, New York, NY", read("Mis en bouteille au château"))
     assert result.status == Status.FAIL
+
+
+# Found by review: cases where splitting into statements must not create a match.
+
+
+def test_a_company_in_a_different_role_does_not_match_when_the_application_names_one():
+    label = "Distilled by ABC Distillery, Bardstown, KY Bottled by XYZ Bottlers, Louisville, KY"
+    result = check_bottler("Bottled by ABC Distillery, Bardstown, KY", read(label))
+    assert result.status != Status.PASS
+
+
+def test_the_same_role_still_matches():
+    label = "Distilled by ABC Distillery, Bardstown, KY Bottled by XYZ Bottlers, Louisville, KY"
+    result = check_bottler("Bottled by XYZ Bottlers, Louisville, KY", read(label))
+    assert result.status == Status.PASS
+
+
+def test_a_lowercase_second_statement_keeps_the_whole_address_in_the_first():
+    label = (
+        "Distilled by Old Tom Distillery, Louisville, Kentucky and bottled for Acme Spirits, "
+        "Chicago, IL"
+    )
+    result = check_bottler("Old Tom Distillery, Louisville", read(label))
+    assert result.status != Status.PASS
+
+
+def test_by_or_for_inside_a_company_name_does_not_start_a_statement():
+    label = "Brewed by Hops For Heroes Brewing, Austin, TX"
+    assert check_bottler("Heroes Brewing, Austin, TX", read(label)).status == Status.FAIL
+
+
+def test_a_match_on_one_statement_names_the_others():
+    label = "Mis en bouteille au château Imported by Landrevin Imports, New York, NY"
+    result = check_bottler("Landrevin Imports, New York, NY", read(label))
+    assert result.status == Status.PASS
+    assert 'The label also says "Mis en bouteille au château".' in result.reason
+
+
+@pytest.mark.parametrize(
+    ("text", "parts"),
+    [
+        (
+            "Distilled and bottled by A Co, X Imported by B Co, Y",
+            ["Distilled and bottled by A Co, X", "Imported by B Co, Y"],
+        ),
+        (
+            "Grown, produced and bottled by A Co, X",
+            ["Grown, produced and bottled by A Co, X"],
+        ),
+        (
+            "Brewed and canned by Tidewick Brewing Co., Norfolk, Virginia",
+            ["Brewed and canned by Tidewick Brewing Co., Norfolk, Virginia"],
+        ),
+        (
+            "Distilled by A Co, Louisville, Kentucky and bottled for B Co, Chicago",
+            ["Distilled by A Co, Louisville, Kentucky", "bottled for B Co, Chicago"],
+        ),
+    ],
+)
+def test_statements(text, parts):
+    assert statements(text) == parts

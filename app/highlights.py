@@ -30,11 +30,13 @@ class Highlight:
     height: int
 
 
-def words_on(pictures: list[bytes]) -> list[list[Word]]:
+def words_on(pictures: list[bytes], timeout: float = 10) -> list[list[Word]]:
     """Each picture's words, from two Tesseract passes: the usual layout, which copes
     better with a tilted photo, and "sparse text", which finds short lines standing
-    alone. Duplicates don't matter, because find_highlights takes words by area."""
-    return [ocr_words(p, layout="3") + ocr_words(p, layout="11") for p in pictures]
+    alone. Duplicates don't matter, because find_highlights takes words by area. A
+    check stops waiting for outlines long before `timeout`; it only stops Tesseract
+    from running on in the background."""
+    return [ocr_words(p, timeout, "3") + ocr_words(p, timeout, "11") for p in pictures]
 
 
 def key(text: str) -> str:

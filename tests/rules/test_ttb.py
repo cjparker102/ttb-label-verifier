@@ -239,3 +239,13 @@ def test_checks_are_frozen():
     check = alcohol_checks(SPIRITS, label())[0]
     with pytest.raises(dataclasses.FrozenInstanceError):
         check.status = Status.FAIL
+
+
+def test_a_foreign_statement_beside_an_english_importer_statement_is_fine():
+    bottler = read(
+        "Embotellado por Destilería Cerro, Jalisco Imported by Cerro Imports, San Diego, CA",
+        english_meaning="Bottled by Destilería Cerro, Jalisco. Imported by Cerro Imports.",
+    )
+    reading = label(bottler_name_address=bottler)
+    assert english_checks(SPIRITS, reading) == {}
+    assert english_checks(MALT, reading) == {}

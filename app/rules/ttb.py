@@ -15,7 +15,7 @@ from app.rules.alcohol import CannotParse as NoAlcoholFigure
 from app.rules.alcohol import parse_alcohol
 from app.rules.application import Application, BeverageType
 from app.rules.countries import is_domestic
-from app.rules.names import LEAD_IN
+from app.rules.names import LEAD_IN, role, statements
 from app.rules.net_contents import CannotParse as NoVolume
 from app.rules.net_contents import parse_volume, show_ml
 from app.rules.results import Check, Status
@@ -291,6 +291,10 @@ def english_checks(beverage: BeverageType, reading: LabelReading) -> dict[str, l
     for name in names:
         field = getattr(reading, name)
         text = readable(field)
+        if name == "bottler_name_address" and text and any(map(role, statements(text))):
+            # One statement says in English what a company did, such as "Imported by".
+            # Others beside it may be in another language.
+            continue
         if text is not None and field.english_meaning:
             found[name] = [
                 Check(
