@@ -157,3 +157,23 @@ def test_reader_failure_is_logged_without_label_details(use_reader, caplog):
         client.post("/check", data=OLD_TOM_FORM, files=label_files())
     assert "Label reading failed: ReadingFailed" in caplog.text
     assert "OLD TOM" not in caplog.text
+
+
+def test_too_many_checks_from_one_visitor_are_refused(use_reader):
+    from app.limits import RateLimiter
+
+    use_reader(ReplayReader())
+    app.state.limiter = RateLimiter(per_visitor=1, window_seconds=600, per_day=100)
+    assert client.post("/check", data=OLD_TOM_FORM, files=label_files()).status_code == 200
+    response = client.post("/check", data=OLD_TOM_FORM, files=label_files())
+    assert response.status_code == 429
+    assert "Please wait a few minutes" in response.text
+
+
+def test_form_mistakes_do_not_use_up_the_limit(use_reader):
+    from app.limits import RateLimiter
+
+    use_reader(ReplayReader())
+    app.state.limiter = RateLimiter(per_visitor=1, window_seconds=600, per_day=100)
+    client.post("/check", data=OLD_TOM_FORM)  # no pictures: refused before reading
+    assert client.post("/check", data=OLD_TOM_FORM, files=label_files()).status_code == 200

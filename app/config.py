@@ -23,6 +23,9 @@ class Settings:
     max_images_per_label: int = 6
     max_image_bytes: int = 20 * MB
     max_request_bytes: int = 125 * MB  # 6 images of 20 MB plus form fields
+    checks_per_visitor: int = 30  # per visitor, within the window below
+    visitor_window_seconds: int = 600
+    labels_per_day: int = 2000  # for the whole app
 
 
 def load_settings(env: Mapping[str, str] = os.environ) -> Settings:

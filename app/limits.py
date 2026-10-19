@@ -1,4 +1,8 @@
-"""Request size limit and security headers, as plain ASGI middleware."""
+"""Request size limit, security headers, and rate limits."""
+
+import time
+from collections import deque
+from datetime import UTC, datetime
 
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
@@ -100,3 +104,66 @@ class RequestSizeLimit:
             }
         )
         await send({"type": "http.response.body", "body": body})
+
+
+class RateLimiter:
+    """Counts label checks per visitor over a sliding window, plus a daily total for
+    the whole app. Kept in memory, which works because the app runs as one replica."""
+
+    def __init__(
+        self,
+        per_visitor: int,
+        window_seconds: float,
+        per_day: int,
+        clock=time.monotonic,
+        today=lambda: datetime.now(UTC).date(),
+    ):
+        self.per_visitor = per_visitor
+        self.window_seconds = window_seconds
+        self.per_day = per_day
+        self.clock = clock
+        self.today = today
+        self.recent: dict[str, deque[float]] = {}
+        self.day = today()
+        self.used_today = 0
+
+    def take(self, visitor: str, labels: int = 1) -> str | None:
+        """Record checks of `labels` labels if allowed. Returns None, or why not."""
+        if self.today() != self.day:
+            self.day, self.used_today = self.today(), 0
+        if self.used_today + labels > self.per_day:
+            return (
+                f"This demo has reached its limit of {self.per_day:,} labels for today. "
+                "Please try again tomorrow."
+            )
+        now = self.clock()
+        times = self.recent.setdefault(visitor, deque())
+        while times and now - times[0] >= self.window_seconds:
+            times.popleft()
+        if len(times) + labels > self.per_visitor:
+            minutes = round(self.window_seconds / 60)
+            return (
+                f"You have checked {self.per_visitor} labels in the last {minutes} minutes, "
+                "which is the limit for this demo. Please wait a few minutes and try again."
+            )
+        times.extend([now] * labels)
+        self.used_today += labels
+        self.forget_idle(now)
+        return None
+
+    def forget_idle(self, now: float) -> None:
+        if len(self.recent) > 10_000:
+            idle = [
+                v for v, t in self.recent.items() if not t or now - t[-1] >= self.window_seconds
+            ]
+            for visitor in idle:
+                del self.recent[visitor]
+
+
+def visitor_id(headers: dict[str, str], client_host: str | None) -> str:
+    """The visitor's address. Azure's ingress appends the real client address as the
+    last X-Forwarded-For entry, so only that entry is trusted."""
+    forwarded = headers.get("x-forwarded-for", "")
+    if forwarded.strip():
+        return forwarded.split(",")[-1].strip()
+    return client_host or "unknown"

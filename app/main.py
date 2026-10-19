@@ -18,7 +18,7 @@ from starlette.formparsers import MultiPartParser
 from app.checking import LabelReader, NotAnImage, check_one
 from app.config import load_settings
 from app.intake.images import shrink_to_jpeg
-from app.limits import RequestSizeLimit, SecurityHeaders
+from app.limits import RateLimiter, RequestSizeLimit, SecurityHeaders, visitor_id
 from app.presenting import BEVERAGE_CHOICES, TEXT_FIELDS, results_view
 from app.reading.claude import ClaudeReader, ReadingFailed
 from app.rules.application import Application, BeverageType
@@ -41,6 +41,9 @@ app = FastAPI(title="TTB Label Verifier", docs_url=None, redoc_url=None, openapi
 app.add_middleware(SecurityHeaders)
 app.add_middleware(RequestSizeLimit, max_bytes=settings.max_request_bytes)
 app.mount("/static", StaticFiles(directory=HERE / "static"), name="static")
+app.state.limiter = RateLimiter(
+    settings.checks_per_visitor, settings.visitor_window_seconds, settings.labels_per_day
+)
 templates = Jinja2Templates(directory=HERE / "templates")
 
 
@@ -124,6 +127,13 @@ async def check(request: Request, reader: Annotated[LabelReader | None, Depends(
             )
         await form.close()
         return page(request, 422, errors=errors, form=values)
+
+    # Count the check only now, when it will really reach the reader.
+    visitor = visitor_id(request.headers, request.client.host if request.client else None)
+    refusal = request.app.state.limiter.take(visitor)
+    if refusal:
+        await form.close()
+        return page(request, 429, errors=[refusal], form=values)
 
     images = [(upload.filename or "picture", await upload.read()) for upload in uploads]
     await form.close()
