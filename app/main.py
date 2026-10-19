@@ -62,6 +62,14 @@ app.state.one_batch_at_a_time = asyncio.Semaphore(1)
 templates = Jinja2Templates(directory=HERE / "templates")
 
 
+def has_credentials(client) -> bool:
+    """The SDK builds a client without credentials and only complains when it sends a
+    request, so check what it found: an API key, a token, or federated credentials."""
+    return any(
+        getattr(client, name, None) is not None for name in ("api_key", "auth_token", "credentials")
+    )
+
+
 def get_reader() -> LabelReader | None:
     """The Claude reader, or None if this server is set to basic text reading only or
     has no Anthropic credentials."""
@@ -71,6 +79,8 @@ def get_reader() -> LabelReader | None:
         try:
             client = anthropic.AsyncAnthropic(max_retries=1, timeout=30)
         except anthropic.AnthropicError:
+            return None
+        if not has_credentials(client):
             return None
         app.state.reader = ClaudeReader(
             client, thinking=settings.thinking, effort=settings.effort, model=settings.model

@@ -4,6 +4,7 @@ import asyncio
 import dataclasses
 import logging
 import time
+import traceback
 from dataclasses import dataclass
 from typing import Protocol
 
@@ -98,13 +99,18 @@ async def check_one(
     if reader is not None:
         try:
             read = await reader.read(prepared)
-        except (ReadingFailed, anthropic.APIError) as error:
+        except Exception as error:  # any failure of the AI reader falls back to basic reading
             log.warning(
                 "Label reading failed: %s status=%s request_id=%s",
                 type(error).__name__,
                 getattr(error, "status_code", None),
                 getattr(error, "request_id", None),
             )
+            if not isinstance(error, ReadingFailed | anthropic.APIError):
+                # Where it failed, without the error message, which could quote label text.
+                log.warning(
+                    "Unexpected failure at:\n%s", "".join(traceback.format_tb(error.__traceback__))
+                )
             if not ocr_fallback:
                 raise NoReader from error
         else:

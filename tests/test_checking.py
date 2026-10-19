@@ -78,3 +78,32 @@ def test_other_tools_variables_are_ignored():
 def test_bad_settings_stop_the_app_at_startup(env):
     with pytest.raises(ValueError):
         load_settings(env)
+
+
+def test_any_reader_failure_falls_back_to_basic_text_reading(caplog):
+    from app.reading.ocr import tesseract_available
+
+    if not tesseract_available():
+        pytest.skip("Tesseract is not installed")
+
+    class BrokenReader:
+        async def read(self, images):
+            # Errors carry data in their message, as a failed parse could quote label text.
+            message = "Could not resolve authentication method. " + OLD_TOM.brand_name
+            raise TypeError(message)
+
+    with caplog.at_level("WARNING", logger="ttb_label_verifier"):
+        outcome = asyncio.run(check_one(OLD_TOM, [("front.png", png())], BrokenReader(), 1568))
+    assert outcome.read_by == "ocr"
+    assert "Label reading failed: TypeError" in caplog.text
+    assert "OLD TOM" not in caplog.text  # the error message is never logged
+
+
+def test_a_client_without_credentials_is_no_reader():
+    from types import SimpleNamespace
+
+    from app.main import has_credentials
+
+    assert not has_credentials(SimpleNamespace(api_key=None, auth_token=None, credentials=None))
+    assert has_credentials(SimpleNamespace(api_key="key", auth_token=None, credentials=None))
+    assert has_credentials(SimpleNamespace(api_key=None, auth_token=None, credentials=object()))

@@ -156,13 +156,14 @@ def test_finished_jobs_are_forgotten_after_a_while():
     assert store.get(running.id) is running
 
 
-def test_a_batch_that_crashes_still_finishes():
-    class CrashingReader:
-        async def read(self, images):
-            raise RuntimeError("unexpected")
+def test_a_batch_that_crashes_still_finishes(monkeypatch):
+    # Reader failures fall back to basic text reading, so make the checking itself break.
+    async def broken_check(*args, **kwargs):
+        raise RuntimeError("unexpected")
 
+    monkeypatch.setattr("app.batch.check_one", broken_check)
     job = new_job([good_row(2), good_row(3)], [], [])
-    run(job, reader=CrashingReader())
+    run(job)
     assert job.state == "finished"
     assert all(item.state == ItemState.NOT_CHECKED for item in job.items)
     assert "Something went wrong" in job.items[0].problem
