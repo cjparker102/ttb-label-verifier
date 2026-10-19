@@ -9,9 +9,9 @@ from dataclasses import dataclass
 from typing import Protocol
 
 import anthropic
-from PIL import UnidentifiedImageError
+from PIL import Image, UnidentifiedImageError
 
-from app.intake.images import shrink_to_jpeg
+from app.intake.images import UnreadableFile, shrink_to_jpeg, split_pages
 from app.reading.claude import ReadingFailed, ReadResult
 from app.reading.ocr import OcrFailed, ocr_reading, tesseract_available
 from app.reading.schema import LabelReading
@@ -34,6 +34,23 @@ class NotAnImage(ValueError):
     def __init__(self, name: str):
         super().__init__(f'"{name}" is not an image this app can read.')
         self.name = name
+
+
+MAX_PICTURES_PER_LABEL = 8  # after PDF and TIFF pages are counted
+
+# What can go wrong opening a file that claims to be a picture, including "picture
+# bombs" that claim billions of pixels.
+CANNOT_OPEN = (UnreadableFile, UnidentifiedImageError, OSError, Image.DecompressionBombError)
+
+
+class TooManyPictures(ValueError):
+    """A label with more pictures than the reader is given at once."""
+
+    def __init__(self, count: int):
+        super().__init__(
+            f"This label has {count} pictures once PDF and TIFF pages are counted. "
+            f"The limit is {MAX_PICTURES_PER_LABEL}."
+        )
 
 
 class NoReader(Exception):
@@ -90,12 +107,20 @@ async def check_one(
     application. Uses the AI reader, or basic text reading when there is no AI reader
     or it fails, if `ocr_fallback` allows."""
     start = time.perf_counter()
-    prepared = []
+    pictures = []
     for name, data in images:
         try:
             # Image work is slow Python code, so it runs off the event loop.
+            pictures += await asyncio.to_thread(split_pages, name, data)
+        except CANNOT_OPEN as error:
+            raise NotAnImage(name) from error
+    if len(pictures) > MAX_PICTURES_PER_LABEL:
+        raise TooManyPictures(len(pictures))
+    prepared = []
+    for name, data in pictures:
+        try:
             prepared.append(await asyncio.to_thread(shrink_to_jpeg, data, max_edge))
-        except (UnidentifiedImageError, OSError) as error:
+        except CANNOT_OPEN as error:
             raise NotAnImage(name) from error
 
     if reader is not None:

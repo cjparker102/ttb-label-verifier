@@ -46,7 +46,7 @@ def test_system_clutter_is_skipped_and_listed():
 def test_files_that_are_not_pictures_are_judged_by_content():
     unpacked = unpack_zip(make_zip(("notes.png", b"just some text"), ("real.dat", PNG)))
     assert list(unpacked.pictures) == ["real.dat"]
-    assert "Not a JPEG, PNG, WebP, or GIF" in reasons(unpacked)["notes.png"]
+    assert "Not a picture or PDF this app can read" in reasons(unpacked)["notes.png"]
 
 
 @pytest.mark.parametrize("name", ["../../etc/evil.png", "/abs/evil.png", "C:\\evil.png"])
@@ -135,7 +135,10 @@ def test_something_that_is_not_a_zip():
         (JPEG, "JPEG"),
         (b"GIF89a....", "GIF"),
         (b"RIFF\x00\x00\x00\x00WEBPVP8 ", "WebP"),
-        (b"%PDF-1.7", None),
+        (b"%PDF-1.7", "PDF"),
+        (b"II*\x00rest", "TIFF"),
+        (b"\x00\x00\x00\x18ftypheic", "HEIC"),
+        (b"plain text", None),
         (b"", None),
     ],
 )
@@ -171,7 +174,7 @@ def test_a_batch_can_mix_loose_pictures_and_zip_files():
     assert collected.pictures == {"front.png": PNG, "back.jpg": JPEG}
     found = {s.name: s.reason for s in collected.skipped}
     assert "Another picture is also named" in found["more.zip: FRONT.png"]
-    assert "Not a JPEG" in found["notes.txt"]
+    assert "Not a picture this app can read" in found["notes.txt"]
 
 
 def test_a_batch_is_capped_at_the_picture_limit(monkeypatch):

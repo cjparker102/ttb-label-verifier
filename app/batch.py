@@ -13,7 +13,14 @@ import time
 from dataclasses import dataclass, field
 from enum import StrEnum
 
-from app.checking import CheckOutcome, LabelReader, NoReader, NotAnImage, check_one
+from app.checking import (
+    CheckOutcome,
+    LabelReader,
+    NoReader,
+    NotAnImage,
+    TooManyPictures,
+    check_one,
+)
 from app.intake.archives import Skipped
 from app.intake.images import shrink_to_jpeg
 from app.intake.matching import MatchedRow
@@ -93,7 +100,7 @@ async def check_item(
     item = work.item
     try:
         outcome = await check_one(work.application, work.pictures, reader, max_edge, ocr_fallback)
-    except NotAnImage as error:
+    except (NotAnImage, TooManyPictures) as error:
         item.state, item.problem = ItemState.NOT_CHECKED, str(error)
     except NoReader:
         item.state = ItemState.NOT_CHECKED

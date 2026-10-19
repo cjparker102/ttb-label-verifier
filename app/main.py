@@ -18,11 +18,11 @@ from starlette.exceptions import HTTPException
 from starlette.formparsers import MultiPartParser
 
 from app.batch import BatchStore, new_job, run_job
-from app.checking import LabelReader, NoReader, NotAnImage, check_one
+from app.checking import LabelReader, NoReader, NotAnImage, TooManyPictures, check_one
 from app.config import load_settings
 from app.export import results_workbook
 from app.intake.archives import MAX_PICTURES, ArchiveError, Skipped, collect_pictures
-from app.intake.images import shrink_to_jpeg
+from app.intake.images import ACCEPT, FORMATS, shrink_to_jpeg
 from app.intake.matching import match_rows
 from app.intake.spreadsheet import HEADINGS, ApplicationRow, SpreadsheetError, read_spreadsheet
 from app.limits import Limits, RequestSizeLimit, SecurityHeaders, visitor_id
@@ -108,6 +108,8 @@ def page(request: Request, status_code: int = 200, **context) -> HTMLResponse:
         "form": {},
         "errors": [],
         "settings": settings,
+        "formats": FORMATS,
+        "accept": ACCEPT,
         "samples": featured(),
         "sample_count": len(sample_labels()),
         **context,
@@ -192,9 +194,11 @@ async def single_check(
         return page(
             request,
             422,
-            errors=[f"{error} Please choose a JPEG, PNG, WebP, or GIF picture."],
+            errors=[f"{error} Please choose a picture or PDF ({FORMATS})."],
             form=values,
         )
+    except TooManyPictures as error:
+        return page(request, 422, errors=[str(error)], form=values)
     except NoReader:
         return page(request, 503, errors=[COULD_NOT_READ], form=values)
 

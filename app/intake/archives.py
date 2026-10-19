@@ -9,7 +9,7 @@ import stat
 import zipfile
 from dataclasses import dataclass, field
 
-from app.intake.images import image_kind
+from app.intake.images import FORMATS, image_kind
 
 MB = 1024 * 1024
 MAX_ITEMS = 2000  # entries listed in the ZIP, pictures or not
@@ -132,7 +132,7 @@ def unpack_zip(data: bytes) -> Unpacked:
                 continue
             if image_kind(content) is None:
                 unpacked.skipped.append(
-                    Skipped(entry.filename, "Not a JPEG, PNG, WebP, or GIF picture.")
+                    Skipped(entry.filename, f"Not a picture or PDF this app can read ({FORMATS}).")
                 )
                 continue
             if name.casefold() in seen:
@@ -171,6 +171,6 @@ def collect_pictures(files: list[tuple[str, bytes]]) -> Unpacked:
             add(base_name(name), data, name)
         else:
             collected.skipped.append(
-                Skipped(name, "Not a JPEG, PNG, WebP, or GIF picture, or a ZIP file of them.")
+                Skipped(name, f"Not a picture this app can read ({FORMATS}), or a ZIP file.")
             )
     return collected
