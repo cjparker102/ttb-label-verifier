@@ -30,8 +30,73 @@ document.addEventListener("DOMContentLoaded", () => {
     target.focus();
   }
 
+  setUpDropZones();
   watchBatch();
 });
+
+// Drag and drop onto the file boxes. The plain file pickers work without this.
+function setUpDropZones() {
+  // A file dropped anywhere else would make the browser open it and leave the page.
+  ["dragover", "drop"].forEach((type) => window.addEventListener(type, (event) => event.preventDefault()));
+
+  document.querySelectorAll(".drop-zone").forEach((zone) => {
+    const input = document.getElementById(zone.dataset.dropFor);
+    zone.addEventListener("dragover", (event) => {
+      event.preventDefault();
+      zone.classList.add("dragging");
+    });
+    zone.addEventListener("dragleave", () => zone.classList.remove("dragging"));
+    zone.addEventListener("drop", (event) => {
+      event.preventDefault();
+      zone.classList.remove("dragging");
+      placeFiles(zone, [...event.dataTransfer.files]);
+    });
+    input.addEventListener("change", () => showChosen(input));
+  });
+}
+
+// Put dropped files in the right box. In the batch form, a spreadsheet goes to the
+// spreadsheet box and everything else to the pictures box, whichever zone it lands on.
+function placeFiles(zone, files) {
+  const form = zone.closest("form");
+  const spreadsheetBox = form.querySelector("#spreadsheet");
+  const isSpreadsheet = (file) => /\.(csv|xlsx)$/i.test(file.name);
+  const target = (file) => {
+    if (!spreadsheetBox) return document.getElementById(zone.dataset.dropFor);
+    return isSpreadsheet(file) ? spreadsheetBox : form.querySelector("#pictures");
+  };
+  const byBox = new Map();
+  files.forEach((file) => {
+    const box = target(file);
+    byBox.set(box, [...(byBox.get(box) || []), file]);
+  });
+  byBox.forEach((chosen, box) => {
+    const transfer = new DataTransfer();
+    (box.multiple ? chosen : chosen.slice(-1)).forEach((file) => transfer.items.add(file));
+    box.files = transfer.files;
+    showChosen(box);
+  });
+}
+
+function showChosen(input) {
+  const list = document.querySelector(`[data-chosen-for="${input.id}"]`);
+  const files = [...input.files];
+  const shown = files.slice(0, 8).map((file) => {
+    const item = document.createElement("li");
+    const size =
+      file.size < 1048576
+        ? `${Math.max(1, Math.round(file.size / 1024))} KB`
+        : `${(file.size / 1048576).toFixed(1)} MB`;
+    item.textContent = `${file.name} (${size})`;
+    return item;
+  });
+  if (files.length > 8) {
+    const more = document.createElement("li");
+    more.textContent = `and ${files.length - 8} more`;
+    shown.push(more);
+  }
+  list.replaceChildren(...shown);
+}
 
 // While a batch runs, keep its page up to date without reloading it.
 function watchBatch() {

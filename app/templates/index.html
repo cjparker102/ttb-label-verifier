@@ -46,7 +46,11 @@
       <legend>1. Label pictures</legend>
       <label for="images">Pictures of this label (front, back, neck)</label>
       <p class="hint" id="images-hint">Up to {{ settings.max_images_per_label }} pictures. JPEG, PNG, WebP, or GIF, up to {{ settings.max_image_bytes // 1048576 }} MB each.</p>
-      <input type="file" id="images" name="images" accept="image/jpeg,image/png,image/webp,image/gif" multiple required aria-describedby="images-hint">
+      <div class="drop-zone" data-drop-for="images">
+        <p class="drop-text" aria-hidden="true">Drag the pictures here, or</p>
+        <input type="file" id="images" name="images" accept="image/jpeg,image/png,image/webp,image/gif" multiple required aria-describedby="images-hint">
+        <ul class="chosen-files" data-chosen-for="images" aria-live="polite"></ul>
+      </div>
     </fieldset>
 
     <fieldset>
@@ -81,14 +85,22 @@
       <legend>1. Spreadsheet of applications</legend>
       <label for="spreadsheet">CSV or Excel file, one row per application</label>
       <p class="hint" id="spreadsheet-hint">Columns: file names, beverage type, brand name, class or type, alcohol content, net contents, bottler name and address, country of origin. Separate several file names with a semicolon. <a href="/template.csv">Download a spreadsheet template</a>.</p>
-      <input type="file" id="spreadsheet" name="spreadsheet" accept=".csv,.xlsx,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" required aria-describedby="spreadsheet-hint">
+      <div class="drop-zone" data-drop-for="spreadsheet">
+        <p class="drop-text" aria-hidden="true">Drag the spreadsheet here, or</p>
+        <input type="file" id="spreadsheet" name="spreadsheet" accept=".csv,.xlsx,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" required aria-describedby="spreadsheet-hint">
+        <ul class="chosen-files" data-chosen-for="spreadsheet" aria-live="polite"></ul>
+      </div>
     </fieldset>
 
     <fieldset>
       <legend>2. Label pictures</legend>
       <label for="pictures">Pictures, or ZIP files of pictures</label>
-      <p class="hint" id="pictures-hint">Up to 300 applications and 600 pictures, 200 MB in total.</p>
-      <input type="file" id="pictures" name="pictures" accept="image/jpeg,image/png,image/webp,image/gif,.zip,application/zip" multiple required aria-describedby="pictures-hint">
+      <p class="hint" id="pictures-hint">Up to 300 applications and 600 pictures, 200 MB in total. You can drop the spreadsheet and the pictures together.</p>
+      <div class="drop-zone" data-drop-for="pictures">
+        <p class="drop-text" aria-hidden="true">Drag the pictures or ZIP files here, or</p>
+        <input type="file" id="pictures" name="pictures" accept="image/jpeg,image/png,image/webp,image/gif,.zip,application/zip" multiple required aria-describedby="pictures-hint">
+        <ul class="chosen-files" data-chosen-for="pictures" aria-live="polite"></ul>
+      </div>
     </fieldset>
 
     <button type="submit" class="button-primary" id="batch-button">Check all labels</button>

@@ -135,6 +135,15 @@ details.ok-fields > summary { cursor: pointer; font-weight: 700; padding: 10px 0
 .button-secondary:hover { background: #eef3fb; }
 .button-secondary[disabled], .sample-button[disabled] { cursor: wait; opacity: 0.7; }
 
+.drop-zone {
+  border: 3px dashed var(--line); border-radius: 10px; padding: 18px 20px; margin-top: 8px;
+  background: #fafbfc;
+}
+.drop-zone.dragging { border-color: var(--brand); background: #eef3fb; }
+.drop-text { margin: 0 0 4px; font-size: 1.1rem; font-weight: 700; }
+.chosen-files { margin: 6px 0 0; padding-left: 1.2em; font-size: 0.95rem; }
+.chosen-files:empty { display: none; }
+
 /* Sample labels */
 
 .sample-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(17rem, 1fr)); gap: 14px; margin: 16px 0 20px; }

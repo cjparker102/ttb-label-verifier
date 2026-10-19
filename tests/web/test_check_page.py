@@ -191,3 +191,13 @@ def test_form_mistakes_do_not_use_up_the_limit(use_reader):
     app.state.limits = Limits(1, 600, 3, 3600, 100)
     client.post("/check", data=OLD_TOM_FORM)  # no pictures: refused before reading
     assert client.post("/check", data=OLD_TOM_FORM, files=label_files()).status_code == 200
+
+
+def test_every_file_box_has_a_drop_zone_and_a_chosen_files_list():
+    page = client.get("/").text
+    for box in ("images", "spreadsheet", "pictures"):
+        zone_start = page.index(f'<div class="drop-zone" data-drop-for="{box}">')
+        zone_end = page.index("</div>", zone_start)
+        zone = page[zone_start:zone_end]
+        assert f'id="{box}"' in zone
+        assert f'data-chosen-for="{box}"' in zone
