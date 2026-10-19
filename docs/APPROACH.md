@@ -76,6 +76,11 @@ All rules are in `app/rules/`, and each has its own tests.
   - These need review: a difference in accents (an accent can change the meaning: Rosé
     and Rose), a non-Latin brand against a romanized application, and anything hard to read.
   - A real difference fails.
+  - A label can name more than one company, such as a distiller and a bottler, or a French
+    "Mis en bouteille au château" beside "Imported by". The bottler check splits the text
+    into statements at words like "Bottled by" or "Imported by". One statement can match the
+    application, but if the application says what its company did, only a statement saying
+    the same can.
 - **Alcohol content** is read from forms like `45% Alc./Vol.`, `13,5% vol`, or `90 Proof`. Label
   proof must be twice the ABV. Label and application must state the same number, allowing
   only for rounding (±0.05 points). TTB's own tolerances, such as ±0.3 points for spirits,
