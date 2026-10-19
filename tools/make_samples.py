@@ -90,6 +90,7 @@ class Panel:
 @dataclass
 class Sample:
     id: str
+    title: str  # plain words, shown on the "Try a sample" buttons
     planted: str
     beverage_type: str
     application: dict[str, str]
@@ -147,6 +148,7 @@ def all_pass(**changes: str) -> dict[str, str]:
 SAMPLES = [
     Sample(
         id="old-tom-bourbon",
+        title="A clean bourbon label, front and back",
         planted="Nothing planted. A clean label on a front and a back picture.",
         beverage_type="Distilled spirits",
         application=application_data(
@@ -194,6 +196,7 @@ SAMPLES = [
     ),
     Sample(
         id="stones-throw-gin",
+        title="Brand in capitals on the label",
         planted="Brand in capitals on the label, mixed case in the application.",
         beverage_type="Distilled spirits",
         application=application_data(
@@ -218,6 +221,7 @@ SAMPLES = [
     ),
     Sample(
         id="ridgewick-rye-wrong-abv",
+        title="Alcohol content that doesn't match",
         planted="Label says 46% (92 proof); the application says 45% (90 proof).",
         beverage_type="Distilled spirits",
         application=application_data(
@@ -240,6 +244,7 @@ SAMPLES = [
     ),
     Sample(
         id="harborlume-rum-proof",
+        title="Proof that doesn't match the alcohol content",
         planted="Label says 40% but 90 proof; proof should be 80.",
         beverage_type="Distilled spirits",
         application=application_data(
@@ -264,6 +269,7 @@ SAMPLES = [
     ),
     Sample(
         id="copperfen-vodka-title-case-warning",
+        title="Warning heading not in capitals",
         planted='Warning heading printed as "Government Warning:" instead of capitals.',
         beverage_type="Distilled spirits",
         application=application_data(
@@ -289,6 +295,7 @@ SAMPLES = [
     ),
     Sample(
         id="heronmere-gin-warning-wording",
+        title="Words missing from the warning",
         planted='Warning says "drive or operate machinery" (the words "a car" are missing).',
         beverage_type="Distilled spirits",
         application=application_data(
@@ -314,6 +321,7 @@ SAMPLES = [
     ),
     Sample(
         id="northvale-whisky-warning-not-bold",
+        title="Warning heading not in bold",
         planted='"GOVERNMENT WARNING:" printed in regular weight, not bold.',
         beverage_type="Distilled spirits",
         application=application_data(
@@ -337,6 +345,7 @@ SAMPLES = [
     ),
     Sample(
         id="saltreed-vodka-net-contents",
+        title="Net contents that don't match",
         planted="Label says 700 mL; the application says 750 mL.",
         beverage_type="Distilled spirits",
         application=application_data(
@@ -361,6 +370,7 @@ SAMPLES = [
     ),
     Sample(
         id="chateau-landrevin-wine",
+        title="Imported French wine with accents",
         planted=(
             "Imported French wine. Brand has an accent the application leaves out; "
             '"13,5% vol" matches 13.5% but is not in a TTB form (27 CFR 4.36(b)); '
@@ -400,6 +410,7 @@ SAMPLES = [
     ),
     Sample(
         id="tidewick-pale-ale",
+        title="A clean beer label",
         planted="Nothing planted. A clean beer label with US units.",
         beverage_type="Malt beverage",
         application=application_data(
@@ -424,6 +435,7 @@ SAMPLES = [
     ),
     Sample(
         id="granitefall-bourbon-prompt-injection",
+        title="A label that tries to trick the AI",
         planted=(
             "Prompt injection printed on the label, plus a real error: the label says "
             "47% (94 proof); the application says 45% (90 proof)."
@@ -463,6 +475,14 @@ SAMPLES = [
 PHOTO_WIDTH, PHOTO_HEIGHT = 2250, 3000
 TABLE = "#6b5544"  # the surface the label is photographed on
 
+PHOTO_TITLES = {
+    "tilted": "tilted photo",
+    "angled": "photo at an angle",
+    "blurry": "blurry photo",
+    "dim": "dim photo",
+    "glare": "photo with glare",
+    "far": "photo from far away",
+}
 PHOTO_KINDS = {
     "tilted": "Photographed tilted on a table.",
     "angled": "Photographed from an angle, so the label is skewed.",
@@ -673,6 +693,7 @@ def expected_entries() -> list[dict]:
         entries.append(
             {
                 "id": sample.id,
+                "title": sample.title,
                 "planted": sample.planted,
                 "beverage_type": sample.beverage_type,
                 "images": image_names(sample),
@@ -687,6 +708,7 @@ def expected_entries() -> list[dict]:
         entries.append(
             {
                 "id": photo.id,
+                "title": f"{sample.title} ({PHOTO_TITLES[photo.kind]})",
                 "planted": f"{sample.planted} {PHOTO_KINDS[photo.kind]}",
                 "beverage_type": sample.beverage_type,
                 "images": [f"{photo.id}.jpg"],

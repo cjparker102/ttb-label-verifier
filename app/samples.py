@@ -14,15 +14,15 @@ from app.intake.spreadsheet import ApplicationRow, read_spreadsheet
 
 SAMPLES_DIR = Path(__file__).resolve().parent.parent / "samples"
 
-# The samples shown as buttons, in this order, with plain titles.
-FEATURED = {
-    "old-tom-bourbon": "A clean bourbon label, front and back",
-    "ridgewick-rye-wrong-abv": "Alcohol content that doesn't match",
-    "copperfen-vodka-title-case-warning": "Warning heading not in capitals",
-    "chateau-landrevin-wine": "Imported French wine with accents",
-    "heronmere-gin-warning-wording--blurry": "A blurry photo with a changed warning",
-    "granitefall-bourbon-prompt-injection": "A label that tries to trick the AI",
-}
+# The samples shown as buttons, in this order. Titles come from the sample data.
+FEATURED = [
+    "old-tom-bourbon",
+    "ridgewick-rye-wrong-abv",
+    "copperfen-vodka-title-case-warning",
+    "chateau-landrevin-wine",
+    "heronmere-gin-warning-wording--blurry",
+    "granitefall-bourbon-prompt-injection",
+]
 
 
 @dataclass(frozen=True)
@@ -46,7 +46,7 @@ def sample_labels() -> dict[str, SampleLabel]:
     return {
         entry["id"]: SampleLabel(
             id=entry["id"],
-            title=FEATURED.get(entry["id"], entry["id"]),
+            title=entry["title"],
             planted=entry["planted"],
             row=rows[tuple(entry["images"])],
             images=tuple(entry["images"]),

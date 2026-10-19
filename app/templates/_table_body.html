@@ -26,6 +26,12 @@
         <li>{{ reason.text }}{% if reason.citation %} <a href="{{ reason.citation.url }}" target="_blank" rel="noopener noreferrer">{{ reason.citation.section }}</a>{% endif %}</li>
         {% endfor %}
       </ul>
+      {% if row.track %}
+      <div class="track-changes">
+        <p class="hint">The label's wording compared with the required text:</p>
+        <p>{% for kind, words in row.track %}{% if kind == "same" %}{{ words }}{% elif kind == "missing" %}<del><span class="visually-hidden">missing: </span>{{ words }}</del>{% else %}<ins><span class="visually-hidden">added: </span>{{ words }}</ins>{% endif %}{% if not loop.last %} {% endif %}{% endfor %}</p>
+      </div>
+      {% endif %}
       {% if row.rules %}
       <p class="rules">Rules checked:
         {% for rule in row.rules %}<a href="{{ rule.url }}" target="_blank" rel="noopener noreferrer">{{ rule.section }}</a> ({{ rule.result }}){% if not loop.last %}, {% endif %}{% endfor %}

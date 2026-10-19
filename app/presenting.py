@@ -8,7 +8,9 @@ from app.batch import BatchItem, BatchJob, ItemState
 from app.checking import CheckOutcome
 from app.rules.application import BeverageType
 from app.rules.results import Status, worst
+from app.rules.text import tidy
 from app.rules.verdict import FieldResult
+from app.rules.warning import GOVERNMENT_WARNING, track_changes
 
 
 @dataclass(frozen=True)
@@ -116,7 +118,17 @@ def field_row(field: FieldResult) -> dict:
         "word": word,
         "reasons": [{"text": c.reason, "citation": c.citation} for c in shown],
         "rules": rules_checked(field),
+        "track": warning_track(field),
     }
+
+
+def warning_track(field: FieldResult) -> list[tuple[str, str]] | None:
+    """A track-changes view of the warning, only when its wording differs."""
+    if field.field != "government_warning" or not field.label_says:
+        return None
+    if not any(check.changes for check in field.checks):
+        return None
+    return track_changes(GOVERNMENT_WARNING, tidy(field.label_says))
 
 
 def results_view(outcome: CheckOutcome) -> dict:

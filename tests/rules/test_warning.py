@@ -110,3 +110,22 @@ def test_hard_to_read_warning_needs_review_not_fail():
 def test_hard_to_read_warning_needs_review_even_if_it_matches():
     checks = check_warning(read_warning(GOVERNMENT_WARNING, readability="unclear"))
     assert checks[0].status == Status.REVIEW
+
+
+def test_track_changes_show_the_whole_statement_with_differences_marked():
+    from app.rules.warning import track_changes
+
+    found = GOVERNMENT_WARNING.replace("drive a car or", "drive or").replace(
+        "may cause", "can cause"
+    )
+    runs = track_changes(GOVERNMENT_WARNING, found)
+    assert ("missing", "a car") in runs
+    assert ("missing", "may") in runs and ("extra", "can") in runs
+    # Reading only the "same" and "extra" runs gives back the label's own wording.
+    assert " ".join(text for kind, text in runs if kind != "missing") == found
+
+
+def test_track_changes_of_a_correct_warning_is_one_unchanged_run():
+    from app.rules.warning import track_changes
+
+    assert track_changes(GOVERNMENT_WARNING, GOVERNMENT_WARNING) == [("same", GOVERNMENT_WARNING)]

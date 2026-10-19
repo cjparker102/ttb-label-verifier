@@ -41,3 +41,16 @@ def test_rule_links_point_to_the_ecfr():
 
 def test_fields_without_ttb_rules_list_none():
     assert rules_checked(fields_of("old-tom-bourbon")["class_type"]) == []
+
+
+def test_track_changes_appear_only_when_the_warning_wording_differs():
+    from app.presenting import field_row
+
+    changed = field_row(fields_of("heronmere-gin-warning-wording")["government_warning"])
+    assert ("missing", "a car") in changed["track"]
+    # Wrong capitals alone is not a wording difference.
+    assert (
+        field_row(fields_of("copperfen-vodka-title-case-warning")["government_warning"])["track"]
+        is None
+    )
+    assert field_row(fields_of("old-tom-bourbon")["government_warning"])["track"] is None

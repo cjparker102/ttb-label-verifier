@@ -44,6 +44,27 @@ def word_changes(required: str, found: str) -> list[WordChange]:
     ]
 
 
+def track_changes(required: str, found: str) -> list[tuple[str, str]]:
+    """The whole statement as runs of ("same" | "missing" | "extra", words), for a
+    track-changes view. Like word_changes, capitals don't count as differences."""
+    required_words, found_words = required.split(), found.split()
+    matcher = SequenceMatcher(
+        a=[w.casefold() for w in required_words],
+        b=[w.casefold() for w in found_words],
+        autojunk=False,
+    )
+    runs = []
+    for op, i1, i2, j1, j2 in matcher.get_opcodes():
+        if op == "equal":
+            runs.append(("same", " ".join(found_words[j1:j2])))
+            continue
+        if i2 > i1:
+            runs.append(("missing", " ".join(required_words[i1:i2])))
+        if j2 > j1:
+            runs.append(("extra", " ".join(found_words[j1:j2])))
+    return runs
+
+
 def describe(change: WordChange) -> str:
     if change.kind == "missing":
         return f'"{change.required}" is missing'

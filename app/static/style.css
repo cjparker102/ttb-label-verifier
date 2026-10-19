@@ -113,6 +113,10 @@ tbody th { width: 14%; }
 .result-not-needed .badge { color: var(--not-needed); background: var(--not-needed-bg); }
 .reasons { margin: 8px 0 0; padding-left: 1.1em; font-size: 0.95rem; }
 .rules { margin: 6px 0 0; font-size: 0.85rem; color: var(--muted); }
+.track-changes { margin: 10px 0 0; padding: 8px 12px; border-left: 4px solid var(--line); background: var(--panel); font-size: 0.9rem; }
+.track-changes p { margin: 4px 0; }
+.track-changes del { color: var(--fail); background: var(--fail-bg); text-decoration-thickness: 2px; }
+.track-changes ins { color: var(--pass); background: var(--pass-bg); text-decoration-thickness: 2px; font-weight: 700; }
 
 details.ok-fields { margin-bottom: 24px; }
 details.ok-fields > summary { cursor: pointer; font-weight: 700; padding: 10px 0; }

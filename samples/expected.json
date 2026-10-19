@@ -1,6 +1,7 @@
 [
   {
     "id": "old-tom-bourbon",
+    "title": "A clean bourbon label, front and back",
     "planted": "Nothing planted. A clean label on a front and a back picture.",
     "beverage_type": "Distilled spirits",
     "images": [
@@ -50,6 +51,7 @@
   },
   {
     "id": "stones-throw-gin",
+    "title": "Brand in capitals on the label",
     "planted": "Brand in capitals on the label, mixed case in the application.",
     "beverage_type": "Distilled spirits",
     "images": [
@@ -98,6 +100,7 @@
   },
   {
     "id": "ridgewick-rye-wrong-abv",
+    "title": "Alcohol content that doesn't match",
     "planted": "Label says 46% (92 proof); the application says 45% (90 proof).",
     "beverage_type": "Distilled spirits",
     "images": [
@@ -146,6 +149,7 @@
   },
   {
     "id": "harborlume-rum-proof",
+    "title": "Proof that doesn't match the alcohol content",
     "planted": "Label says 40% but 90 proof; proof should be 80.",
     "beverage_type": "Distilled spirits",
     "images": [
@@ -194,6 +198,7 @@
   },
   {
     "id": "copperfen-vodka-title-case-warning",
+    "title": "Warning heading not in capitals",
     "planted": "Warning heading printed as \"Government Warning:\" instead of capitals.",
     "beverage_type": "Distilled spirits",
     "images": [
@@ -242,6 +247,7 @@
   },
   {
     "id": "heronmere-gin-warning-wording",
+    "title": "Words missing from the warning",
     "planted": "Warning says \"drive or operate machinery\" (the words \"a car\" are missing).",
     "beverage_type": "Distilled spirits",
     "images": [
@@ -290,6 +296,7 @@
   },
   {
     "id": "northvale-whisky-warning-not-bold",
+    "title": "Warning heading not in bold",
     "planted": "\"GOVERNMENT WARNING:\" printed in regular weight, not bold.",
     "beverage_type": "Distilled spirits",
     "images": [
@@ -338,6 +345,7 @@
   },
   {
     "id": "saltreed-vodka-net-contents",
+    "title": "Net contents that don't match",
     "planted": "Label says 700 mL; the application says 750 mL.",
     "beverage_type": "Distilled spirits",
     "images": [
@@ -386,6 +394,7 @@
   },
   {
     "id": "chateau-landrevin-wine",
+    "title": "Imported French wine with accents",
     "planted": "Imported French wine. Brand has an accent the application leaves out; \"13,5% vol\" matches 13.5% but is not in a TTB form (27 CFR 4.36(b)); French phrase near the importer statement.",
     "beverage_type": "Wine",
     "images": [
@@ -434,6 +443,7 @@
   },
   {
     "id": "tidewick-pale-ale",
+    "title": "A clean beer label",
     "planted": "Nothing planted. A clean beer label with US units.",
     "beverage_type": "Malt beverage",
     "images": [
@@ -482,6 +492,7 @@
   },
   {
     "id": "granitefall-bourbon-prompt-injection",
+    "title": "A label that tries to trick the AI",
     "planted": "Prompt injection printed on the label, plus a real error: the label says 47% (94 proof); the application says 45% (90 proof).",
     "beverage_type": "Distilled spirits",
     "images": [
@@ -530,6 +541,7 @@
   },
   {
     "id": "stones-throw-gin--tilted",
+    "title": "Brand in capitals on the label (tilted photo)",
     "planted": "Brand in capitals on the label, mixed case in the application. Photographed tilted on a table.",
     "beverage_type": "Distilled spirits",
     "images": [
@@ -580,6 +592,7 @@
   },
   {
     "id": "ridgewick-rye-wrong-abv--angled",
+    "title": "Alcohol content that doesn't match (photo at an angle)",
     "planted": "Label says 46% (92 proof); the application says 45% (90 proof). Photographed from an angle, so the label is skewed.",
     "beverage_type": "Distilled spirits",
     "images": [
@@ -630,6 +643,7 @@
   },
   {
     "id": "heronmere-gin-warning-wording--blurry",
+    "title": "Words missing from the warning (blurry photo)",
     "planted": "Warning says \"drive or operate machinery\" (the words \"a car\" are missing). Out of focus.",
     "beverage_type": "Distilled spirits",
     "images": [
@@ -680,6 +694,7 @@
   },
   {
     "id": "copperfen-vodka-title-case-warning--dim",
+    "title": "Warning heading not in capitals (dim photo)",
     "planted": "Warning heading printed as \"Government Warning:\" instead of capitals. Photographed in dim light.",
     "beverage_type": "Distilled spirits",
     "images": [
@@ -730,6 +745,7 @@
   },
   {
     "id": "saltreed-vodka-net-contents--glare",
+    "title": "Net contents that don't match (photo with glare)",
     "planted": "Label says 700 mL; the application says 750 mL. A bright glare spot covers part of the label.",
     "beverage_type": "Distilled spirits",
     "images": [
@@ -780,6 +796,7 @@
   },
   {
     "id": "tidewick-pale-ale--far",
+    "title": "A clean beer label (photo from far away)",
     "planted": "Nothing planted. A clean beer label with US units. Photographed from far away, so the label is small.",
     "beverage_type": "Malt beverage",
     "images": [
@@ -830,6 +847,7 @@
   },
   {
     "id": "northvale-whisky-warning-not-bold--tilted",
+    "title": "Warning heading not in bold (tilted photo)",
     "planted": "\"GOVERNMENT WARNING:\" printed in regular weight, not bold. Photographed tilted on a table.",
     "beverage_type": "Distilled spirits",
     "images": [
@@ -880,6 +898,7 @@
   },
   {
     "id": "harborlume-rum-proof--glare",
+    "title": "Proof that doesn't match the alcohol content (photo with glare)",
     "planted": "Label says 40% but 90 proof; proof should be 80. A bright glare spot covers part of the label.",
     "beverage_type": "Distilled spirits",
     "images": [

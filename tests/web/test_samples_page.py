@@ -36,15 +36,16 @@ def test_every_sample_loads_with_its_application_and_pictures():
 
 
 def test_featured_samples_exist_in_order():
-    assert [label.id for label in featured()] == list(FEATURED)
+    assert [label.id for label in featured()] == FEATURED
+    assert all(label.title and label.title != label.id for label in sample_labels().values())
 
 
 def test_home_page_offers_the_samples_first(client):
     page = client.get("/").text
     assert page.index("Try it with a sample label") < page.index("Check one label")
-    for sample_id, title in FEATURED.items():
-        assert f'action="/samples/{sample_id}/check"' in page
-        assert str(escape(title)) in page  # escaped the way the templates escape all text
+    for label in featured():
+        assert f'action="/samples/{label.id}/check"' in page
+        assert str(escape(label.title)) in page  # escaped the way the templates escape all text
     assert f"Try a sample batch of all {len(EXPECTED)} labels" in page
 
 
@@ -89,3 +90,11 @@ def test_the_sample_batch_checks_every_sample(client):
         assert time.monotonic() < deadline
         time.sleep(0.05)
     assert progress["done"] == progress["total"] == len(EXPECTED)
+
+
+def test_changed_warning_wording_shows_track_changes(client):
+    sample_id = "heronmere-gin-warning-wording"
+    use_reader(PerfectReader([EXPECTED[sample_id]["truth"]]))
+    page = client.post(f"/samples/{sample_id}/check").text
+    assert "compared with the required text" in page
+    assert '<del><span class="visually-hidden">missing: </span>a car</del>' in page
