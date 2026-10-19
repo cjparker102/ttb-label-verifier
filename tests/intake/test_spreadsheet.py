@@ -5,7 +5,7 @@ from openpyxl import Workbook
 
 from app.intake.spreadsheet import MAX_ROWS, SpreadsheetError, read_spreadsheet
 from app.rules.application import BeverageType
-from tools.make_samples import SAMPLES, SAMPLES_DIR
+from tools.make_samples import PHOTOS, SAMPLES, SAMPLES_DIR
 
 HEADINGS = [
     "file_names",
@@ -49,7 +49,7 @@ def xlsx_bytes(rows, percent_cells=()):
 def test_the_sample_applications_csv_reads_correctly():
     data = (SAMPLES_DIR / "applications.csv").read_bytes()
     rows = read_spreadsheet("applications.csv", data)
-    assert len(rows) == len(SAMPLES)
+    assert len(rows) == len(SAMPLES) + len(PHOTOS)
     assert all(not row.problems for row in rows)
     old_tom = rows[0]
     assert old_tom.row_number == 2

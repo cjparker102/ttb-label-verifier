@@ -6,8 +6,11 @@ Brands are made up, apart from the two named in the assignment. Each label's
 printed text is its ground truth, so the evaluation can compare the AI's reading
 with what is really on the label, character for character.
 
-Expected results cover the match checks and the warning check (plan sections 6a
-and 6c). Expectations for the other TTB checks are added as those rules are built.
+Expected results cover every check, matching and TTB rules alike.
+
+Some labels also get a photo-like version (tilted, blurry, glare, and so on). Its
+printed text is the same as the clean label's, so its expected results are the
+same; the evaluation also accepts "review" where a photo really is hard to read.
 """
 
 import csv
@@ -16,7 +19,7 @@ from dataclasses import dataclass, field
 from functools import cache
 from pathlib import Path
 
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw, ImageEnhance, ImageFilter, ImageFont
 
 from app.rules.warning import GOVERNMENT_WARNING
 
@@ -457,6 +460,115 @@ SAMPLES = [
 ]
 
 
+PHOTO_WIDTH, PHOTO_HEIGHT = 2250, 3000
+TABLE = "#6b5544"  # the surface the label is photographed on
+
+PHOTO_KINDS = {
+    "tilted": "Photographed tilted on a table.",
+    "angled": "Photographed from an angle, so the label is skewed.",
+    "blurry": "Out of focus.",
+    "dim": "Photographed in dim light.",
+    "glare": "A bright glare spot covers part of the label.",
+    "far": "Photographed from far away, so the label is small.",
+}
+
+
+@dataclass(frozen=True)
+class Photo:
+    sample_id: str
+    kind: str
+
+    @property
+    def id(self) -> str:
+        return f"{self.sample_id}--{self.kind}"
+
+
+PHOTOS = [
+    Photo("stones-throw-gin", "tilted"),
+    Photo("ridgewick-rye-wrong-abv", "angled"),
+    Photo("heronmere-gin-warning-wording", "blurry"),
+    Photo("copperfen-vodka-title-case-warning", "dim"),
+    Photo("saltreed-vodka-net-contents", "glare"),
+    Photo("tidewick-pale-ale", "far"),
+    Photo("northvale-whisky-warning-not-bold", "tilted"),
+    Photo("harborlume-rum-proof", "glare"),
+]
+
+
+def sample_for(entry_id: str) -> Sample:
+    """The sample behind an entry in expected.json, photo or not."""
+    base_id = entry_id.split("--")[0]
+    return next(sample for sample in SAMPLES if sample.id == base_id)
+
+
+def solve(matrix: list[list[float]], values: list[float]) -> list[float]:
+    """Solve a small linear system by Gaussian elimination."""
+    n = len(values)
+    rows = [row[:] + [value] for row, value in zip(matrix, values, strict=True)]
+    for column in range(n):
+        pivot = max(range(column, n), key=lambda r: abs(rows[r][column]))
+        rows[column], rows[pivot] = rows[pivot], rows[column]
+        for r in range(n):
+            if r != column:
+                factor = rows[r][column] / rows[column][column]
+                rows[r] = [a - factor * b for a, b in zip(rows[r], rows[column], strict=True)]
+    return [rows[r][n] / rows[r][r] for r in range(n)]
+
+
+def skew(card: Image.Image) -> Image.Image:
+    """Make a flat label look photographed from an angle."""
+    w, h = card.size
+    # Where the label's corners land in the photo, clockwise from top left.
+    landed = [(0.10 * w, 0.02 * h), (0.90 * w, 0.0), (w, h), (0.0, 0.97 * h)]
+    corners = [(0, 0), (w, 0), (w, h), (0, h)]
+    matrix, values = [], []
+    for (x, y), (u, v) in zip(landed, corners, strict=True):
+        matrix.append([x, y, 1, 0, 0, 0, -u * x, -u * y])
+        values.append(u)
+        matrix.append([0, 0, 0, x, y, 1, -v * x, -v * y])
+        values.append(v)
+    coefficients = solve(matrix, values)
+    return card.transform(
+        card.size,
+        Image.Transform.PERSPECTIVE,
+        coefficients,
+        Image.Resampling.BICUBIC,
+        fillcolor=TABLE,
+    )
+
+
+def add_glare(photo: Image.Image, center: tuple[float, float], radius: float) -> Image.Image:
+    mask = Image.new("L", photo.size, 0)
+    cx, cy = center
+    ImageDraw.Draw(mask).ellipse(
+        (cx - radius, cy - radius * 0.6, cx + radius, cy + radius * 0.6), fill=235
+    )
+    mask = mask.filter(ImageFilter.GaussianBlur(radius / 3))
+    return Image.composite(Image.new("RGB", photo.size, "white"), photo, mask)
+
+
+def photograph(label: Image.Image, kind: str) -> Image.Image:
+    """A photo-like version of a flat label."""
+    photo = Image.new("RGB", (PHOTO_WIDTH, PHOTO_HEIGHT), TABLE)
+    scale = 0.3 if kind == "far" else 0.82
+    card = label.resize(
+        (int(label.width * scale), int(label.height * scale)), Image.Resampling.LANCZOS
+    )
+    if kind == "tilted":
+        card = card.rotate(7, expand=True, resample=Image.Resampling.BICUBIC, fillcolor=TABLE)
+    elif kind == "angled":
+        card = skew(card)
+    x, y = (PHOTO_WIDTH - card.width) // 2, (PHOTO_HEIGHT - card.height) // 2
+    photo.paste(card, (x, y))
+    if kind == "blurry":
+        photo = photo.filter(ImageFilter.GaussianBlur(4))
+    elif kind == "dim":
+        photo = ImageEnhance.Contrast(ImageEnhance.Brightness(photo).enhance(0.45)).enhance(0.8)
+    elif kind == "glare":
+        photo = add_glare(photo, (x + card.width * 0.5, y + card.height * 0.33), card.width * 0.3)
+    return photo
+
+
 @cache
 def font(name: str, size: int) -> ImageFont.FreeTypeFont:
     return ImageFont.truetype(str(FONT_DIR / FONT_FILES[name]), size)
@@ -568,6 +680,22 @@ def expected_entries() -> list[dict]:
                 "expected": sample.expected,
             }
         )
+    for photo in PHOTOS:
+        sample = sample_for(photo.id)
+        if len(sample.panels) != 1:
+            raise ValueError(f"{photo.id}: photos are made of single-picture labels only")
+        entries.append(
+            {
+                "id": photo.id,
+                "planted": f"{sample.planted} {PHOTO_KINDS[photo.kind]}",
+                "beverage_type": sample.beverage_type,
+                "images": [f"{photo.id}.jpg"],
+                "truth": ground_truth(sample),
+                "expected": sample.expected,
+                "photo_of": sample.id,
+                "photo": photo.kind,
+            }
+        )
     return entries
 
 
@@ -577,11 +705,11 @@ APPLICATION_COLUMNS = ["file_names", "beverage_type", *FIELDS[:-1]]
 def application_rows() -> list[dict[str, str]]:
     return [
         {
-            "file_names": "; ".join(image_names(sample)),
-            "beverage_type": sample.beverage_type,
-            **sample.application,
+            "file_names": "; ".join(entry["images"]),
+            "beverage_type": entry["beverage_type"],
+            **sample_for(entry["id"]).application,
         }
-        for sample in SAMPLES
+        for entry in expected_entries()
     ]
 
 
@@ -595,6 +723,12 @@ def main() -> None:
         for name, panel in zip(image_names(sample), sample.panels, strict=True):
             draw_panel(panel).save(LABELS_DIR / name, optimize=True)
             written.append(name)
+    for photo in PHOTOS:
+        label = draw_panel(sample_for(photo.id).panels[0])
+        photograph(label, photo.kind).save(
+            LABELS_DIR / f"{photo.id}.jpg", quality=82, optimize=True
+        )
+        written.append(f"{photo.id}.jpg")
 
     with open(SAMPLES_DIR / "applications.csv", "w", newline="", encoding="utf-8") as f:
         writer = csv.DictWriter(f, fieldnames=APPLICATION_COLUMNS)
@@ -605,8 +739,9 @@ def main() -> None:
         json.dump(expected_entries(), f, indent=2, ensure_ascii=False)
         f.write("\n")
 
-    strays = sorted(p.name for p in LABELS_DIR.glob("*.png") if p.name not in written)
-    print(f"Wrote {len(written)} images for {len(SAMPLES)} samples to {LABELS_DIR}")
+    pictures = [*LABELS_DIR.glob("*.png"), *LABELS_DIR.glob("*.jpg")]
+    strays = sorted(p.name for p in pictures if p.name not in written)
+    print(f"Wrote {len(written)} images for {len(SAMPLES) + len(PHOTOS)} samples to {LABELS_DIR}")
     if strays:
         print("Not made by this run (delete if no longer wanted):", ", ".join(strays))
 

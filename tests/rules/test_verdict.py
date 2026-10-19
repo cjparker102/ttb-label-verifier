@@ -10,13 +10,13 @@ from app.rules.application import Application, BeverageType
 from app.rules.results import Status
 from app.rules.verdict import check_label
 from tests.stand_ins import expected_word, perfect_reading
-from tools.make_samples import SAMPLES, SAMPLES_DIR
+from tools.make_samples import SAMPLES_DIR, sample_for
 
 RECORDED = Path(__file__).resolve().parent.parent / "fixtures" / "recorded"
 
 
-def application_for(sample_id: str) -> Application:
-    sample = next(s for s in SAMPLES if s.id == sample_id)
+def application_for(entry_id: str) -> Application:
+    sample = sample_for(entry_id)
     return Application(BeverageType.from_text(sample.beverage_type), **sample.application)
 
 

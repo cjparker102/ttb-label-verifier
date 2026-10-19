@@ -22,6 +22,15 @@ EXPECTED = json.loads((SAMPLES_DIR / "expected.json").read_text(encoding="utf-8"
 SPREADSHEET = (SAMPLES_DIR / "applications.csv").read_bytes()
 
 
+def planted_counts() -> tuple[int, int, int]:
+    """How many sample labels should come out with problems, needing review, and all good."""
+    worst = []
+    for entry in EXPECTED:
+        results = set(entry["expected"].values())
+        worst.append("fail" if "fail" in results else "review" if "review" in results else "pass")
+    return worst.count("fail"), worst.count("review"), worst.count("pass")
+
+
 def samples_zip(extra=()) -> bytes:
     out = io.BytesIO()
     with zipfile.ZipFile(out, "w") as archive:
@@ -81,7 +90,7 @@ def test_every_sample_in_a_batch_gets_its_expected_results(client):
     url = run_samples_batch(client)
     job = app.state.batches.get(url.rsplit("/", 1)[-1])
     items = sorted(job.items, key=lambda item: item.row_number)
-    assert len(items) == len(EXPECTED) == 11
+    assert len(items) == len(EXPECTED)
     for item, entry in zip(items, EXPECTED, strict=True):
         got = {field.field: expected_word(field) for field in item.outcome.result.fields}
         assert got == entry["expected"], entry["id"]
@@ -90,10 +99,11 @@ def test_every_sample_in_a_batch_gets_its_expected_results(client):
 def test_results_page_shows_problems_first_and_the_counts(client):
     url = run_samples_batch(client, extra=[("readme.txt", b"notes"), (".DS_Store", b"x")])
     page = client.get(url).text
-    assert "11 of 11 labels checked." in page
-    assert "Problems found in 6 labels" in page
-    assert "2 labels need review" in page
-    assert "3 labels all good" in page
+    assert f"{len(EXPECTED)} of {len(EXPECTED)} labels checked." in page
+    fails, reviews, passes = planted_counts()
+    assert f"Problems found in {fails} labels" in page
+    assert f"{reviews} labels need review" in page
+    assert f"{passes} labels all good" in page
     assert "Download results (Excel)" in page
     assert page.index("RIDGEWICK") < page.index("TIDEWICK")  # a problem comes before a pass
     assert "labels.zip: readme.txt" in page
@@ -107,7 +117,7 @@ def test_excel_download_has_every_label(client):
     assert "spreadsheetml" in response.headers["content-type"]
     assert "attachment" in response.headers["content-disposition"]
     summary = load_workbook(io.BytesIO(response.content))["Summary"]
-    assert summary.max_row == 12  # headings and 11 labels
+    assert summary.max_row == len(EXPECTED) + 1  # the headings, then one row per label
 
 
 def test_previews_are_served_from_memory(client):
