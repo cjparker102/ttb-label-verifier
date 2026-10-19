@@ -5,6 +5,7 @@ from pathlib import Path
 
 from app.reading.claude import ReadingFailed, ReadResult
 from app.reading.schema import LabelReading
+from tools.evaluate import result_word
 
 RECORDED = Path(__file__).resolve().parent / "fixtures" / "recorded"
 
@@ -63,6 +64,4 @@ class PerfectReader:
 
 def expected_word(field) -> str:
     """A field result in the words samples/expected.json uses."""
-    if field.status == "pass" and field.notes:
-        return "pass_with_note"
-    return str(field.status)
+    return result_word(field)

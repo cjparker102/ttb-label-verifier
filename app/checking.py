@@ -48,6 +48,8 @@ class CheckOutcome:
     seconds: float  # from receiving the images to the finished result
     reading_seconds: float
     read_by: str = "ai"  # "ai", or "ocr" for basic text reading
+    input_tokens: int = 0  # what the AI reader used, for cost estimates
+    output_tokens: int = 0
 
 
 def soften_for_ocr(result: LabelResult) -> LabelResult:
@@ -120,6 +122,8 @@ async def check_one(
                 images=prepared,
                 seconds=time.perf_counter() - start,
                 reading_seconds=read.seconds,
+                input_tokens=read.input_tokens,
+                output_tokens=read.output_tokens,
             )
 
     if not (ocr_fallback and tesseract_available()):
