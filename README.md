@@ -51,8 +51,9 @@ and checked again. The labels are drawn by code, so this is a first measure, not
 
 ## Run locally
 
-Requires Python 3.12, [uv](https://docs.astral.sh/uv/), and Tesseract for the offline fallback
-(`brew install tesseract` on macOS, `apt-get install tesseract-ocr` on Debian or Ubuntu).
+Requires Python 3.12, [uv](https://docs.astral.sh/uv/), and Tesseract, for the outlines and
+the offline fallback (`brew install tesseract` on macOS, `apt-get install tesseract-ocr` on
+Debian or Ubuntu). Without Tesseract the app still runs, with neither.
 
 ```sh
 cp .env.example .env      # then put your Anthropic API key in .env
@@ -142,7 +143,8 @@ The app runs as one container on Azure Container Apps. See [docs/DEPLOY.md](docs
   Christopher Parker's direction for planning, research, code, and tests.
 - Claude Haiku 5.5 reads the labels, through the Anthropic Python SDK (or Microsoft Foundry,
   signing in with azure-identity).
-- Tesseract OCR is the offline fallback reader.
+- Tesseract OCR finds where words are on a label, for the outlines, and is the offline
+  fallback reader.
 - Python 3.12, FastAPI, Jinja2, Pillow, pillow-heif (HEIC), pypdfium2 (PDF), py7zr (7z),
   openpyxl (reading spreadsheets), XlsxWriter (writing results), pytest, ruff, and uv.
 - Azure Container Apps and Azure Container Registry host the prototype.
