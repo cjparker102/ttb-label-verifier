@@ -212,10 +212,19 @@ in 13 seconds, and the batch finished (`docs/measurements/large-upload-2026-10-1
 
 - **Usage limits:** each visitor can check 300 labels per 10 minutes and send 30 batches per
   hour. The whole app checks at most 2,000 labels a day. A visitor is an internet address, and a
-  whole office may share one, so the per-visitor limits are generous: a new visitor can try every sample
-  and then the sample batch, with room to spare, and a test makes sure of it. The daily limit and
-  the spend limit are the real protection. When a limit is reached, the message says how long to
-  wait, rounded up.
+  whole office may share one, so the per-visitor limits are generous: a new visitor can try
+  every sample and then the sample batch, with room to spare, and a test makes sure of it. The
+  daily limit and the spend limit are the real protection. When a limit is reached, the message
+  says how long to wait, rounded up.
+- **Memory guard (denial of service):** batches run one at a time, and a batch's pictures wait
+  in memory until their label is checked. Without a cap, queued uploads could fill the
+  replica's 2 GiB and restart it, losing every batch in progress. So all batches together may
+  hold at most 600 MB of pictures not yet checked. A batch that would go past that is turned
+  away with "The app is busy with other batches. Please try again in N minutes." N counts the
+  labels that must be checked first to make room, at one label a second (batches check about
+  two a second with Claude), rounded up. A batch whose pictures alone come to more than 600 MB
+  once unpacked is turned away at once and asked to be split. A batch turned away doesn't count
+  against the visitor's limits. A test fills the queue past the cap.
 - **The hard stop on AI spending** is the monthly spend limit on the Anthropic workspace the
   app's key belongs to.
 - **Azure budget alerts** warn about hosting costs.

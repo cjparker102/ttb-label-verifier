@@ -228,3 +228,49 @@ def test_a_batch_sent_as_a_7z_file(client):
     assert response.status_code == 303
     progress = wait_until_finished(client, response.headers["location"])
     assert progress["done"] == progress["total"] == len(EXPECTED)
+
+
+class HeldReader(ReplayReader):
+    """Holds every reading until it is let go, so the pictures stay waiting in memory."""
+
+    def __init__(self):
+        super().__init__()
+        self.let_go = False
+
+    async def read(self, images):
+        while not self.let_go:
+            await asyncio.sleep(0.01)
+        return await super().read(images)
+
+
+SAMPLE_PICTURE_BYTES = sum((LABELS_DIR / n).stat().st_size for e in EXPECTED for n in e["images"])
+
+
+def test_batches_are_turned_away_while_waiting_pictures_would_pass_the_cap(client, monkeypatch):
+    reader = HeldReader()
+    use_reader(reader)
+    # Room for the pictures of two sample batches, not three.
+    monkeypatch.setattr(app.state, "max_waiting_bytes", int(2.5 * SAMPLE_PICTURE_BYTES))
+    running, waiting = start(client), start(client)
+    assert (running.status_code, waiting.status_code) == (303, 303)
+    turned_away = start(client)
+    assert turned_away.status_code == 503
+    page = " ".join(turned_away.text.split())
+    assert "The app is busy with other batches. Please try again in 1 minute." in page
+    assert app.state.limits.daily.used == 2 * len(EXPECTED)  # the third wasn't counted
+
+    reader.let_go = True
+    for response in (running, waiting):
+        wait_until_finished(client, response.headers["location"])
+    after = start(client)  # checked labels let go of their pictures, so there is room again
+    assert after.status_code == 303
+    wait_until_finished(client, after.headers["location"])
+
+
+def test_a_batch_bigger_than_the_cap_is_turned_away_at_once(client, monkeypatch):
+    use_reader(ReplayReader())
+    monkeypatch.setattr(app.state, "max_waiting_bytes", SAMPLE_PICTURE_BYTES // 2)
+    response = start(client)
+    assert response.status_code == 413
+    assert "Please split it into smaller batches." in response.text
+    assert app.state.limits.daily.used == 0

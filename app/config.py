@@ -31,6 +31,10 @@ class Settings:
     max_batch_files: int = 610  # pictures or ZIP files, plus the spreadsheet
     batch_concurrency: int = 8  # labels read at the same time within a batch
     batch_keep_seconds: int = 1800  # finished batch results are deleted after this
+    # Pictures of batch labels not yet checked, in all, are held in memory. Above this a
+    # new batch is turned away until there is room, so queued uploads can't use up the
+    # replica's 2 GiB.
+    max_waiting_bytes: int = 600 * MB
     # Per visitor, within the windows below. A visitor is an address, and a whole office
     # may share one, so these are generous; the daily limit and the spend limit on the
     # Anthropic workspace are the real protection.

@@ -27,6 +27,9 @@ from app.intake.matching import MatchedRow
 from app.rules.application import Application
 
 PREVIEW_EDGE = 320
+# Batches check about two labels a second with Claude (31 labels in 16 seconds on Azure,
+# Oct 19, 2026). Wait estimates assume one a second, so they are rarely too short.
+SECONDS_PER_LABEL = 1.0
 log = logging.getLogger("ttb_label_verifier")
 
 
@@ -74,6 +77,21 @@ class BatchJob:
     @property
     def done(self) -> int:
         return sum(1 for item in self.items if item.state != ItemState.WAITING)
+
+
+def picture_sizes(work: list[Work]) -> list[int]:
+    """The bytes each label's pictures hold in memory. A picture used by two labels is
+    held once, so it is counted once."""
+    seen: set[int] = set()
+    sizes = []
+    for label in work:
+        size = 0
+        for _, data in label.pictures:
+            if id(data) not in seen:
+                seen.add(id(data))
+                size += len(data)
+        sizes.append(size)
+    return sizes
 
 
 def new_job(matched: list[MatchedRow], skipped: list[Skipped], unused: list[str]) -> BatchJob:
@@ -161,6 +179,23 @@ class BatchStore:
     def get(self, job_id: str) -> BatchJob | None:
         self.forget_old()
         return self.jobs.get(job_id)
+
+    def waiting_sizes(self) -> list[int]:
+        """The bytes held by each label not yet checked, in the order they will be checked:
+        the running batch first, then the batches waiting their turn."""
+        return [size for job in self.jobs.values() for size in picture_sizes(job.work)]
+
+    def seconds_until_room(self, size: int, cap: int) -> float:
+        """0 if a new batch holding `size` bytes of pictures, no more than `cap`, fits
+        under `cap` now; otherwise about how long until enough labels ahead of it are
+        checked."""
+        sizes = self.waiting_sizes()
+        over = sum(sizes) + size - cap
+        labels = 0
+        while over > 0 and labels < len(sizes):
+            over -= sizes[labels]
+            labels += 1
+        return labels * SECONDS_PER_LABEL
 
     def forget_old(self) -> None:
         now = self.clock()

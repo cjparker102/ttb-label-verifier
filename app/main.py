@@ -16,15 +16,15 @@ from starlette.datastructures import UploadFile
 from starlette.exceptions import HTTPException
 from starlette.formparsers import MultiPartParser
 
-from app.batch import BatchStore, new_job, run_job
+from app.batch import BatchStore, new_job, picture_sizes, run_job
 from app.checking import LabelReader, NoReader, NotAnImage, TooManyPictures, check_one
-from app.config import load_settings
+from app.config import MB, load_settings
 from app.export import results_workbook
 from app.intake.archives import MAX_PICTURES, ArchiveError, Skipped, collect_pictures
 from app.intake.images import ACCEPT, FORMATS, shrink_to_jpeg
 from app.intake.matching import match_rows
 from app.intake.spreadsheet import HEADINGS, ApplicationRow, SpreadsheetError, read_spreadsheet
-from app.limits import Limits, RequestSizeLimit, SecurityHeaders, visitor_id
+from app.limits import Limits, RequestSizeLimit, SecurityHeaders, how_long, visitor_id
 from app.presenting import (
     BEVERAGE_CHOICES,
     TEXT_FIELDS,
@@ -59,6 +59,7 @@ app.mount("/static", StaticFiles(directory=HERE / "static"), name="static")
 app.state.limits = Limits.from_settings(settings)
 app.state.batches = BatchStore(settings.batch_keep_seconds)
 app.state.batch_concurrency = settings.batch_concurrency
+app.state.max_waiting_bytes = settings.max_waiting_bytes
 app.state.one_batch_at_a_time = asyncio.Semaphore(1)
 templates = Jinja2Templates(directory=HERE / "templates")
 
@@ -77,6 +78,17 @@ def can_read(reader: LabelReader | None) -> bool:
 
 NOT_SET_UP = "The label reader is not set up on this server. Please tell the administrator."
 COULD_NOT_READ = "The label could not be read just now. Please try again in a moment."
+
+
+def too_big(size: int, cap: int) -> str:
+    return (
+        f"The pictures in this batch come to {size / MB:,.0f} MB once unpacked, more than the "
+        f"{cap // MB:,} MB the app can hold at once. Please split it into smaller batches."
+    )
+
+
+def busy(seconds: float) -> str:
+    return f"The app is busy with other batches. Please try again in {how_long(seconds)}."
 
 
 def visitor(request: Request) -> str:
@@ -282,6 +294,15 @@ async def start_job(
     matched, unused = match_rows(rows, batch_pictures)
     job = new_job(matched, skipped, unused)
     if job.work:
+        # Pictures wait in memory until their label is checked, so there is a cap on
+        # how much all batches together may hold. Checked first, so that a batch turned
+        # away doesn't use up the visitor's limits.
+        size, cap = sum(picture_sizes(job.work)), request.app.state.max_waiting_bytes
+        if size > cap:
+            return page(request, 413, errors=[too_big(size, cap)])
+        wait = request.app.state.batches.seconds_until_room(size, cap)
+        if wait:
+            return page(request, 503, errors=[busy(wait)])
         refusal = request.app.state.limits.take_batch(visitor(request), len(job.work))
         if refusal:
             return page(request, 429, errors=[refusal])

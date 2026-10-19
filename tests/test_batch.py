@@ -1,6 +1,6 @@
 import asyncio
 
-from app.batch import BatchStore, ItemState, new_job, run_job
+from app.batch import SECONDS_PER_LABEL, BatchStore, ItemState, new_job, picture_sizes, run_job
 from app.intake.matching import MatchedRow
 from app.intake.spreadsheet import ApplicationRow
 from app.rules.application import Application, BeverageType
@@ -185,3 +185,36 @@ def test_a_batch_that_crashes_still_finishes(monkeypatch):
     assert job.state == "finished"
     assert all(item.state == ItemState.NOT_CHECKED for item in job.items)
     assert "Something went wrong" in job.items[0].problem
+
+
+def row_holding(number, data):
+    row = ApplicationRow(number, ("front.png",), OLD_TOM, (), OLD_TOM.brand_name)
+    return MatchedRow(row, (("front.png", data),), ())
+
+
+def test_a_picture_two_labels_share_is_counted_once():
+    shared = bytes(100)
+    rows = [row_holding(2, shared), row_holding(3, shared), row_holding(4, bytes(50))]
+    assert picture_sizes(new_job(rows, [], []).work) == [100, 0, 50]
+
+
+def test_a_new_batch_waits_until_labels_ahead_of_it_make_room():
+    store = BatchStore(keep_seconds=1800)
+    store.add(new_job([row_holding(n, bytes(100)) for n in range(2, 6)], [], []))  # holds 400
+    assert store.seconds_until_room(100, cap=500) == 0
+    # 300 more needs 200 freed: the first two labels must be checked.
+    assert store.seconds_until_room(300, cap=500) == 2 * SECONDS_PER_LABEL
+    store.add(new_job([row_holding(2, bytes(100))], [], []))  # a second batch, waiting its turn
+    assert store.seconds_until_room(500, cap=500) == 5 * SECONDS_PER_LABEL
+
+
+def test_checked_labels_make_room():
+    store = BatchStore(keep_seconds=1800)
+    job = new_job([good_row(2), good_row(3)], [], [])
+    store.add(job)
+    held = sum(store.waiting_sizes())
+    assert held == 2 * FRONT.stat().st_size
+    assert store.seconds_until_room(held, cap=held) > 0
+    run(job)
+    assert store.waiting_sizes() == []
+    assert store.seconds_until_room(held, cap=held) == 0
