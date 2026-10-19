@@ -1,23 +1,33 @@
 import asyncio
+import json
 
+import httpx
 import pytest
+from fastapi.testclient import TestClient
 
 from app.batch import new_job, run_job
 from app.export import results_workbook
 from app.intake.matching import MatchedRow
 from app.intake.spreadsheet import ApplicationRow
+from app.main import app, get_reader
+from app.reading.ocr import tesseract_available
 from tests.stand_ins import PerfectReader
+from tools import evaluate
 from tools.evaluate import (
     application_for,
+    from_page,
     judge,
     load_entries,
     markdown,
     percentile,
+    post_check,
     result_word,
     results_from_excel,
     summarize,
 )
-from tools.make_samples import LABELS_DIR
+from tools.make_samples import LABELS_DIR, SAMPLES_DIR
+
+EXPECTED = {e["id"]: e for e in json.loads((SAMPLES_DIR / "expected.json").read_text("utf-8"))}
 
 
 @pytest.mark.parametrize(
@@ -118,3 +128,60 @@ def test_summary_reports_how_many_fields_to_look_at_were_outlined():
     assert (summary["outlined"], summary["flagged_on_label"]) == (2, 3)
     report = markdown(results, summary)
     assert "| Fields to look at that were outlined on the picture | 2 of 3 |" in report
+
+
+def sample_page(sample_id: str) -> str:
+    app.dependency_overrides[get_reader] = lambda: PerfectReader([EXPECTED[sample_id]["truth"]])
+    try:
+        with TestClient(app) as client:
+            return client.post(f"/samples/{sample_id}/check").text
+    finally:
+        app.dependency_overrides.clear()
+
+
+@pytest.mark.skipif(not tesseract_available(), reason="Tesseract is not installed")
+def test_a_result_page_is_read_back():
+    shown = from_page(sample_page("ridgewick-rye-wrong-abv"))
+    assert shown["read_by"] == "ai"
+    assert 0 < shown["server_seconds"] < 60
+    assert shown["flagged_on_label"] == shown["outlined"] == ["alcohol_content"]
+
+
+def test_a_page_with_nothing_to_look_at():
+    shown = from_page(sample_page("old-tom-bourbon"))
+    assert (shown["flagged_on_label"], shown["outlined"]) == ([], [])
+
+
+def test_a_check_waits_out_the_apps_limit(monkeypatch):
+    answers = iter([429, 429, 200])
+    sent = []
+
+    def handler(request):
+        sent.append(request.url.path)
+        return httpx.Response(next(answers), text="page")
+
+    waits = []
+    monkeypatch.setattr(evaluate.time, "sleep", waits.append)
+    with httpx.Client(transport=httpx.MockTransport(handler)) as client:
+        response, seconds = post_check(client, "https://app", {"brand_name": "X"}, [])
+    assert response.status_code == 200 and seconds < 1
+    assert sent == ["/check"] * 3
+    assert waits == [evaluate.LIMIT_WAIT] * 2
+
+
+def test_summary_reports_time_inside_the_app():
+    results = {
+        "mode": "deployed app",
+        "url": "https://app",
+        "measured_at": "2026-10-19T12:00:00",
+        "commit": "abc1234",
+        "records": [
+            {"id": i, "photo": None, "judgments": {"brand_name": "exact"}, "seconds": s + 0.5,
+             "server_seconds": s}
+            for i, s in enumerate([2.0, 3.0, 4.0])
+        ],
+    }  # fmt: skip
+    summary = summarize(results)
+    assert summary["server_seconds"] == {"median": 3.0, "p95": 4.0, "max": 4.0}
+    report = markdown(results, summary)
+    assert "| Of that, time inside the app (median / p95 / max) | 3.0 s / 4.0 s / 4.0 s |" in report

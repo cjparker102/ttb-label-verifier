@@ -7,6 +7,8 @@ Two ways to run it, from the project root:
 
   Against a deployed app, end to end through its web pages:
     uv run python -m tools.evaluate --url https://...
+  The app lets one visitor make only so many checks in ten minutes. When a run reaches
+  that limit, it waits a minute and tries again; the wait isn't counted in the times.
 
 Each run reads every sample label once (31 labels as of Oct 19, 2026), which costs
 about two cents with Claude Haiku 5.5. Results are saved to docs/measurements/ as
@@ -27,6 +29,7 @@ import asyncio
 import io
 import json
 import math
+import re
 import statistics
 import subprocess
 import time
@@ -43,6 +46,15 @@ PASS_WORDS = {"pass", "pass_with_note"}
 # Claude Haiku 5.5, USD per million tokens, for prompts up to 100K tokens.
 PRICE_IN, PRICE_OUT = 0.10, 0.50
 WORDS = {"Matches": "pass", "Check this": "review", "Problem": "fail", "Not needed": "not_needed"}
+TITLES = {
+    "Brand name": "brand_name",
+    "Class / type": "class_type",
+    "Alcohol content": "alcohol_content",
+    "Net contents": "net_contents",
+    "Bottler name and address": "bottler_name_address",
+    "Country of origin": "country_of_origin",
+    "Government warning": "government_warning",
+}
 
 
 def result_word(field) -> str:
@@ -195,15 +207,6 @@ def results_from_excel(data: bytes) -> dict[int, dict]:
     """Field results and reader by spreadsheet row, from the app's Excel download."""
     from openpyxl import load_workbook
 
-    titles = {
-        "Brand name": "brand_name",
-        "Class / type": "class_type",
-        "Alcohol content": "alcohol_content",
-        "Net contents": "net_contents",
-        "Bottler name and address": "bottler_name_address",
-        "Country of origin": "country_of_origin",
-        "Government warning": "government_warning",
-    }
     workbook = load_workbook(io.BytesIO(data))
     rows: dict[int, dict] = {}
     for row in workbook["Summary"].iter_rows(min_row=2, values_only=True):
@@ -211,8 +214,50 @@ def results_from_excel(data: bytes) -> dict[int, dict]:
     for row in workbook["Details"].iter_rows(min_row=2, values_only=True):
         number, title, word = row[0], row[2], row[5]
         got = "pass_with_note" if word.startswith("Matches,") else WORDS[word]
-        rows[number]["got"][titles[title]] = got
+        rows[number]["got"][TITLES[title]] = got
     return rows
+
+
+FLAGGED_ROW = re.compile(r'<tr class="row-(?:fail|review)">(.*?)</tr>', re.DOTALL)
+ROW_TITLE = re.compile(r'<th scope="row">(.*?)</th>')
+CHECKED_IN = re.compile(r"Checked in ([\d.]+) seconds")
+
+
+def from_page(page: str) -> dict:
+    """What a single-check result page shows: who read the label, how long the check
+    took inside the app, and which fields to look at are printed on the label and
+    outlined on the picture."""
+    flagged, outlined = [], []
+    for row in FLAGGED_ROW.findall(page):
+        field = TITLES[ROW_TITLE.search(row).group(1)]
+        if 'class="label-text' in row:
+            flagged.append(field)
+        if "on the picture</span>" in row:
+            outlined.append(field)
+    checked_in = CHECKED_IN.search(page)
+    return {
+        "read_by": "ocr" if "read with basic text reading" in page else "ai",
+        "server_seconds": float(checked_in.group(1)) if checked_in else None,
+        "flagged_on_label": flagged,
+        "outlined": outlined,
+    }
+
+
+LIMIT_WAIT = 60  # seconds
+
+
+def post_check(client, url: str, form: dict, files: list):
+    """Post one single-label check, waiting whenever the app's limit on checks per
+    visitor is reached. Returns the response and how long it took, without the waits."""
+    for _ in range(15):
+        start = time.perf_counter()
+        response = client.post(f"{url}/check", data=form, files=files)
+        seconds = time.perf_counter() - start
+        if response.status_code != 429:
+            return response, seconds
+        print(f"The app's limit on checks was reached; waiting {LIMIT_WAIT} s")
+        time.sleep(LIMIT_WAIT)
+    raise SystemExit("The app kept refusing checks: HTTP 429")
 
 
 def evaluate_deployed(entries: list[dict], url: str) -> dict:
@@ -233,15 +278,13 @@ def evaluate_deployed(entries: list[dict], url: str) -> dict:
                 "country_of_origin": application.country_of_origin,
             }
             files = [("images", (n, (LABELS_DIR / n).read_bytes())) for n in entry["images"]]
-            start = time.perf_counter()
-            response = client.post(f"{url}/check", data=form, files=files)
-            seconds = time.perf_counter() - start
+            response, seconds = post_check(client, url, form, files)
             record = {
                 "id": entry["id"],
                 "photo": entry.get("photo"),
                 "seconds": round(seconds, 2),
                 "status_code": response.status_code,
-                "read_by": "ocr" if "read with basic text reading" in response.text else "ai",
+                **from_page(response.text),
             }
             print(f"{entry['id']:50} {seconds:5.2f} s  HTTP {response.status_code}")
             records.append(record)
@@ -331,6 +374,13 @@ def summarize(results: dict) -> dict:
             "under_5_seconds": sum(1 for s in seconds if s < 5),
             "timed": len(seconds),
         }
+    inside = [r["server_seconds"] for r in results["records"] if r.get("server_seconds")]
+    if inside:
+        summary["server_seconds"] = {
+            "median": round(statistics.median(inside), 2),
+            "p95": round(percentile(inside, 0.95), 2),
+            "max": round(max(inside), 2),
+        }
     reading = [r for r in clean if "reading_problems" in r and r.get("read_by") == "ai"]
     if reading:
         summary["clean_fields_read_exactly"] = sum(7 - len(r["reading_problems"]) for r in reading)
@@ -374,6 +424,12 @@ def markdown(results: dict, summary: dict) -> str:
         s = summary["seconds"]
         row("Time per label (median / p95 / max)", f"{s['median']} s / {s['p95']} s / {s['max']} s")
         row("Labels checked in under 5 seconds", f"{s['under_5_seconds']} of {s['timed']}")
+    if "server_seconds" in summary:
+        s = summary["server_seconds"]
+        row(
+            "Of that, time inside the app (median / p95 / max)",
+            f"{s['median']} s / {s['p95']} s / {s['max']} s",
+        )
     if "batch_seconds" in results:
         row("Whole batch, upload to finished", f"{results['batch_seconds']} s")
     if "outlined" in summary:
@@ -387,7 +443,12 @@ def markdown(results: dict, summary: dict) -> str:
         row("AI cost for this run (estimate from tokens)", f"${summary['cost_usd']}")
 
     if results["mode"] == "deployed app":
-        mode = f"Mode: the deployed app at {results['url']}, through its web pages."
+        mode = (
+            f"Mode: the deployed app at {results['url']}, through its web pages. Times are "
+            "single checks, one at a time, end to end from this computer: upload, reading, "
+            "rules, outlines, and the page coming back. Field results are from one batch of "
+            "all the labels."
+        )
     else:
         mode = f"Mode: in process, reader `{results['reader']}`, settings `{results['settings']}`."
     kinds = ", ".join(
