@@ -388,7 +388,8 @@ async def sample_check(
 
 GONE = (
     "These batch results are no longer available. Results are kept for 30 minutes after "
-    "a batch finishes, then deleted."
+    "a batch finishes, then deleted, and are lost if the app restarts. Please upload the "
+    "batch again."
 )
 
 
@@ -413,7 +414,7 @@ async def batch_results(request: Request, job_id: str):
 async def batch_progress(request: Request, job_id: str):
     job = request.app.state.batches.get(job_id)
     if job is None:
-        return JSONResponse({"state": "gone"}, status_code=404)
+        return JSONResponse({"state": "gone", "message": GONE}, status_code=404)
     return {"state": job.state, "done": job.done, "total": job.total}
 
 

@@ -295,7 +295,7 @@ def test_batch_limits_are_enforced(client):
 def test_expired_or_unknown_batches(client):
     assert client.get("/batches/no-such-batch").status_code == 404
     assert "no longer available" in client.get("/batches/no-such-batch").text
-    assert client.get("/batches/no-such-batch/progress").json() == {"state": "gone"}
+    assert client.get("/batches/no-such-batch/progress").json()["state"] == "gone"
 
 
 def test_a_whole_batch_writes_nothing_to_disk(client):
@@ -372,3 +372,19 @@ def test_batch_labels_are_never_asked_for_twice(client, monkeypatch):
     response = start(client)
     progress = wait_until_finished(client, response.headers["location"])
     assert reader.requests == progress["total"] == len(EXPECTED)
+
+
+def test_progress_of_an_expired_batch_carries_the_message_the_page_shows(client):
+    response = client.get("/batches/no-such-batch/progress")
+    assert response.status_code == 404
+    answer = response.json()
+    assert answer["state"] == "gone"
+    assert (
+        "no longer available" in answer["message"] and "upload the batch again" in answer["message"]
+    )
+
+
+def test_the_batch_page_has_a_place_to_say_it_is_reconnecting(client):
+    url = run_samples_batch(client)
+    page = client.get(url).text
+    assert 'id="batch-connection" role="status" hidden' in page

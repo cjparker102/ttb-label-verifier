@@ -11,6 +11,7 @@
   <div class="notice" role="note"><p>{{ note }}</p></div>
   {% endfor %}
   <p class="visually-hidden" id="batch-announce" aria-live="polite"></p>
+  <p class="notice batch-connection" id="batch-connection" role="status" hidden></p>
   <div id="batch-results">
     {% include "_batch_results.html" %}
   </div>

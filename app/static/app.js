@@ -106,26 +106,44 @@ function showChosen(input) {
   list.replaceChildren(...shown);
 }
 
-// While a batch runs, keep its page up to date without reloading it.
+// While a batch runs, keep its page up to date without reloading it. If the app can't be
+// reached, say so and keep trying, waiting longer each time; if the batch has expired,
+// say so and stop.
 function watchBatch() {
   const batch = document.getElementById("batch");
   if (!batch || batch.dataset.state === "finished") return;
   const id = batch.dataset.job;
   const announce = document.getElementById("batch-announce");
+  const connection = document.getElementById("batch-connection");
   let lastDone = -1;
   let lastState = batch.dataset.state;
+  let failures = 0;
+
+  const show = (text) => {
+    connection.textContent = text;
+    connection.hidden = !text;
+  };
+  const gone = async (response) => {
+    const answer = await response.json().catch(() => ({}));
+    const text = answer.message || "These batch results are no longer available.";
+    show(text);
+    announce.textContent = text;
+  };
 
   const update = async () => {
     try {
       const response = await fetch(`/batches/${id}/progress`, { cache: "no-store" });
-      if (!response.ok) return;
+      if (response.status === 404) return gone(response);
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
       const progress = await response.json();
       if (progress.done !== lastDone || progress.state !== lastState) {
+        const results = await fetch(`/batches/${id}/results`, { cache: "no-store" });
+        if (results.status === 404) return gone(results);
+        if (!results.ok) throw new Error(`HTTP ${results.status}`);
         lastDone = progress.done;
         lastState = progress.state;
         const open = [...document.querySelectorAll("details[data-key][open]")].map((d) => d.dataset.key);
-        const html = await (await fetch(`/batches/${id}/results`, { cache: "no-store" })).text();
-        document.getElementById("batch-results").innerHTML = html;
+        document.getElementById("batch-results").innerHTML = await results.text();
         open.forEach((key) => {
           const details = document.querySelector(`details[data-key="${key}"]`);
           if (details) details.open = true;
@@ -135,9 +153,19 @@ function watchBatch() {
             ? "The batch is finished."
             : `${progress.done} of ${progress.total} labels checked.`;
       }
+      if (failures) {
+        failures = 0;
+        show("");
+      }
       if (progress.state !== "finished") setTimeout(update, 2000);
     } catch {
-      setTimeout(update, 5000);
+      failures += 1;
+      show(
+        failures < 10
+          ? "Lost contact with the app. Reconnecting…"
+          : "Still reconnecting. The batch keeps running on the server, and this page updates when the connection is back."
+      );
+      setTimeout(update, Math.min(2000 * 2 ** (failures - 1), 15000));
     }
   };
   setTimeout(update, 1000);
