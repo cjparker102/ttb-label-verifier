@@ -198,8 +198,21 @@ def is_domestic(country_text: str) -> bool:
     return len(found) == 1 and is_us(found[0][0])
 
 
-def check_country(application: str, label: FieldReading) -> Check:
+def same_country(a: str, b: str) -> bool:
+    """The same country, or a place within it: Scotland is in the United Kingdom."""
+    return a == b or PARENTS.get(a) == b or PARENTS.get(b) == a
+
+
+def check_country(
+    application: str, label: FieldReading, bottler: FieldReading | None = None
+) -> Check:
+    """Compare the country of origin. `bottler` is the bottler or importer statement: a
+    label sometimes names the country only there, as in "Distilled and bottled in Scotland"."""
     said = tidy(application)
+    if is_missing(label) and said and not is_domestic(said) and bottler is not None:
+        in_statement = only_in_bottler(said, bottler)
+        if in_statement:
+            return in_statement
     if is_missing(label):
         if not said:
             return Check(
@@ -283,3 +296,22 @@ def check_country(application: str, label: FieldReading) -> Check:
                 note=f"Matches, {place} is part of the {country}",
             )
     return Check(Status.FAIL, f'The label says "{shown}" but the application says "{said}".')
+
+
+def only_in_bottler(said: str, bottler: FieldReading) -> Check | None:
+    """When the label has no country of origin statement but the bottler or importer
+    statement names the application's country, a person should look: whether that is a
+    clear enough statement of origin is a judgment, so it is never a plain match."""
+    text = tidy(bottler.text or "")
+    on_application = find_countries(said)
+    if is_missing(bottler) or len(on_application) != 1:
+        return None
+    wanted = on_application[0][0]
+    named = [country for country, _ in find_countries(text)]
+    if not any(same_country(country, wanted) for country in named):
+        return None
+    return Check(
+        Status.REVIEW,
+        f'The label names {wanted} only in the bottler or importer statement ("{text}"), not '
+        "in a country of origin statement. Please check it shows the country of origin clearly.",
+    )

@@ -144,11 +144,30 @@ def without_warning(words: list[str]) -> list[str]:
     return words
 
 
+def written_differently(wanted: list[str], words: list[str]) -> bool:
+    """Whether the words hold the wanted ones with other spacing or company form: "QuillMere
+    Brewing Company" for "Quill Mere Brewing Co.". Whole words only, so "Air" is never found
+    in "Chair"."""
+    target = "".join(w for w in wanted if w not in LEGAL_FORMS)
+    kept = [w for w in words if w not in LEGAL_FORMS]
+    for i in range(len(kept)):
+        joined = ""
+        for word in kept[i:]:
+            joined += word
+            if joined == target:
+                return True
+            if len(joined) >= len(target):
+                break
+    return False
+
+
 def check_brand(application: str, reading: LabelReading, ocr: Passes | None = None) -> Check:
     """The brand on the label, as the AI reader took it, against the application. Labels
     often show a fanciful name more prominently than the brand, or print the brand only
     in the bottler statement. So if they differ, the application's whole brand is looked
-    for elsewhere on the label, and the note says where it was found."""
+    for elsewhere on the label, and the note says where it was found. It matches only when
+    found as written and at least SEARCHED_BRAND letters long. A shorter brand, which a
+    common word could match by accident, or one written differently, needs review."""
     what = "brand name"
     label = reading.brand_name
     result = check_name(what, application, label)
@@ -156,42 +175,67 @@ def check_brand(application: str, reading: LabelReading, ocr: Passes | None = No
         return result
     said = tidy(application)
     wanted = name_words(said)
-    if len("".join(wanted)) < SEARCHED_BRAND:
+    if not wanted:
         return result
+    short = len("".join(wanted)) < SEARCHED_BRAND
     shown = tidy(label.text or "")
-    if not is_missing(label) and find_words(wanted, name_words(shown)) is not None:
-        return Check(
-            Status.PASS,
-            f'The label\'s brand name, "{shown}", includes the application\'s "{said}" with '
-            "other words.",
-            note="Matches, with other words",
-        )
     # The words of a class or type, such as "Straight Bourbon", aren't a brand.
-    if find_words(wanted, name_words(reading.class_type.text or "")) is not None:
+    class_words = name_words(reading.class_type.text or "")
+    if find_words(wanted, class_words) is not None or written_differently(wanted, class_words):
         return result
+
+    bottler = reading.bottler_name_address
+    places = []  # (where, the words there, the note if it matches)
+    if not is_missing(label):
+        places.append(("in the brand name it read", name_words(shown), "Matches, with other words"))
+    if bottler.text:
+        places.append(
+            (
+                f'in the bottler statement on image {bottler.image_number}: "{tidy(bottler.text)}"',
+                name_words(bottler.text),
+                "Matches, found in the bottler statement",
+            )
+        )
+    for number, passes in enumerate(ocr or [], start=1):
+        for words in passes:
+            page = without_warning(name_words(" ".join(word.text for word in words)))
+            places.append(
+                (
+                    f"on image {number}, found by basic text reading",
+                    page,
+                    f"Matches, found on image {number}",
+                )
+            )
+
     took = (
         f'The AI reader took "{shown}" for the brand name, but the application\'s "{said}" is '
         "also on the label"
         if not is_missing(label)
         else f'The application\'s brand name, "{said}", is on the label'
     )
-    bottler = reading.bottler_name_address
-    if bottler.text and find_words(wanted, name_words(bottler.text)) is not None:
-        return Check(
-            Status.PASS,
-            f"{took}, in the bottler statement on image {bottler.image_number}: "
-            f'"{tidy(bottler.text)}".',
-            note="Matches, found in the bottler statement",
-        )
-    for number, passes in enumerate(ocr or [], start=1):
-        for words in passes:
-            page = without_warning(name_words(" ".join(word.text for word in words)))
-            if find_words(wanted, page) is not None:
-                return Check(
-                    Status.PASS,
-                    f"{took}, on image {number}, found by basic text reading.",
-                    note=f"Matches, found on image {number}",
-                )
+    for where, words, note in places:
+        if find_words(wanted, words) is None:
+            continue
+        if short:
+            return Check(
+                Status.REVIEW,
+                f"{took}, {where}. It is short, so it could be another word. Please check it "
+                "is the brand.",
+            )
+        if where == "in the brand name it read":
+            return Check(
+                Status.PASS,
+                f'The label\'s brand name, "{shown}", includes the application\'s "{said}" with '
+                "other words.",
+                note=note,
+            )
+        return Check(Status.PASS, f"{took}, {where}.", note=note)
+    for where, words, _ in places:
+        if written_differently(wanted, words):
+            return Check(
+                Status.REVIEW,
+                f"{took} written differently, {where}. Please check it is the same brand.",
+            )
     return result
 
 
@@ -266,6 +310,7 @@ LEGAL_FORMS = {
 PLACE_WORDS = {"saint": "st", "mount": "mt", "fort": "ft"}
 SEPARATOR = ","
 ZIP = re.compile(r"^\d{5}(?:\d{4})?$")
+STREET = re.compile(r"^\d+[A-Za-z]?(?:-\d+)?\s+\S")  # "120 Kestrel St", "12B Kestrel St"
 
 
 def address_words(text: str) -> list[str]:
@@ -307,10 +352,12 @@ def parse_address(text: str) -> Address | None:
     state = state_code(words_only(address_words(re.sub(r"\s*[\d-]{5,10}$", "", parts[-1]))))
     if state is None:
         return None
+    # The first part is the company, even with a digit in its name ("3 Rivers Brewing"). A later
+    # part starting with a street number is a street address, and is ignored.
     company = [
         word
-        for part in parts[:-2]
-        if not any(c.isdigit() for c in part)  # a street address
+        for number, part in enumerate(parts[:-2])
+        if number == 0 or not STREET.match(part)
         for word in words_only(address_words(part))
         if word not in LEGAL_FORMS
     ]

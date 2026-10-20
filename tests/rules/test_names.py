@@ -2,7 +2,14 @@ import pytest
 
 from app.reading.schema import LabelReading
 from app.reading.words import Word
-from app.rules.names import check_bottler, check_brand, check_class, check_name, statements
+from app.rules.names import (
+    check_bottler,
+    check_brand,
+    check_class,
+    check_name,
+    statements,
+    written_differently,
+)
 from app.rules.results import Status
 from app.rules.warning import GOVERNMENT_WARNING
 from tests.rules.helpers import read, read_warning
@@ -427,9 +434,32 @@ def test_only_the_whole_brand_counts():
     assert check_brand("Harbor Hill Cellars", reading, ocr).status == Status.FAIL
 
 
-def test_a_short_brand_is_not_looked_for_elsewhere():
+def test_a_short_brand_found_elsewhere_needs_review_never_matches():
+    # A short word could match by accident (found on approved labels: a five-letter brand
+    # shown under a larger fanciful name).
     reading = label_reading("Midnight Owl", "Bottled by Oak Cellars, Napa, CA")
-    assert check_brand("OAK", reading, tesseract("OAK BARREL AGED")).status == Status.FAIL
+    result = check_brand("OAK", reading, tesseract("OAK BARREL AGED"))
+    assert result.status == Status.REVIEW
+    assert "It is short, so it could be another word" in result.reason
+
+
+def test_a_short_brand_found_nowhere_fails():
+    reading = label_reading("Midnight Owl", "Bottled by Harbor Hill Cellars, Napa, CA")
+    assert check_brand("ELM", reading, tesseract("HARBOR HILL")).status == Status.FAIL
+
+
+def test_a_brand_written_with_other_spacing_or_company_form_needs_review():
+    # Found on an approved label in TTB's Public COLA Registry: a brand run together.
+    reading = label_reading("Pale Morning", "Brewed and packaged by HarborHill BREWING COMPANY")
+    result = check_brand("HARBOR HILL BREWING CO.", reading)
+    assert result.status == Status.REVIEW
+    assert "written differently" in result.reason
+
+
+def test_written_differently_takes_whole_words_only():
+    assert written_differently(["air"], ["chair"]) is False
+    assert written_differently(["harbor", "hill"], ["harborhill", "cellars"]) is True
+    assert written_differently(["harbor", "hill", "co"], ["harbor", "hill", "company"]) is True
 
 
 def test_the_warning_and_the_class_dont_count_as_the_brand():
@@ -455,3 +485,32 @@ def test_a_brand_the_ai_reader_missed_can_be_found_elsewhere():
     result = check_brand("Harbor Hill Cellars", reading)
     assert result.status == Status.PASS
     assert result.reason.startswith('The application\'s brand name, "Harbor Hill Cellars", is on')
+
+
+# A company name with a digit in it (found on approved labels: it was taken for a street).
+
+
+@pytest.mark.parametrize(
+    ("application", "label"),
+    [
+        (
+            "3 Rivers Brewing, Easton, MD",
+            "Brewed by 3 Rivers Brewing Co. 45 Mill Road Easton MD 21601",
+        ),
+        ("7Hills Cellars, Napa, CA", "Produced and bottled by 7Hills Cellars, Napa, California"),
+        (
+            "Harbor Bottling Co., 12B Pier Rd, Baltimore, MD",
+            "Bottled by Harbor Bottling Co., Baltimore, MD",
+        ),
+    ],
+)
+def test_a_company_name_with_a_digit_is_still_the_company(application, label):
+    assert check_bottler(application, read(label)).status == Status.PASS
+
+
+def test_a_street_in_the_application_is_still_ignored():
+    result = check_bottler(
+        "Old Tom Distillery LLC, 120 Water St, Bardstown, KY",
+        read("Bottled by Old Tom Distillery, Bardstown, Kentucky"),
+    )
+    assert result.status == Status.PASS

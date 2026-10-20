@@ -98,3 +98,41 @@ def test_needs_review(application, label):
 def test_domestic_application_needs_no_country_on_the_label():
     for said in ("USA", "United States", "Puerto Rico"):
         assert check(said, read(None)).status == Status.NOT_NEEDED
+
+
+# A country named only in the bottler or importer statement (found on approved labels in
+# TTB's Public COLA Registry, third set).
+
+
+@pytest.mark.parametrize(
+    ("application", "bottler"),
+    [
+        ("SCOTLAND", "Distilled & bottled in Scotland by Old Tom Distillers, Glasgow"),
+        (
+            "FRANCE",
+            "Brewed by Brasserie Exemple, Lille, France Imported by Landrevin Imports, Boston, MA",
+        ),
+        ("UNITED KINGDOM", "Distilled & bottled in Scotland by Old Tom Distillers, Glasgow"),
+    ],
+)
+def test_a_country_only_in_the_bottler_statement_needs_review(application, bottler):
+    result = check(application, read(None), read(bottler))
+    assert result.status == Status.REVIEW
+    assert "only in the bottler or importer statement" in result.reason
+
+
+def test_another_country_in_the_bottler_statement_still_fails():
+    bottler = read("Distilled & bottled in Scotland by Old Tom Distillers, Glasgow")
+    assert check("IRELAND", read(None), bottler).status == Status.FAIL
+
+
+def test_no_country_anywhere_still_fails():
+    bottler = read("Imported by Landrevin Imports, Boston, MA")
+    assert check("FRANCE", read(None), bottler).status == Status.FAIL
+    assert check("FRANCE", read(None)).status == Status.FAIL
+
+
+def test_a_country_statement_is_compared_as_before():
+    bottler = read("Bottled in Scotland by Old Tom Distillers, Glasgow")
+    assert check("FRANCE", read("Product of France"), bottler).status == Status.PASS
+    assert check("", read(None), bottler).status == Status.NOT_NEEDED

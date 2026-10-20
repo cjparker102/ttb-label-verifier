@@ -102,7 +102,7 @@ def check_label(
                 "country_of_origin",
                 "Country of origin",
                 a.country_of_origin,
-                [check_country(a.country_of_origin, r.country_of_origin)],
+                [check_country(a.country_of_origin, r.country_of_origin, r.bottler_name_address)],
             ),
             field(
                 "government_warning",

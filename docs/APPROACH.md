@@ -93,9 +93,12 @@ All rules are in `app/rules/`, and each has its own tests.
     for it. If the brand it read doesn't match, the application's whole brand is looked for
     as a phrase: in the brand it read, among other words ("Matches, with other words"); in
     the bottler statement ("Matches, found in the bottler statement"); and in Tesseract's
-    reading of each picture, leaving out the warning ("Matches, found on image 2"). Only a
-    brand of at least 6 letters and digits is looked for, so a short common word can't match
-    by accident, and words that are part of the class or type don't count.
+    reading of each picture, leaving out the warning ("Matches, found on image 2"). Words that
+    are part of the class or type don't count. Where identifying the brand is uncertain, it
+    needs review rather than failing or matching: a brand under 6 letters and digits found
+    elsewhere (a common word could match by accident), or a brand found with other spacing or
+    company form ("QuillMere Brewing Company" for "Quill Mere Brewing Co."). A brand found
+    nowhere fails.
   - For the class or type, labels often print other words with it: an appellation, a
     fanciful name, "Premium". If the application's whole class or type is on the label as a
     phrase, it matches, with the note "Matches, with other words". But if the other words
@@ -110,7 +113,10 @@ All rules are in `app/rules/`, and each has its own tests.
     written before "by" ("Distilled in Bardstown, Kentucky by ...").
   - A different company name in the same city and state needs review: it may be a trade name
     the company uses, which the app can't confirm. The same company in another city of the
-    same state fails. The same company with no state shown needs review.
+    same state fails. The same company with no state shown needs review. The first part of
+    the application's name and address is always the company, even with a digit in its name
+    ("3 Rivers Brewing"); a later part starting with a street number is a street, and is
+    ignored.
 - **Alcohol content** is read from forms like `45% Alc./Vol.`, `13,5% vol`, or `90 Proof`. A
   range such as "11-14%" is never taken for one number: it needs review. Label proof must be
   twice the ABV. Label and application must state the same number, allowing
@@ -135,7 +141,9 @@ All rules are in `app/rules/`, and each has its own tests.
   The same amount in other units agrees ("750 mL" and "25.4 FL OZ"); a list of sizes to tick is
   left out. Basic text reading, offline, doesn't make these lists.
 - **Country of origin** names in many languages map to one standard name (`Deutschland` is
-  Germany). Scotland and the other UK nations count as part of the United Kingdom.
+  Germany). An import with no country of origin statement fails, unless its bottler or
+  importer statement names the application's country ("Distilled and bottled in Scotland"):
+  then it needs review, since whether that statement shows the origin clearly is a judgment. Scotland and the other UK nations count as part of the United Kingdom.
 
 **TTB rules** (`ttb.py`, `warning.py`): each check cites the eCFR paragraph it comes from
 (`citations.py`). Every section was read in the eCFR before the check was written (Title 27,
