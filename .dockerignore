@@ -1,18 +1,20 @@
-# Secrets and private notes never go into the image.
+# Secrets and private notes never go into the image, nor to Azure with the build source.
+# No rule ends with "/": the Azure CLI packing the source for "az acr build" (2.91) then
+# matches nothing, and uploads the folder. Docker reads "private" and "private/" alike.
 .env
 .env.*
-private/
-.claude/
+private
+.claude
 
 # Not needed to run the app.
-.git/
-.githooks/
-.github/
-.venv/
-__pycache__/
+.git
+.githooks
+.github
+.venv
+__pycache__
 *.pyc
-.ruff_cache/
-.pytest_cache/
-docs/
-tests/
-tools/
+.ruff_cache
+.pytest_cache
+docs
+tests
+tools

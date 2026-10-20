@@ -11,7 +11,14 @@ def dockerignore_entries():
 
 
 def test_secrets_and_private_files_stay_out_of_the_image():
-    assert {".env", ".env.*", "private/", ".claude/", ".git/"} <= dockerignore_entries()
+    assert {".env", ".env.*", "private", ".claude", ".git"} <= dockerignore_entries()
+
+
+def test_no_ignore_rule_ends_with_a_slash():
+    """The Azure CLI that packs the build source for "az acr build" matches nothing with
+    a rule like "private/", and so uploaded private/ to Azure on Oct 20, 2026, although
+    the image itself never had it."""
+    assert not [entry for entry in dockerignore_entries() if entry.endswith("/")]
 
 
 def test_image_copies_only_what_the_app_needs():
