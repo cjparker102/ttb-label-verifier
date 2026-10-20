@@ -5,7 +5,9 @@ data comes from samples/applications.csv, read with the same code that reads any
 uploaded spreadsheet.
 """
 
+import io
 import json
+import zipfile
 from dataclasses import dataclass
 from functools import cache
 from pathlib import Path
@@ -62,3 +64,24 @@ def featured() -> list[SampleLabel]:
 
 def pictures(label: SampleLabel) -> list[tuple[str, bytes]]:
     return [(name, (SAMPLES_DIR / "labels" / name).read_bytes()) for name in label.images]
+
+
+ZIP_FOLDER = "ttb-sample-labels"
+
+
+@cache
+def sample_files_zip() -> bytes:
+    """Every sample picture and the spreadsheet of their applications, as one ZIP file, so
+    reviewers can try the upload forms with real files. Built in memory, once."""
+    out = io.BytesIO()
+    with zipfile.ZipFile(out, "w") as archive:
+        archive.write(
+            SAMPLES_DIR / "applications.csv",
+            f"{ZIP_FOLDER}/applications.csv",
+            compress_type=zipfile.ZIP_DEFLATED,
+        )
+        # Pictures barely compress, so they are stored as they are.
+        names = {name for label in sample_labels().values() for name in label.images}
+        for name in sorted(names):
+            archive.write(SAMPLES_DIR / "labels" / name, f"{ZIP_FOLDER}/labels/{name}")
+    return out.getvalue()

@@ -77,7 +77,8 @@ Then open http://127.0.0.1:8000. Without an API key the app still runs, using ba
 reading (OCR) only.
 
 To try a batch, use "Try a sample batch", or upload `samples/applications.csv` and the
-pictures in `samples/labels/`.
+pictures in `samples/labels/`. On the home page, "Download the sample files" gives the same
+files as one ZIP.
 
 ## Settings
 

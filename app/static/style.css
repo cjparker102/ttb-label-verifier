@@ -194,6 +194,7 @@ section[id] { scroll-margin-top: 12px; }
 .sample-button:hover { border-color: var(--brand); background: #eef3fb; }
 .sample-title { display: block; font-weight: 700; color: var(--brand); margin-bottom: 4px; }
 .sample-planted { display: block; font-size: 0.85rem; color: var(--muted); }
+.sample-files { margin: 16px 0 0; }
 
 /* Batch */
 

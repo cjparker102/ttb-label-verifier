@@ -36,7 +36,7 @@ from app.presenting import (
 from app.reading.ocr import tesseract_available
 from app.reading.providers import HedgedReader, make_reader
 from app.rules.application import Application, BeverageType
-from app.samples import SampleLabel, featured, pictures, sample_labels
+from app.samples import SampleLabel, featured, pictures, sample_files_zip, sample_labels
 
 HERE = Path(__file__).resolve().parent
 PREVIEW_EDGE = 900
@@ -107,6 +107,7 @@ def page(request: Request, status_code: int = 200, **context) -> HTMLResponse:
         "accept": ACCEPT,
         "samples": featured(),
         "sample_count": len(sample_labels()),
+        "sample_picture_count": sum(len(label.images) for label in sample_labels().values()),
         **context,
     }
     return templates.TemplateResponse(request, "index.html", context, status_code=status_code)
@@ -334,6 +335,17 @@ async def sample_batch(
         return page(request, 422, errors=[NOT_SET_UP])
     batch_pictures = {name: data for label in labels for name, data in pictures(label)}
     return await start_job(request, reader, [label.row for label in labels], batch_pictures, [])
+
+
+@app.get("/samples/files.zip")
+async def sample_files(request: Request) -> Response:
+    if not sample_labels():
+        return page(request, 404, errors=["The sample labels are not available on this server."])
+    return Response(
+        await asyncio.to_thread(sample_files_zip),
+        media_type="application/zip",
+        headers={"content-disposition": 'attachment; filename="ttb-sample-labels.zip"'},
+    )
 
 
 @app.post("/samples/{sample_id}/check", response_class=HTMLResponse)

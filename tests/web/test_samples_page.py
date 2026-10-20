@@ -1,12 +1,15 @@
 """The "Try a sample" buttons, with stand-ins for Claude."""
 
+import io
 import json
 import time
+import zipfile
 
 import pytest
 from fastapi.testclient import TestClient
 from markupsafe import escape
 
+from app.batch import ItemState
 from app.limits import Limits
 from app.main import app, get_reader, settings
 from app.reading.ocr import tesseract_available
@@ -102,6 +105,81 @@ def test_the_sample_batch_checks_every_sample(client):
         assert time.monotonic() < deadline
         time.sleep(0.05)
     assert progress["done"] == progress["total"] == len(EXPECTED)
+
+
+def finished_job(client, response):
+    assert response.status_code == 303
+    url = response.headers["location"]
+    deadline = time.monotonic() + 30
+    while client.get(f"{url}/progress").json()["state"] != "finished":
+        assert time.monotonic() < deadline
+        time.sleep(0.05)
+    return app.state.batches.get(url.rsplit("/", 1)[-1])
+
+
+SAMPLE_PICTURES = {name for entry in EXPECTED.values() for name in entry["images"]}
+
+
+def test_the_sample_files_download_as_one_zip(client):
+    response = client.get("/samples/files.zip")
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "application/zip"
+    assert response.headers["content-disposition"] == 'attachment; filename="ttb-sample-labels.zip"'
+    with zipfile.ZipFile(io.BytesIO(response.content)) as archive:
+        files = {name: archive.read(name) for name in archive.namelist()}
+    assert set(files) == {"ttb-sample-labels/applications.csv"} | {
+        f"ttb-sample-labels/labels/{name}" for name in SAMPLE_PICTURES
+    }
+    sheet = files["ttb-sample-labels/applications.csv"]
+    assert sheet == (SAMPLES_DIR / "applications.csv").read_bytes()
+    for name in SAMPLE_PICTURES:
+        assert (
+            files[f"ttb-sample-labels/labels/{name}"]
+            == (SAMPLES_DIR / "labels" / name).read_bytes()
+        )
+
+
+def test_the_home_page_links_to_the_sample_files(client):
+    page = client.get("/").text
+    assert '<a href="/samples/files.zip">Download the sample files</a>' in page
+    assert f"the {len(SAMPLE_PICTURES)} pictures and their spreadsheet in one ZIP file" in page
+
+
+def test_the_downloaded_files_go_through_the_upload_form(client):
+    """What a reviewer does with the download: unzip it, then add the spreadsheet and the
+    pictures to the batch form."""
+    use_reader(ReplayReader())
+    archive = zipfile.ZipFile(io.BytesIO(client.get("/samples/files.zip").content))
+    sheet = archive.read("ttb-sample-labels/applications.csv")
+    pictures = [
+        ("pictures", (name.rsplit("/", 1)[-1], archive.read(name)))
+        for name in archive.namelist()
+        if "/labels/" in name
+    ]
+    response = client.post(
+        "/batches",
+        files=[("spreadsheet", ("applications.csv", sheet, "text/csv")), *pictures],
+        follow_redirects=False,
+    )
+    job = finished_job(client, response)
+    assert job.total == len(EXPECTED)
+    assert all(item.state == ItemState.DONE for item in job.items)
+    assert (job.skipped_files, job.unused_pictures) == ([], [])
+
+
+def test_the_download_itself_can_be_sent_as_the_pictures(client):
+    use_reader(ReplayReader())
+    download = client.get("/samples/files.zip").content
+    sheet = (SAMPLES_DIR / "applications.csv").read_bytes()
+    files = [
+        ("spreadsheet", ("applications.csv", sheet, "text/csv")),
+        ("pictures", ("ttb-sample-labels.zip", download, "application/zip")),
+    ]
+    job = finished_job(client, client.post("/batches", files=files, follow_redirects=False))
+    assert all(item.state == ItemState.DONE for item in job.items)
+    # The spreadsheet inside the ZIP isn't a picture, so it is listed as skipped.
+    skipped = [skipped.name for skipped in job.skipped_files]
+    assert skipped == ["ttb-sample-labels.zip: ttb-sample-labels/applications.csv"]
 
 
 def test_changed_warning_wording_shows_track_changes(client):

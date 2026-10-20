@@ -148,7 +148,8 @@ up to date as of Oct 15, 2026). The rules differ by beverage type:
   blur, angle, darkness, a label that is too small, or one that is cut off. Code adds a tip
   for pictures under 1,000 pixels across. Tips never change a result.
 - **Sample labels to try with one click,** for reviewers without label pictures of their own,
-  and a whole sample batch.
+  and a whole sample batch. "Download the sample files" gives the pictures and their
+  spreadsheet as one ZIP, to try the upload forms with real files.
 - **Drag and drop** onto either form, or the usual file buttons. Touch screens show only the
   buttons, and each file box says what is chosen in plain words.
 - **Three big links at the top** jump to the samples, the single check, and the batch form.
