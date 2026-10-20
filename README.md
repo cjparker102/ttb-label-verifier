@@ -61,8 +61,19 @@ On 31 sample labels (23 clean, 8 made to look like poor photos), with Claude Hai
 - **The AI cost** was about 0.07 cents a label.
 
 An earlier run found one false Problem, on a French wine's importer statement. It was fixed
-and checked again. The labels are drawn by code, so this is a first measure, not proof. See
-[docs/EVALUATION.md](docs/EVALUATION.md) for the method, the details, and the limits.
+and checked again. The labels are drawn by code, so this is a first measure, not proof.
+
+**On 24 real approved labels** from TTB's Public COLA Registry (a private test on Oct 20):
+
+- Every planted problem was shown as a Problem, 24 of 24.
+- TTB noted 7 conditions on those approvals that the tool checks, such as an alcohol statement
+  to correct, and the tool flagged 6, for the same reasons.
+- **But it showed 41 false Problems** on fields that are fine. It compares the bottler, brand,
+  and class too literally for real labels: "LLC" left out, the state spelt out, a fanciful name
+  read as the brand. These are not fixed yet.
+- One false pass: Claude read the same warning twice and found its missing comma only once.
+
+See [docs/EVALUATION.md](docs/EVALUATION.md) for the method, the details, and the limits.
 
 ## Run locally
 

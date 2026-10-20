@@ -183,10 +183,76 @@ anything it can't confirm to Check this. It is a safety net, not a replacement f
 Every field it flags is outlined, because it only ever finds text that Tesseract can see.
 These times are on a laptop; on the app's one Azure CPU, basic text reading is slower.
 
+## Real labels from the COLA Registry
+
+On Oct 20, 2026, 24 approved labels from TTB's Public COLA Registry were checked: 8 spirits,
+8 wine, and 8 malt beverages, all received in 2026. Each was checked twice, once as approved and
+once with one problem planted in its application data, for 48 checks. They ran in process with
+the app's default settings. The pictures, application data, answer key, and per-label results
+are kept private and never committed. Only totals and the TTB IDs are published:
+[real-labels-2026-10-20.md](measurements/real-labels-2026-10-20.md).
+
+- **How they were chosen:** by a rule fixed before looking at any label. For each slot (a
+  class/type code, domestic or imported), the first approved label approval with a picture, in
+  the registry's own order, one per company. The registry was asked slowly (3 seconds between
+  requests, 128 requests in all).
+- **The application data:** brand name from the registry, word for word. Bottler or importer:
+  the company the registry lists, with its city and state. Country of origin from the registry.
+  Class, alcohol content, and net contents were copied from the label, because the registry has
+  no such fields.
+- **The answer key** was checked by eye against every picture before the run. Some answers are
+  judgment calls, where two results are right (Matches or Check this for a warning that may be
+  bold, for example). Accuracy is given separately for these, never combined.
+
+| Measure | Result |
+|---|---|
+| **Strict:** fields with one right answer, as expected | 205 of 267 |
+| **Judgment calls:** fields where two answers are right, either given | 39 of 69 |
+| Planted problems shown as Problem | 24 of 24 (18 of 18 where the field was fine on the unchanged label) |
+| False passes | 1 |
+| Issues flagged on the labels as approved | 62: 43 Problem, 19 Check this |
+| Of those, the same issue TTB noted in its qualifications | 6 |
+| Of those, disagreeing with the answer key | 47, 41 of them Problem |
+| Checks under 5 seconds | 47 of 48 (median 2.9 s, slowest 9.95 s) |
+| AI cost | about 4 cents |
+
+**On real labels, the tool shows far too many false Problems.** On the code-drawn samples it
+showed none; here, 41 fields that the answer key says are fine were shown as Problem. Claude
+mostly read the labels correctly. The comparisons are too literal for real labels:
+
+- **Bottler or importer** (21 flagged, though fine): compared word for word. Real labels leave
+  out "LLC" or "Inc.", spell the state out, add a street and ZIP code, name the producer before
+  the importer, or use a trade name in place of the company's legal name.
+- **Brand name** (13): Claude often read a fanciful name or the company name as the brand, and
+  some labels show a shorter or longer form of the brand than the registry has.
+- **Class or type** (8): labels print other words with the class, such as an appellation, a
+  fanciful name, or "Premium", and the whole phrase was compared.
+- **Net contents** (4): keg labels that list several sizes to tick had the sizes added up, and
+  so did a label that gives its size twice in two forms. "GALS" wasn't read as gallons.
+
+**What TTB noted.** Some approvals carry qualifications: TTB approved the label and noted a
+condition, such as a statement to correct when new labels are printed. Some approved labels
+contain small warning-text differences that the tool flags for review. TTB noted 7 conditions
+on things the tool checks, and the tool flagged 6 of them, each for the same reason TTB gave.
+The seventh was a reminder that net contents must be shown on the label or the bottle, and the
+tool found them there. Which field each condition names was written down before the run. One was
+corrected after it: a field-of-view condition had been left out as something the tool doesn't
+check, but the tool does check it, for spirits. Before the correction, the count was 5 of 6.
+
+**What was missed.** One label's warning has a misspelt word, and Claude read it as spelt
+correctly, both times. That warning was shown as Check this (for a spacing difference), not
+Problem. On another label, Claude read the same picture twice and found a missing comma in the
+warning only once. The other time the warning was shown as Matches: the one false pass. So a
+misspelling or a missing comma in the warning can't be relied on to be caught.
+
+These problems are not fixed yet.
+
 ## Limits of this evaluation
 
-- **The labels are drawn by code,** by the same project that wrote the rules. Real labels
-  have curved bottles, foil, embossing, script fonts, and busy artwork.
+- **The sample labels are drawn by code,** by the same project that wrote the rules. Real
+  labels have curved bottles, foil, embossing, script fonts, and busy artwork. The 24 real
+  labels are a first check on that, and they found the comparisons too literal. But they are
+  the artwork submitted to TTB, not photos of bottles, and 24 is a small set.
 - **The photo-like labels are simulated** (rotated, skewed, blurred, darkened, with a glare
   spot), not taken with a camera.
 - **The set is small.** No false passes in 217 field results is encouraging, but it does not
@@ -204,6 +270,7 @@ uv run python -m tools.evaluate --url https://... --deployed-as "revision ..., i
 uv run python -m tools.time_live --url https://... --phone  # phone-sized photos, timed
 uv run python -m tools.time_live --url https://... --sample all --runs 2  # every sample, twice
 uv run python -m tools.evaluate --only old-tom-bourbon     # some labels only
+uv run --env-file .env python -m tools.evaluate --cases private/cola/cases.json  # real labels, kept private
 ```
 
 Each run with Claude costs about two cents; against a deployed app, about four, because each
