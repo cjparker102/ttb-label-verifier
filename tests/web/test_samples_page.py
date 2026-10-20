@@ -43,7 +43,7 @@ def test_featured_samples_exist_in_order():
 
 def test_home_page_offers_the_samples_first(client):
     page = client.get("/").text
-    assert page.index("Try it with a sample label") < page.index("Check one label")
+    assert page.index("Try it with a sample label") < page.index('id="check-heading"')
     for label in featured():
         assert f'action="/samples/{label.id}/check"' in page
         assert str(escape(label.title)) in page  # escaped the way the templates escape all text

@@ -146,6 +146,19 @@ details.ok-fields > summary { cursor: pointer; font-weight: 700; padding: 10px 0
 .notice { border: 3px solid var(--brand); background: #eef3fb; border-radius: 8px; padding: 4px 18px; margin: 12px 0 20px; }
 
 .page-title { margin-bottom: 8px; }
+
+/* Big links at the top of the home page that jump down to each way of checking. */
+.jump-links { display: grid; grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr)); gap: 14px; margin: 20px 0 8px; }
+.jump-link {
+  display: flex; align-items: center; justify-content: center; gap: 10px; min-height: 72px; padding: 12px 20px;
+  font-weight: 700; font-size: 1.2rem; text-align: center; text-decoration: none;
+  color: #fff; background: var(--brand); border: 3px solid var(--brand); border-radius: 10px;
+}
+.jump-link:hover { background: #082d6b; }
+section[id] { scroll-margin-top: 12px; }
+@media (prefers-reduced-motion: no-preference) {
+  html { scroll-behavior: smooth; }
+}
 .button-secondary {
   font: inherit; font-weight: 700; min-height: 52px; padding: 10px 24px;
   color: var(--brand); background: #fff; border: 3px solid var(--brand); border-radius: 8px; cursor: pointer;

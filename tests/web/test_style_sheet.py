@@ -74,6 +74,8 @@ def test_text_colors_meet_aaa(foreground, background):
     ("foreground", "selector"),
     [
         ("#fff", ".button-primary:hover"),
+        ("#fff", ".jump-link"),
+        ("#fff", ".jump-link:hover"),
         ("#fff", ".button-primary[disabled]"),
         ("brand", ".button-secondary:hover"),
         ("text", ".drop-zone"),

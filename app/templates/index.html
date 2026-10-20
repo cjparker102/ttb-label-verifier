@@ -6,6 +6,11 @@
 {% else %}
 <h1 class="page-title">Check alcohol labels</h1>
 <p class="lead">Compare a label with its application and the TTB rules, field by field. Try a sample label first, or check your own below.</p>
+<nav class="jump-links" aria-label="On this page">
+  {% if samples %}<a class="jump-link" href="#samples">Try a sample <span aria-hidden="true">↓</span></a>{% endif %}
+  <a class="jump-link" href="#check-one">Check one label <span aria-hidden="true">↓</span></a>
+  <a class="jump-link" href="#check-many">Check many labels <span aria-hidden="true">↓</span></a>
+</nav>
 {% endif %}
 
 {% if errors %}
@@ -37,7 +42,7 @@
 </section>
 {% endif %}
 
-<section class="card" aria-labelledby="check-heading">
+<section class="card" aria-labelledby="check-heading" id="check-one">
   <h2 id="check-heading" class="section-heading">{{ "Check another label" if outcome else "Check one label" }}</h2>
   <p class="lead">Add the label pictures and what the application says. The app reads the label and compares it for you.</p>
 
@@ -76,7 +81,7 @@
   </form>
 </section>
 
-<section class="card" aria-labelledby="batch-heading">
+<section class="card" aria-labelledby="batch-heading" id="check-many">
   <h2 id="batch-heading" class="section-heading">Check many labels at once</h2>
   <p class="lead">Upload a spreadsheet with one row per application, and the label pictures or a ZIP file of them. Each row lists its pictures by file name.</p>
 
