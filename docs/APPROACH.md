@@ -158,7 +158,12 @@ up to date as of Oct 15, 2026). The rules differ by beverage type:
   - Malt beverages need it only when alcohol comes from added flavors (7.63(a)(3)). The
     application doesn't say, so beer may leave it out.
   - It must use an allowed form, such as "40% alc/vol" (5.65(b), 4.36(b), 7.65(b)). Proof
-    alone is not enough.
+    alone is not enough. For spirits, the statement must be one of the three formats of
+    5.65(b)(2): "Alcohol __ percent by volume", "__ percent alcohol by volume", or "Alcohol by
+    volume __ percent", with the abbreviations "alc", "%", and "vol", a slash for "by" only
+    between alcohol and volume, and parentheses. So "Alc. 43% by/vol." and "40% Alc. Vol."
+    need review; TTB asked for such a statement to be changed on an approved label. For wine
+    and beer, the words for alcohol and volume and a percentage are enough, for now.
 - **Net contents:**
   - Spirits and wine use metric units (5.70(a), 4.37(a)). Beer uses US units (7.70).
   - Spirits and wine must be one of the authorized container sizes (5.203, 4.72). These

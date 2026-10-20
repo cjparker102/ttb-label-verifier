@@ -28,6 +28,24 @@ MALT = BeverageType.MALT_BEVERAGE
 ALCOHOL_WORD = re.compile(r"\balc(?:ohol)?\b", re.IGNORECASE)
 VOLUME_WORD = re.compile(r"\bvol(?:ume)?\b", re.IGNORECASE)
 PERCENT_SIGN = re.compile(r"%|\bpercent\b", re.IGNORECASE)
+# 27 CFR 5.65(b)(2)-(3), checked in the eCFR (Title 27 up to date as of Oct 16, 2026). A
+# distilled spirits label states its alcohol content in one of three formats: (A) "Alcohol
+# __ percent by volume", (B) "__ percent alcohol by volume", or (C) "Alcohol by volume __
+# percent". "Alc", "%", and "vol" may stand for alcohol, percent, and volume, with or without
+# a period; a slash may stand for "by" between alcohol and volume, and only there; and any
+# word or symbol may be in parentheses (removed before matching).
+_ALC = r"(?:alcohol|alc\.?)"
+_PERCENT = r"(?:percent|%)"
+_VOL = r"(?:volume|vol\.?)"
+_FIGURE = r"\d+(?:[.,]\d+)?"
+_BY = r"\s+by\s+"
+_ALC_BY_VOL = rf"{_ALC}(?:{_BY}|\s*/\s*){_VOL}"
+SPIRITS_ALCOHOL_FORMS = re.compile(
+    rf"(?<![\w/])(?:{_ALC}\s*{_FIGURE}\s*{_PERCENT}{_BY}{_VOL}"  # (A)
+    rf"|{_FIGURE}\s*{_PERCENT}\s*{_ALC_BY_VOL}"  # (B)
+    rf"|{_ALC_BY_VOL}\s*{_FIGURE}\s*{_PERCENT})(?![\w/])",  # (C)
+    re.IGNORECASE,
+)
 TABLE_OR_LIGHT_WINE = re.compile(r"\b(?:table|light)\b", re.IGNORECASE)
 IMPORTED = re.compile(r"\bimport(?:ed|er)\b", re.IGNORECASE)
 BOTTLED_OR_PACKED_BY = re.compile(r"\b(?:bottled|packed)\b.*\bby\b", re.IGNORECASE)
@@ -70,6 +88,18 @@ def alcohol_may_be_left_out(beverage: BeverageType, reading: LabelReading) -> bo
     return beverage == WINE and bool(TABLE_OR_LIGHT_WINE.search(reading.class_type.text or ""))
 
 
+def allowed_form(beverage: BeverageType, text: str) -> bool:
+    """Whether an alcohol statement is in a form TTB allows. For distilled spirits, one of
+    the formats in 5.65(b)(2); for wine and malt beverages, the words for alcohol and volume
+    and a percentage."""
+    if beverage == SPIRITS:
+        plain = " ".join(text.replace("(", " ").replace(")", " ").split())
+        return bool(SPIRITS_ALCOHOL_FORMS.search(plain))
+    return bool(
+        ALCOHOL_WORD.search(text) and VOLUME_WORD.search(text) and PERCENT_SIGN.search(text)
+    )
+
+
 def alcohol_checks(beverage: BeverageType, reading: LabelReading) -> list[Check]:
     field = reading.alcohol_content
     if is_missing(field):
@@ -109,7 +139,7 @@ def alcohol_checks(beverage: BeverageType, reading: LabelReading) -> list[Check]
                 citation=rule,
             )
         ]
-    if not (ALCOHOL_WORD.search(text) and VOLUME_WORD.search(text) and PERCENT_SIGN.search(text)):
+    if not allowed_form(beverage, text):
         return [
             Check(
                 Status.REVIEW,

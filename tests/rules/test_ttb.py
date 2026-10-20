@@ -79,6 +79,17 @@ def test_malt_beverages_may_leave_out_alcohol_content():
         # 27 CFR 4.36(b)(1): "Alcohol __ % by volume," with "alc." and "vol." allowed.
         (WINE, "Alcohol 13.5% by volume"),
         (WINE, "Alc. 12.5% by vol."),
+        # The three formats of 27 CFR 5.65(b)(2) for spirits, with the abbreviations and
+        # parentheses that 5.65(b)(2)(ii) and (b)(3) allow.
+        (SPIRITS, "Alcohol 40 percent by volume"),
+        (SPIRITS, "40 percent alcohol by volume"),
+        (SPIRITS, "Alcohol by volume 40 percent"),
+        (SPIRITS, "ALC/VOL 40%"),
+        (SPIRITS, "Alc. by Vol. 43%"),
+        (SPIRITS, "45.2 % Alcohol By Volume (90.4 PROOF)"),
+        (SPIRITS, "40% Alc. / Vol (80 Proof)"),
+        (SPIRITS, "40% (alc/vol)"),
+        (SPIRITS, "50% ALC/VOL 100 PROOF"),
     ],
 )
 def test_allowed_alcohol_forms_pass(beverage, text):
@@ -87,7 +98,18 @@ def test_allowed_alcohol_forms_pass(beverage, text):
 
 @pytest.mark.parametrize(
     ("beverage", "text"),
-    [(SPIRITS, "45% ABV"), (MALT, "5.6%"), (WINE, "13,5% vol")],
+    [
+        (SPIRITS, "45% ABV"),
+        (MALT, "5.6%"),
+        (WINE, "13,5% vol"),
+        # Not one of the 5.65(b)(2) formats: "by" and a slash together, no "by" or slash
+        # between alcohol and volume, a slash in format (A), and the words in another order.
+        (SPIRITS, "ALC.43% BY/VOL."),
+        (SPIRITS, "40% ALC. VOL."),
+        (SPIRITS, "Alc 40%/vol"),
+        (SPIRITS, "40% volume alcohol"),
+        (SPIRITS, "113 PROOF 56.5% ABV"),
+    ],
 )
 def test_other_alcohol_forms_need_review(beverage, text):
     checks = alcohol_checks(beverage, label(alcohol_content=read(text)))
