@@ -67,7 +67,9 @@ def start(client, spreadsheet=SPREADSHEET, pictures=None, name="labels.zip"):
     return client.post("/batches", files=files, follow_redirects=False)
 
 
-def wait_until_finished(client, url, timeout=30):
+# The sample batch reads one label at a time here, and each label's warning picture is read a
+# second time by Tesseract: about 14 s on a laptop, and over 30 s on a slow CI runner.
+def wait_until_finished(client, url, timeout=120):
     deadline = time.monotonic() + timeout
     while time.monotonic() < deadline:
         progress = client.get(f"{url}/progress").json()
