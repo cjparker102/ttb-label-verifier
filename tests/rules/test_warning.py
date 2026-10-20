@@ -231,3 +231,26 @@ def test_the_second_reading_is_part_of_the_warning_check():
     assert check_warning(read_warning(GOVERNMENT_WARNING)) == check_warning(
         read_warning(GOVERNMENT_WARNING), None
     )
+
+
+# Found by a fresh set of approved labels: a warning whose heading is misspelt, which Claude
+# read spelt correctly. The second reading found the warning only by its heading, so the
+# misspelling hid the warning from it too.
+
+
+def test_a_misspelt_heading_is_found_by_the_warning_text():
+    misspelt_heading = GOVERNMENT_WARNING.replace("GOVERNMENT", "GOVERMENT")
+    result = second_reading(passes(misspelt_heading, "Some other text " + misspelt_heading))
+    assert result.status == Status.REVIEW
+    assert '"GOVERNMENT"' in result.reason and '"GOVERMENT"' in result.reason
+
+
+def test_a_warning_without_its_heading_is_still_compared():
+    body = MISSPELT.split(": ", 1)[1]  # Tesseract missed the heading altogether
+    result = second_reading(passes("Bottled by Old Tom Distillery " + body, body))
+    assert result.status == Status.REVIEW
+    assert '"pregnacy"' in result.reason
+
+
+def test_a_few_words_alike_by_chance_dont_place_the_warning():
+    assert second_reading(passes("Drink responsibly", "risk of the night")) is None

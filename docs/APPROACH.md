@@ -147,8 +147,11 @@ up to date as of Oct 15, 2026). The rules differ by beverage type:
     a word differently from Claude, the same way, the warning needs review: "Two readings of
     the warning disagree". A difference only one pass sees, or digits read for letters ("10"
     for "TO"), is taken for Tesseract misreading small print. Capitals, punctuation, and
-    spacing don't count. If a pass can't read the warning at all, as happens with small print
-    on real labels, or Tesseract isn't done 1 second after Claude, there is no second reading.
+    spacing don't count. Tesseract's warning is found by its heading, or, if it read no
+    heading (a misspelt "GOVERNMENT", say), where Claude's warning words begin on the page,
+    placed by at least 3 of them in a row. If a pass can't read the warning at all, as happens
+    with small print or stylized lettering on real labels, or Tesseract isn't done 1 second
+    after Claude, there is no second reading.
     In a batch, Tesseract reads only the picture with the warning, after Claude, so the warning
     gets the same second reading at less cost; the brand is then looked for on that picture
     only.
@@ -323,6 +326,5 @@ in 13 seconds, and the batch finished (`docs/measurements/large-upload-2026-10-1
   photos are not yet in the test set. See [EVALUATION.md](EVALUATION.md).
 - **Claude may read the warning as it should be,** not as printed: a misspelt word read as spelt
   correctly, or a missing comma put in. The second reading by Tesseract catches a misspelt word
-  only when Tesseract can read the warning, and doesn't compare punctuation. It finds the
-  warning by its heading, so a misspelt heading defeats it. So the warning check can miss
-  small errors.
+  only when both of Tesseract's passes can read the warning, and doesn't compare punctuation.
+  So the warning check can miss small errors.

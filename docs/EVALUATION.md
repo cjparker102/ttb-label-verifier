@@ -274,14 +274,23 @@ On another label, Claude read a misspelt word in the warning spelt correctly and
 reading caught it. Some approved labels contain warning-text differences that the tool flags,
 including some TTB didn't mention.
 
-**Found by the fresh set, and not fixed.** Changing the rules now would make the fresh set a
-tuning set too, so these are listed, not fixed. A third set would be needed to measure fixes.
+**Found by the fresh set.** Two gaps behind false passes were then fixed, generally, after the
+fresh set's run, so the fresh set can't measure them; a third set will:
 
-- Bugs: "1 pint (16 fl oz)" is added up to 2 pints; a company name with a digit in it
-  is taken for a street address.
-- The second reading finds the warning by its heading, so a misspelt heading defeats it; and it
-  can read text beside the warning into it.
-- The alcohol form check accepts "BY/VOL"; an alcohol range ("11-14%") is compared as one number.
+- The alcohol form check for spirits now follows the three formats of 27 CFR 5.65(b)(2)
+  exactly, so "BY/VOL" needs review.
+- The second reading finds the warning by its text when it can't find the heading. On the label
+  with the misspelt heading, Tesseract's usual pass now reads the misspelling, but its other
+  pass can't read the stylized lettering, and both must agree, so that label is still missed.
+
+Replaying the saved readings through the fixed rules, the 31 samples are unchanged, and on the
+fresh set the false passes go from 6 to 4. These sets were seen before, so that is not an honest
+measure. Not fixed yet:
+
+- Bugs: "1 pint (16 fl oz)" is added up to 2 pints; a company name with a digit in it is taken
+  for a street address.
+- The second reading can read text beside the warning into it.
+- An alcohol range ("11-14%") is compared as one number.
 - Brands in stylized lettering that neither reader reads are still missed when Claude takes
   another name for the brand.
 

@@ -197,22 +197,30 @@ def tokens(text: str) -> list[str]:
 
 
 ALIKE = 0.8  # how much of the warning a second reading must have read to count
+IN_A_ROW = 3  # words in a row that place the warning on a page without its heading
+
+
+def warning_start(found: list[str], keys: list[str]) -> int | None:
+    """Where the warning starts among a page's words (both in lower case): at its heading,
+    or, if Tesseract read no heading (a misspelt or misread "GOVERNMENT"), where the AI
+    reader's warning words begin on the page, placed by a run of at least IN_A_ROW of them."""
+    for i in range(len(keys) - 1):
+        if keys[i] == "government" and keys[i + 1].startswith("warning"):
+            return i
+    matcher = SequenceMatcher(a=found, b=keys, autojunk=False)
+    runs = [block for block in matcher.get_matching_blocks() if block.size >= IN_A_ROW]
+    if not runs:
+        return None
+    return max(0, runs[0].b - runs[0].a)
 
 
 def differences(found: list[str], page: list[str]) -> dict[tuple[int, int, str], str] | None:
     """Where a page of Tesseract's words differs from the AI reader's warning, word by
     word, ignoring capitals, punctuation, and spacing. Each difference is keyed by the
     AI reader's words it covers and Tesseract's words in their place. None if Tesseract
-    didn't read this warning: no heading, or too little of it alike."""
+    didn't read this warning: it isn't on the page, or too little of it is alike."""
     keys = [word.casefold() for word in page]
-    start = next(
-        (
-            i
-            for i in range(len(keys) - 1)
-            if keys[i] == "government" and keys[i + 1].startswith("warning")
-        ),
-        None,
-    )
+    start = warning_start([word.casefold() for word in found], keys)
     if start is None:
         return None
     window = page[start : start + len(found) + 8]
