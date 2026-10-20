@@ -36,14 +36,14 @@
     {% for item in items %}
     <tr class="row-{{ item.kind }}">
       <td data-label="Row">{{ item.row_number }}</td>
-      <th scope="row" data-label="Brand">
-        {{ item.brand }}
-        <span class="where">{{ item.files }}</span>
-      </th>
+      <th scope="row" data-label="Brand">{{ item.brand }}</th>
       <td data-label="Result" class="result result-{{ item.kind }}">
         <span class="badge"><span aria-hidden="true">{{ item.icon }}</span> {{ item.word }}</span>
-        {% if item.seconds %}<span class="where">Checked in {{ item.seconds }} seconds</span>{% endif %}
-        {% if item.read_by_ocr %}<span class="where">Read with basic text reading</span>{% endif %}
+      </td>
+    </tr>
+    <tr class="detail-row row-{{ item.kind }}">
+      <td colspan="3">
+        <p class="where">Row {{ item.row_number }}: {{ item.files }}{% if item.seconds %}. Checked in {{ item.seconds }} seconds{% endif %}{% if item.read_by_ocr %}. Read with basic text reading{% endif %}</p>
         {% if item.reasons %}
         <ul class="reasons">
           {% for reason in item.reasons %}<li>{{ reason }}</li>{% endfor %}
@@ -51,22 +51,26 @@
         {% endif %}
         {% if item.fields %}
         <details class="item-details" data-key="row-{{ item.row_number }}">
-          <summary>Show every field for row {{ item.row_number }}</summary>
+          <summary>Show every field and picture for row {{ item.row_number }}</summary>
           {% if item.photo_tips %}
           <div class="notice photo-tips" role="note">
             <p><strong>Tips for a better photo</strong></p>
             <ul>{% for tip in item.photo_tips %}<li>{{ tip }}</li>{% endfor %}</ul>
           </div>
           {% endif %}
-          <div class="item-detail-layout">
-            <table>
-              <caption class="visually-hidden">Every field for row {{ item.row_number }}</caption>
-              {% with rows = item.fields %}{% include "_table_body.html" %}{% endwith %}
-            </table>
-            {% if item.has_preview %}
-            <img class="item-preview" src="/batches/{{ job_id }}/previews/{{ item.row_number }}.jpg" alt="Label picture for row {{ item.row_number }}" loading="lazy">
-            {% endif %}
+          <table class="detail-table">
+            <caption class="visually-hidden">Every field for row {{ item.row_number }}</caption>
+            {% with rows = item.fields %}{% include "_table_body.html" %}{% endwith %}
+          </table>
+          {% if item.previews %}
+          <div class="item-previews">
+            {% for number in range(1, item.previews + 1) %}
+            <a href="/batches/{{ job_id }}/previews/{{ item.row_number }}/{{ number }}.jpg" target="_blank" rel="noopener">
+              <img class="item-preview" src="/batches/{{ job_id }}/previews/{{ item.row_number }}/{{ number }}.jpg" alt="Picture {{ number }} of {{ item.previews }} for row {{ item.row_number }}" loading="lazy">
+            </a>
+            {% endfor %}
           </div>
+          {% endif %}
         </details>
         {% endif %}
       </td>

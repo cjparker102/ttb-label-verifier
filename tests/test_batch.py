@@ -89,7 +89,7 @@ def test_running_a_job_checks_every_label_and_lets_go_of_pictures():
         assert item.state == ItemState.DONE
         assert item.outcome.result.status == Status.PASS
         assert item.outcome.images == []  # full-size pictures dropped
-        assert item.preview.startswith(b"\xff\xd8")  # a small JPEG kept for the page
+        assert [p[:2] for p in item.previews] == [b"\xff\xd8"]  # a JPEG of each picture
     assert all(w.pictures == [] for w in work)
     assert job.work == []
 
@@ -274,3 +274,20 @@ def test_wait_estimates_are_not_shorter_than_measured_batches():
     """Measured on Azure with 2 CPUs on Oct 20, 2026: 31 labels in 32.7 s at the slowest,
     with the warning's second reading. Telling a visitor to come back too soon wastes a trip."""
     assert SECONDS_PER_LABEL >= 32.7 / 31
+
+
+def test_every_picture_of_a_label_is_kept_smaller_for_review():
+    from io import BytesIO
+
+    from PIL import Image
+
+    from app.batch import PREVIEW_EDGE
+
+    row = ApplicationRow(2, ("front.png", "back.png"), OLD_TOM, (), OLD_TOM.brand_name)
+    pictures = (("front.png", FRONT.read_bytes()), ("back.png", FRONT.read_bytes()))
+    job = new_job([MatchedRow(row, pictures, ())], [], [])
+    run(job)
+    previews = job.items[0].previews
+    assert len(previews) == 2
+    for preview in previews:
+        assert max(Image.open(BytesIO(preview)).size) == PREVIEW_EDGE == 900

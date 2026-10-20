@@ -418,13 +418,14 @@ async def batch_progress(request: Request, job_id: str):
     return {"state": job.state, "done": job.done, "total": job.total}
 
 
-@app.get("/batches/{job_id}/previews/{row_number}.jpg")
-async def batch_preview(request: Request, job_id: str, row_number: int):
+@app.get("/batches/{job_id}/previews/{row_number}/{number}.jpg")
+async def batch_preview(request: Request, job_id: str, row_number: int, number: int):
+    """A smaller copy of one of a batch label's pictures, from memory."""
     job = request.app.state.batches.get(job_id)
     item = next((i for i in job.items if i.row_number == row_number), None) if job else None
-    if item is None or item.preview is None:
+    if item is None or not 0 < number <= len(item.previews):
         return Response(status_code=404)
-    return Response(item.preview, media_type="image/jpeg")
+    return Response(item.previews[number - 1], media_type="image/jpeg")
 
 
 @app.get("/batches/{job_id}/results.xlsx")

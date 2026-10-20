@@ -209,7 +209,7 @@ def item_view(item: BatchItem) -> dict:
         "row_number": item.row_number,
         "brand": item.brand or "(no brand name)",
         "files": ", ".join(item.file_names),
-        "has_preview": item.preview is not None,
+        "previews": len(item.previews),
         "read_by_ocr": False,
         "reasons": [],
         "fields": [],

@@ -126,10 +126,23 @@ def test_excel_download_has_every_label(client):
 
 def test_previews_are_served_from_memory(client):
     url = run_samples_batch(client)
-    preview = client.get(f"{url}/previews/2.jpg")
+    preview = client.get(f"{url}/previews/2/1.jpg")
     assert preview.status_code == 200
     assert preview.headers["content-type"] == "image/jpeg"
-    assert client.get(f"{url}/previews/99.jpg").status_code == 404
+    assert client.get(f"{url}/previews/99/1.jpg").status_code == 404
+    assert client.get(f"{url}/previews/2/9.jpg").status_code == 404
+    assert client.get(f"{url}/previews/2/0.jpg").status_code == 404
+
+
+def test_each_label_has_a_full_width_row_with_its_reasons_fields_and_pictures(client):
+    url = run_samples_batch(client)
+    page = client.get(url).text
+    assert page.count('<tr class="detail-row') == len(EXPECTED)
+    assert '<td colspan="3">' in page
+    assert "Show every field and picture for row 2" in page
+    assert f'src="{url}/previews/2/1.jpg"' in page
+    assert 'alt="Picture 1 of 2 for row 2"' in page  # the sample has a front and a back
+    assert f'src="{url}/previews/2/2.jpg"' in page
 
 
 def test_while_running_the_page_says_so_and_excel_waits(client):

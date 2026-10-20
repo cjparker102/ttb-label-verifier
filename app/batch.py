@@ -1,8 +1,8 @@
 """Batch jobs: many labels checked in the background, kept in memory for a short time.
 
 A job holds each label's pictures only until that label is checked. After that it
-keeps the results and a small preview, and the finished job is dropped after
-`keep_seconds`. Nothing is written anywhere.
+keeps the results and a smaller copy of each picture for review, and the finished job
+is dropped after `keep_seconds`. Nothing is written anywhere.
 """
 
 import asyncio
@@ -26,7 +26,10 @@ from app.intake.images import shrink_to_jpeg
 from app.intake.matching import MatchedRow
 from app.rules.application import Application
 
-PREVIEW_EDGE = 320
+# Each picture is kept this size for reviewing the batch: big enough to read a label's
+# print on screen, about 100 KB as a JPEG, so a 300-label batch keeps about 75 MB.
+PREVIEW_EDGE = 900
+PREVIEW_QUALITY = 80
 # How long a batch takes for each label, for wait estimates. Measured on Azure on Oct 20,
 # 2026, with Tesseract's second reading of the warning: 31 labels in 29.5 s and 32.7 s with
 # 2 CPUs (about 1.0 s a label), and in 53.5 s and 55.7 s with 1 CPU (1.8 s). The app runs
@@ -50,7 +53,7 @@ class BatchItem:
     state: ItemState
     problem: str | None = None  # why it was not checked
     outcome: CheckOutcome | None = None
-    preview: bytes | None = None  # a small JPEG of the first picture
+    previews: list[bytes] = dataclasses.field(default_factory=list)  # each picture, smaller
 
 
 @dataclass
@@ -131,7 +134,10 @@ async def check_item(
         item.state = ItemState.NOT_CHECKED
         item.problem = "The label reader could not read this label. Please check it on its own."
     else:
-        item.preview = await asyncio.to_thread(shrink_to_jpeg, outcome.images[0], PREVIEW_EDGE)
+        item.previews = [
+            await asyncio.to_thread(shrink_to_jpeg, image, PREVIEW_EDGE, PREVIEW_QUALITY)
+            for image in outcome.images
+        ]
         item.outcome = dataclasses.replace(outcome, images=[])
         item.state = ItemState.DONE
     finally:
