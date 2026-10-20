@@ -281,8 +281,9 @@ in 13 seconds, and the batch finished (`docs/measurements/large-upload-2026-10-1
   replica's 2 GiB and restart it, losing every batch in progress. So all batches together may
   hold at most 600 MB of pictures not yet checked. A batch that would go past that is turned
   away with "The app is busy with other batches. Please try again in N minutes." N counts the
-  labels that must be checked first to make room, at one label a second (batches check about
-  two a second with Claude), rounded up. A batch whose pictures alone come to more than 600 MB
+  labels that must be checked first to make room, at one label a second, rounded up. (Batches
+  checked about two labels a second with Claude, but since the warning's second reading on
+  Oct 20, about one every 1.8 seconds on the app's one CPU, so this wait is now too short.) A batch whose pictures alone come to more than 600 MB
   once unpacked is turned away at once and asked to be split. A batch turned away doesn't count
   against the visitor's limits. A test fills the queue past the cap.
 - **The hard stop on AI spending** is the monthly spend limit on the Anthropic workspace the

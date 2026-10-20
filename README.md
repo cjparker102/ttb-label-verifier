@@ -48,14 +48,18 @@ On 31 sample labels (23 clean, 8 made to look like poor photos), with Claude Hai
 
 - **No planted problem was shown as Matches, and no fine field as a Problem:** 216 of 217
   field results as expected, the other an acceptable Check this on a photo-like label.
-- **Every label was checked in under 5 seconds** in process (median 2.5 s, slowest 4.2 s). On
+- **Every label was checked in under 5 seconds** in process (median 2.5 s, slowest 4.0 s). On
   the live app, end to end from a home connection, all 93 single checks on Oct 20 were under
-  5 seconds (median 2.5 s, p95 3.2 s, slowest 4.6 s). On Oct 19, 30 of 31 were; one slow
-  answer from the API took 8.8 s.
+  5 seconds (median 2.5 s, p95 3.2 s, slowest 4.6 s), and all 31 again after the rule changes
+  and the warning's second reading (median 2.7 s, slowest 4.4 s). On Oct 19, 30 of 31 were;
+  one slow answer from the API took 8.8 s.
 - **A slow answer is asked for again:** if Claude hasn't answered a single check after 4
   seconds, the same request is sent again and the first answer is used. In those 93 checks
   that happened twice, and the first answer still came first both times, so its effect on a
   really slow answer is not measured yet.
+- **Batches are slower since the warning's second reading** (Oct 20, revision 21): 31 labels
+  in about 54 s, against 14 s before, because Tesseract's reading queues up on the app's one
+  CPU. A batch of 300 would take about 9 minutes.
 - **The first check after a quiet spell** waits about 23 seconds more, while Azure starts the
   app. It scales to zero after 5 minutes without requests.
 - **The AI cost** was about 0.07 cents a label.

@@ -170,6 +170,25 @@ quicker that day: no answer took more than 4.5 s inside the app. The slow answer
 request is meant for (8.6 s on Oct 19) didn't happen in 93 checks, so how much it helps then
 is not yet measured. Its cost was measured: 2 extra requests in 93 checks.
 
+### Oct 20: the changed rules and the warning's second reading
+
+After the rules were changed for real labels and the warning got a second reading by
+Tesseract, the evaluation was run on the live app again (revision 21, image `f1cac8c`).
+Details: [evaluation-2026-10-20-deployed-2.md](measurements/evaluation-2026-10-20-deployed-2.md).
+
+| Measure | Revision 19 (before) | Revision 21 |
+|---|---|---|
+| Field results as expected (from the batch) | 217 of 217 | 217 of 217, with the second reading |
+| Single check, end to end (median / p95 / max) | 2.51 s / 4.44 s / 4.62 s | 2.7 s / 4.15 s / 4.38 s |
+| Single checks done in under 5 seconds | 31 of 31 | 31 of 31 |
+| Second reading ready in time (single checks) | not built | 31 of 31 |
+| **Batch of 31 labels, upload to finished** | 13.7 s | **53.5 s and 55.7 s** (two batches) |
+
+**Batches are about 4 times slower.** In a batch, Tesseract reads the picture with the warning
+after Claude answers, so that batches catch the same warning problems as single checks. With 8
+labels read at once and one CPU, that reading queues up: about 1.8 s a label, so a batch of 300
+would take about 9 minutes instead of about 2. More CPU would shorten it; that's a cost decision.
+
 ## Results with basic text reading (offline)
 
 The same 31 labels, read with Tesseract OCR only, as when Claude can't be reached. Full
