@@ -73,6 +73,10 @@ def describe(change: WordChange) -> str:
     return f'"{change.required}" was changed to "{change.found}"'
 
 
+def letters_and_numbers(text: str) -> str:
+    return "".join(ch for ch in text.casefold() if ch.isalnum())
+
+
 def check_wording(text: str, unclear: bool) -> Check:
     changes = word_changes(GOVERNMENT_WARNING, text)
     if not changes:
@@ -101,6 +105,17 @@ def check_wording(text: str, unclear: bool) -> Check:
         if more
         else ""
     )
+    # Every word right, but a comma, period, parenthesis, or space differs. TTB approves
+    # such labels and asks for a fix on the next print run, so a person should look,
+    # but it isn't called a Problem. A changed or misspelt word still is.
+    if letters_and_numbers(text) == letters_and_numbers(GOVERNMENT_WARNING):
+        return Check(
+            Status.REVIEW,
+            "Only the punctuation or spacing of the warning differs from the required text: "
+            f"{describe(changes[0])}.{extra} Please check it.",
+            citation=WARNING_TEXT_RULE,
+            changes=tuple(changes),
+        )
     return Check(
         Status.FAIL,
         f"The warning wording differs from the required text: {describe(changes[0])}.{extra}",

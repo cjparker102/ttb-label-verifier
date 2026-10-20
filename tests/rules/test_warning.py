@@ -61,10 +61,10 @@ def test_heading_in_title_case_fails_on_capitals_only():
             'The warning wording differs from the required text: "may" was changed to "can".',
         ),
         (
-            GOVERNMENT_WARNING.replace("WARNING:", "WARNING"),
-            WordChange("changed", "WARNING:", "WARNING"),
-            'The warning wording differs from the required text: "WARNING:" was changed to '
-            '"WARNING".',
+            GOVERNMENT_WARNING.replace("Surgeon", "Surgeron"),
+            WordChange("changed", "Surgeon", "Surgeron"),
+            'The warning wording differs from the required text: "Surgeon" was changed to '
+            '"Surgeron".',
         ),
     ],
 )
@@ -74,6 +74,43 @@ def test_wording_differences_fail_and_are_listed(text, change, reason):
     assert wording.changes == (change,)
     assert wording.reason == reason
     assert wording.citation == WARNING_TEXT_RULE
+
+
+# Approved labels in TTB's Public COLA Registry carry differences like these: TTB approves
+# them and asks for the fix when new labels are printed. So they need a look, not a Problem.
+@pytest.mark.parametrize(
+    ("text", "change"),
+    [
+        (GOVERNMENT_WARNING.removesuffix("."), WordChange("changed", "problems.", "problems")),
+        (
+            GOVERNMENT_WARNING.replace("machinery,", "machinery"),
+            WordChange("changed", "machinery,", "machinery"),
+        ),
+        (GOVERNMENT_WARNING.replace("(2)", "2)"), WordChange("changed", "(2)", "2)")),
+        (
+            GOVERNMENT_WARNING.replace("WARNING:", "WARNING"),
+            WordChange("changed", "WARNING:", "WARNING"),
+        ),
+        (
+            GOVERNMENT_WARNING.replace("(1) According", "(1)According"),
+            WordChange("changed", "(1) According", "(1)According"),
+        ),
+    ],
+)
+def test_punctuation_or_spacing_differences_need_review_not_fail(text, change):
+    wording = check_warning(read_warning(text))[0]
+    assert wording.status == Status.REVIEW
+    assert wording.changes == (change,)
+    assert wording.reason.startswith(
+        "Only the punctuation or spacing of the warning differs from the required text: "
+    )
+    assert wording.reason.endswith("Please check it.")
+    assert wording.citation == WARNING_TEXT_RULE
+
+
+def test_a_word_change_with_a_punctuation_difference_still_fails():
+    text = GOVERNMENT_WARNING.removesuffix(".").replace("may cause", "can cause")
+    assert check_warning(read_warning(text))[0].status == Status.FAIL
 
 
 def test_several_differences_are_counted():

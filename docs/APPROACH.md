@@ -103,7 +103,12 @@ All rules are in `app/rules/`, and each has its own tests.
 up to date as of Oct 15, 2026). The rules differ by beverage type:
 
 - **Government warning** (27 CFR 16.21, 16.22(a)(2)), for every type:
-  - The wording must match word for word, or it fails, and the differences are listed.
+  - Every word must match, or it fails, and the differences are listed. If every word is right
+    and only punctuation or spacing differs (a missing comma or final period, "2)" for "(2)"),
+    it needs review instead. Some approved labels in TTB's Public COLA Registry contain small
+    warning-text differences like these: TTB approved them and asked for the statement to be
+    corrected when new labels are printed. So the tool flags them for a person to look at,
+    rather than calling them a Problem. A changed, missing, or misspelt word is still a Problem.
   - "GOVERNMENT WARNING" must be in capitals, or it fails.
   - It must look bold, and the rest must not. Bold can't be confirmed from a photo, so
     anything short of a clear yes needs review.
