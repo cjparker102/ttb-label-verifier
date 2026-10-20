@@ -320,6 +320,23 @@ set too; a fourth set would be needed to measure fixes.
 - Claude sometimes reads a type word ("Blanco", "Añejo") as the class, or text next to a field
   into it.
 
+## The warning's second reading on real labels
+
+Tesseract's second reading of the warning was replayed on all 72 real labels from the three
+private sets, with each label's saved reading by Claude, and no AI request
+([second-reading-2026-10-20.md](measurements/second-reading-2026-10-20.md)):
+
+| What the second reading made of the warning | Labels |
+|---|---|
+| Missing: neither of Tesseract's passes read the warning | 29 |
+| Missing: only one pass read it | 12 |
+| Inconclusive: both read it, only one disagreed with Claude | 6 |
+| Both read it and agreed with Claude | 20 |
+| Both read it and disagreed: Check this | 5 (2 real misprints, 3 Tesseract noise) |
+
+So it is missing on 57% of real labels, and gives a clear answer on about a third. It still
+caught 2 misspellings Claude read as spelt correctly. The rule is unchanged.
+
 ## Limits of this evaluation
 
 - **The sample labels are drawn by code,** by the same project that wrote the rules. Real
