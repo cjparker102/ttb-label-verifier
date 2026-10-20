@@ -21,7 +21,7 @@
 {% if finished %}
 <p><a class="button-primary button-link" href="/batches/{{ job_id }}/results.xlsx">Download results (Excel)</a></p>
 {% elif passed_so_far %}
-<p class="meta">{{ passed_so_far }} label{{ "s" if passed_so_far != 1 }} all good so far. The full list appears when the batch finishes.</p>
+<p class="meta">{{ passed_so_far }} label{{ "s" if passed_so_far != 1 }} with no issues found so far. The full list appears when the batch finishes.</p>
 {% endif %}
 
 {% if items %}

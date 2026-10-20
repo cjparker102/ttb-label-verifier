@@ -60,7 +60,7 @@ def test_clean_label_shows_all_good(use_reader):
     response = client.post("/check", data=OLD_TOM_FORM, files=label_files())
     page = response.text
     assert response.status_code == 200
-    assert "All good" in page
+    assert "No issues found in the checked fields" in page
     assert "Checked in" in page
     assert "7 fields match or are not needed (show)" in page
     assert "Fields to look at" not in page
@@ -125,7 +125,7 @@ def test_a_slow_answer_is_asked_for_again(use_reader, monkeypatch):
     response = client.post("/check", data=OLD_TOM_FORM, files=label_files())
     assert time.perf_counter() - start < 5  # the second answer was used
     assert response.status_code == 200
-    assert "All good" in response.text
+    assert "No issues found in the checked fields" in response.text
     assert reader.requests == 2
 
 

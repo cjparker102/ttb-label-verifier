@@ -65,7 +65,7 @@ STATUS_VIEW = {
 
 
 def summary(counts) -> list[dict]:
-    """The top line: All good, Needs review (n), and/or Problems found (n)."""
+    """The top line: Problems found (n), Needs review (n), or, if neither, no issues found."""
     lines = []
     if counts[Status.FAIL]:
         lines.append(
@@ -76,7 +76,7 @@ def summary(counts) -> list[dict]:
             {"css": "review", "icon": "⚠️", "text": f"Needs review ({counts[Status.REVIEW]})"}
         )
     if not lines:
-        lines.append({"css": "pass", "icon": "✅", "text": "All good"})
+        lines.append({"css": "pass", "icon": "✅", "text": "No issues found in the checked fields"})
     return lines
 
 
@@ -268,7 +268,13 @@ def batch_view(job: BatchJob) -> dict:
             }
         )
     if count["pass"]:
-        lines.append({"css": "pass", "icon": "✅", "text": f"{labels(count['pass'])} all good"})
+        lines.append(
+            {
+                "css": "pass",
+                "icon": "✅",
+                "text": f"{labels(count['pass'])} with no issues found in the checked fields",
+            }
+        )
     finished = job.state == "finished"
     timing = None
     checked = sum(1 for item in job.items if item.state == ItemState.DONE)

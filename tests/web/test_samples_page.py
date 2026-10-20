@@ -205,5 +205,5 @@ def test_a_label_with_nothing_to_look_at_has_no_outlines(client):
     sample_id = "old-tom-bourbon"
     use_reader(PerfectReader([EXPECTED[sample_id]["truth"]]))
     page = client.post(f"/samples/{sample_id}/check").text
-    assert "All good" in page
+    assert "No issues found in the checked fields" in page
     assert "<svg" not in page and "Marked on it" not in page

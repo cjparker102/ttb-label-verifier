@@ -24,7 +24,7 @@ SPREADSHEET = (SAMPLES_DIR / "applications.csv").read_bytes()
 
 
 def planted_counts() -> tuple[int, int, int]:
-    """How many sample labels should come out with problems, needing review, and all good."""
+    """How many sample labels should come out with problems, needing review, and with no issues found."""
     worst = []
     for entry in EXPECTED:
         results = set(entry["expected"].values())
@@ -106,7 +106,7 @@ def test_results_page_shows_problems_first_and_the_counts(client):
     fails, reviews, passes = planted_counts()
     assert f"Problems found in {fails} labels" in page
     assert f"{reviews} labels need review" in page
-    assert f"{passes} labels all good" in page
+    assert f"{passes} labels with no issues found in the checked fields" in page
     assert "Download results (Excel)" in page
     assert page.index("RIDGEWICK") < page.index("TIDEWICK")  # a problem comes before a pass
     # The batch's time, not each label's: that would include waiting for other labels.
