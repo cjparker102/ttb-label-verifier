@@ -145,6 +145,7 @@ def test_a_result_page_is_read_back():
     assert shown["read_by"] == "ai"
     assert 0 < shown["server_seconds"] < 60
     assert shown["flagged_on_label"] == shown["outlined"] == ["alcohol_content"]
+    assert shown["second_reading"] is True  # as outlines are, Tesseract's words were ready
 
 
 def test_a_page_with_nothing_to_look_at():
@@ -190,3 +191,28 @@ def test_summary_reports_time_inside_the_app():
         "Commit of this evaluation tool: `abc1234`. "
         "The deployed app: revision app--0000017, image 223172b." in report
     )
+
+
+def test_how_often_the_second_reading_was_ready_is_reported():
+    results = {
+        "mode": "in process",
+        "reader": "anthropic",
+        "settings": {},
+        "measured_at": "2026-10-21T09:00:00",
+        "commit": "abc1234",
+        "records": [
+            {
+                "id": i,
+                "photo": None,
+                "read_by": "ai",
+                "second_reading": ready,
+                "judgments": {"brand_name": "exact"},
+                "seconds": 2.0,
+            }
+            for i, ready in [("a", True), ("b", False), ("c", True)]
+        ],
+    }
+    summary = summarize(results)
+    assert (summary["second_reading"], summary["read_by_ai"]) == (2, 3)
+    report = markdown(results, summary)
+    assert "| Checks where Tesseract's second reading was ready in time | 2 of 3 |" in report

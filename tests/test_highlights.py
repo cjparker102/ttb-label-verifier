@@ -11,7 +11,8 @@ from PIL import Image
 from app.checking import check_one
 from app.highlights import PADDING, box, find_highlights, locate, words_on
 from app.intake.images import shrink_to_jpeg
-from app.reading.ocr import OcrFailed, Word, ocr_text, ocr_words, tesseract_available
+from app.reading.ocr import OcrFailed, ocr_text, ocr_words, tesseract_available
+from app.reading.words import Word
 from app.rules.results import Check, Status
 from app.rules.verdict import FieldResult, LabelResult
 from tests.stand_ins import PerfectReader
@@ -219,7 +220,7 @@ def test_a_failure_while_outlining_never_stops_the_check(monkeypatch, failure):
     def fail(pictures):
         raise failure
 
-    monkeypatch.setattr("app.checking.words_on", fail)
+    monkeypatch.setattr("app.checking.ocr_passes", fail)
     entry = EXPECTED["ridgewick-rye-wrong-abv"]
     images = [(name, (LABELS_DIR / name).read_bytes()) for name in entry["images"]]
     outcome = asyncio.run(
@@ -237,7 +238,7 @@ def test_a_check_never_waits_long_for_outlines(monkeypatch):
         time.sleep(1.5)
         return [[] for _ in pictures]
 
-    monkeypatch.setattr("app.checking.words_on", slow)
+    monkeypatch.setattr("app.checking.ocr_passes", slow)
     monkeypatch.setattr("app.checking.OUTLINE_WAIT", 0.05)
     entry = EXPECTED["ridgewick-rye-wrong-abv"]
     images = [(name, (LABELS_DIR / name).read_bytes()) for name in entry["images"]]
@@ -249,3 +250,27 @@ def test_a_check_never_waits_long_for_outlines(monkeypatch):
     assert outcome.result.status == Status.FAIL
     assert outcome.highlights == ()
     assert outcome.seconds < 1.2  # without the limit it would be over 1.5
+
+
+@needs_tesseract
+def test_the_rules_get_tesseracts_second_reading_when_it_is_ready(monkeypatch):
+    monkeypatch.setattr("app.checking.OUTLINE_WAIT", 30)  # the wiring, not the timing
+    entry = EXPECTED["old-tom-bourbon"]
+    images = [(name, (LABELS_DIR / name).read_bytes()) for name in entry["images"]]
+    outcome = asyncio.run(
+        check_one(
+            application_for(entry), images, PerfectReader([entry["truth"]]), 1568, outline=True
+        )
+    )
+    assert outcome.second_reading
+    warning = next(f for f in outcome.result.fields if f.field == "government_warning")
+    assert any("second reading" in check.reason for check in warning.checks)
+
+
+def test_without_outlines_there_is_no_second_reading():
+    entry = EXPECTED["old-tom-bourbon"]
+    images = [(name, (LABELS_DIR / name).read_bytes()) for name in entry["images"]]
+    outcome = asyncio.run(
+        check_one(application_for(entry), images, PerfectReader([entry["truth"]]), 1568)
+    )
+    assert not outcome.second_reading

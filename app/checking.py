@@ -11,12 +11,13 @@ from typing import Protocol
 import anthropic
 from PIL import Image, UnidentifiedImageError
 
-from app.highlights import Highlight, find_highlights, words_on
+from app.highlights import Highlight, all_words, find_highlights, ocr_passes
 from app.intake.images import UnreadableFile, shrink_to_jpeg, split_pages
 from app.photo_coach import low_resolution
 from app.reading.claude import ReadingFailed, ReadResult
 from app.reading.ocr import OcrFailed, ocr_reading, tesseract_available
 from app.reading.schema import LabelReading
+from app.reading.words import Passes
 from app.rules.application import Application
 from app.rules.results import Status
 from app.rules.verdict import LabelResult, check_label
@@ -71,6 +72,7 @@ class CheckOutcome:
     output_tokens: int = 0
     photo_problems: tuple[str, ...] = ()  # for the photo tips; never affects results
     highlights: tuple[Highlight, ...] = ()  # where fields to look at are; never affects results
+    second_reading: bool = False  # whether Tesseract's words were ready for the rules
 
 
 def soften_for_ocr(result: LabelResult) -> LabelResult:
@@ -100,32 +102,37 @@ def soften_for_ocr(result: LabelResult) -> LabelResult:
     return LabelResult(tuple(fields))
 
 
-# Outlines are optional, so no failure while finding them ever stops a check, and a
-# finished check waits only this long for them. Speed matters more than an outline.
+# Tesseract's words are a second reading of the label, for the outlines and for some
+# rules. They are optional, so no failure while finding them ever stops a check, and a
+# finished check waits only this long for them. Speed matters more.
 OUTLINE_WAIT = 1.0  # seconds
 
 
-async def find_words(pictures: list[bytes]):
+async def find_words(pictures: list[bytes]) -> Passes | None:
     """Words and where they are on each picture, or None if Tesseract fails."""
     try:
-        return await asyncio.to_thread(words_on, pictures)
+        return await asyncio.to_thread(ocr_passes, pictures)
     except Exception as error:
         log.warning("Finding words for outlines failed: %s", type(error).__name__)
         return None
 
 
-async def outlines(words: asyncio.Task | None, result: LabelResult) -> tuple[Highlight, ...]:
+async def second_reading(words: asyncio.Task | None) -> Passes | None:
+    """Tesseract's words, if they are ready in time."""
     if words is None:
-        return ()
+        return None
     try:
-        found = await asyncio.wait_for(asyncio.shield(words), OUTLINE_WAIT)
+        return await asyncio.wait_for(asyncio.shield(words), OUTLINE_WAIT)
     except TimeoutError:
         log.warning("Outlines skipped: finding the words took too long")
-        return ()
-    if found is None:
+        return None
+
+
+def outlines(passes: Passes | None, result: LabelResult) -> tuple[Highlight, ...]:
+    if passes is None:
         return ()
     try:
-        return tuple(find_highlights(result, found))
+        return tuple(find_highlights(result, [all_words(p) for p in passes]))
     except Exception as error:
         log.warning("Outlining fields failed: %s", type(error).__name__)
         return ()
@@ -141,8 +148,9 @@ async def check_one(
 ) -> CheckOutcome:
     """Check one product's label images, given as (file name, bytes), against its
     application. Uses the AI reader, or basic text reading when there is no AI reader
-    or it fails, if `ocr_fallback` allows. With `outline`, also finds where each
-    field to look at is on the pictures."""
+    or it fails, if `ocr_fallback` allows. With `outline`, Tesseract also reads the
+    pictures while the AI reader works: a second reading, used by some rules and to find
+    where each field to look at is on the pictures."""
     start = time.perf_counter()
     pictures = []
     for name, data in images:
@@ -205,8 +213,8 @@ async def read_and_decide(
             problems = [str(problem) for problem in read.reading.image_problems]
             if small:
                 problems.append("low_resolution")
-            result = check_label(application, read.reading)
-            highlights = await outlines(words, result)
+            passes = await second_reading(words)
+            result = check_label(application, read.reading, passes)
             return CheckOutcome(
                 result=result,
                 reading=read.reading,
@@ -216,7 +224,8 @@ async def read_and_decide(
                 input_tokens=read.input_tokens,
                 output_tokens=read.output_tokens,
                 photo_problems=tuple(problems),
-                highlights=highlights,
+                highlights=outlines(passes, result),
+                second_reading=passes is not None,
             )
 
     if not (ocr_fallback and tesseract_available()):
@@ -229,7 +238,7 @@ async def read_and_decide(
         raise NoReader from error
     reading_seconds = time.perf_counter() - reading_start
     result = soften_for_ocr(check_label(application, reading))
-    highlights = await outlines(words, result)
+    highlights = outlines(await second_reading(words), result)
     return CheckOutcome(
         result=result,
         reading=reading,

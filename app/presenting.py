@@ -147,6 +147,8 @@ def results_view(outcome: CheckOutcome) -> dict:
         "ok_rows": [r for r in rows if r["view"]["css"] not in needs_attention],
         "seconds": f"{outcome.seconds:.1f}",
         "photo_tips": photo_tips(list(outcome.photo_problems)),
+        # For measurements only: whether Tesseract's second reading was ready in time.
+        "second_reading": "yes" if outcome.second_reading else "no",
     }
 
 

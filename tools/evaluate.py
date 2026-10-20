@@ -171,6 +171,7 @@ async def evaluate_here(entries: list[dict], reader_name: str) -> dict:
                 if f.status in ("fail", "review") and f.label_says
             ],
             outlined=[highlight.field for highlight in outcome.highlights],
+            second_reading=outcome.second_reading,
         )
         print(f"{entry['id']:50} {outcome.seconds:5.2f} s  {describe(record)}")
         records.append(record)
@@ -253,6 +254,7 @@ def from_page(page: str) -> dict:
     checked_in = CHECKED_IN.search(page)
     return {
         "read_by": "ocr" if "read with basic text reading" in page else "ai",
+        "second_reading": 'data-second-reading="yes"' in page,
         "server_seconds": float(checked_in.group(1)) if checked_in else None,
         "flagged_on_label": flagged,
         "outlined": outlined,
@@ -406,6 +408,10 @@ def summarize(results: dict) -> dict:
     if reading:
         summary["clean_fields_read_exactly"] = sum(7 - len(r["reading_problems"]) for r in reading)
         summary["clean_fields_read"] = 7 * len(reading)
+    by_ai = [r for r in scored if "second_reading" in r and r.get("read_by") == "ai"]
+    if by_ai:
+        summary["second_reading"] = sum(1 for r in by_ai if r["second_reading"])
+        summary["read_by_ai"] = len(by_ai)
     if any("outlined" in r for r in scored):
         summary["outlined"] = sum(len(r.get("outlined", [])) for r in scored)
         summary["flagged_on_label"] = sum(len(r.get("flagged_on_label", [])) for r in scored)
@@ -457,6 +463,11 @@ def markdown(results: dict, summary: dict) -> str:
         row(
             "Fields to look at that were outlined on the picture",
             f"{summary['outlined']} of {summary['flagged_on_label']}",
+        )
+    if "second_reading" in summary:
+        row(
+            "Checks where Tesseract's second reading was ready in time",
+            f"{summary['second_reading']} of {summary['read_by_ai']}",
         )
     if summary["read_by_ocr"]:
         row("Labels read with basic text reading", summary["read_by_ocr"])

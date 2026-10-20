@@ -9,7 +9,8 @@ the way; it never changes a result.
 from dataclasses import dataclass
 from difflib import SequenceMatcher
 
-from app.reading.ocr import Word, ocr_words
+from app.reading.ocr import ocr_words
+from app.reading.words import Passes, Word
 from app.rules.results import Status
 from app.rules.verdict import LabelResult
 
@@ -30,13 +31,22 @@ class Highlight:
     height: int
 
 
-def words_on(pictures: list[bytes], timeout: float = 10) -> list[list[Word]]:
+def ocr_passes(pictures: list[bytes], timeout: float = 10) -> Passes:
     """Each picture's words, from two Tesseract passes: the usual layout, which copes
     better with a tilted photo, and "sparse text", which finds short lines standing
-    alone. Duplicates don't matter, because find_highlights takes words by area. A
-    check stops waiting for outlines long before `timeout`; it only stops Tesseract
-    from running on in the background."""
-    return [ocr_words(p, timeout, "3") + ocr_words(p, timeout, "11") for p in pictures]
+    alone. A check stops waiting for them long before `timeout`; it only stops
+    Tesseract from running on in the background."""
+    return [[ocr_words(p, timeout, "3"), ocr_words(p, timeout, "11")] for p in pictures]
+
+
+def words_on(pictures: list[bytes], timeout: float = 10) -> list[list[Word]]:
+    """Each picture's words from both passes together. Duplicates don't matter, because
+    find_highlights takes words by area."""
+    return [all_words(passes) for passes in ocr_passes(pictures, timeout)]
+
+
+def all_words(passes: list[list[Word]]) -> list[Word]:
+    return [word for words in passes for word in words]
 
 
 def key(text: str) -> str:

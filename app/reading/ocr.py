@@ -14,10 +14,10 @@ import os
 import re
 import shutil
 import subprocess
-from dataclasses import dataclass
 from difflib import SequenceMatcher
 
 from app.reading.schema import BoldLook, FieldReading, LabelReading, Readability, WarningReading
+from app.reading.words import Word
 from app.rules.application import Application
 from app.rules.countries import find_countries
 from app.rules.names import LEAD_IN
@@ -60,17 +60,6 @@ def ocr_text(jpeg: bytes, timeout: float = 60, layout: str = "3", *output: str) 
     if result.returncode != 0:
         raise OcrFailed(f"tesseract exited with {result.returncode}")
     return result.stdout.decode("utf-8", errors="replace")
-
-
-@dataclass(frozen=True)
-class Word:
-    """One word Tesseract found, with its box in the picture's pixels."""
-
-    text: str
-    left: int
-    top: int
-    width: int
-    height: int
 
 
 def ocr_words(jpeg: bytes, timeout: float = 60, layout: str = "11") -> list[Word]:

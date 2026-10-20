@@ -4,6 +4,7 @@ from collections import Counter
 from dataclasses import dataclass
 
 from app.reading.schema import LabelReading
+from app.reading.words import Passes
 from app.rules.alcohol import check_alcohol
 from app.rules.application import Application
 from app.rules.countries import check_country
@@ -45,8 +46,11 @@ class LabelResult:
         return Counter(field.status for field in self.fields)
 
 
-def check_label(application: Application, reading: LabelReading) -> LabelResult:
-    """Match checks first, then the TTB rule checks for the same field."""
+def check_label(
+    application: Application, reading: LabelReading, ocr: Passes | None = None
+) -> LabelResult:
+    """Match checks first, then the TTB rule checks for the same field. `ocr` is a
+    second reading of the label by Tesseract, if there is one."""
     rules = ttb_checks(application, reading)
 
     def field(name: str, title: str, said: str, checks: list[Check]) -> FieldResult:
@@ -98,7 +102,7 @@ def check_label(application: Application, reading: LabelReading) -> LabelResult:
                 "government_warning",
                 "Government warning",
                 GOVERNMENT_WARNING,
-                check_warning(r.government_warning),
+                check_warning(r.government_warning, ocr),
             ),
         )
     )

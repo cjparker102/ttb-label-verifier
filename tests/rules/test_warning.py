@@ -1,10 +1,12 @@
 import pytest
 
+from app.reading.words import Word
 from app.rules.results import Status, WordChange, worst
 from app.rules.warning import (
     GOVERNMENT_WARNING,
     WARNING_FORMAT_RULE,
     WARNING_TEXT_RULE,
+    check_second_reading,
     check_warning,
 )
 from tests.rules.helpers import read_warning
@@ -166,3 +168,66 @@ def test_track_changes_of_a_correct_warning_is_one_unchanged_run():
     from app.rules.warning import track_changes
 
     assert track_changes(GOVERNMENT_WARNING, GOVERNMENT_WARNING) == [("same", GOVERNMENT_WARNING)]
+
+
+# A second reading by Tesseract. The AI reader can read a warning as it should be rather
+# than as printed: an approved label in TTB's Public COLA Registry misspells "SURGEON",
+# and Claude read it spelt correctly.
+
+
+def passes(*texts):
+    """Tesseract's passes over picture 1, each given as its text."""
+    return [[[Word(word, 0, 0, 10, 10) for word in text.split()] for text in texts]]
+
+
+MISSPELT = GOVERNMENT_WARNING.replace("Surgeon", "Surgeron")
+
+
+def second_reading(ocr, text=GOVERNMENT_WARNING):
+    return check_second_reading(read_warning(text), ocr)
+
+
+def test_both_passes_reading_a_word_differently_needs_review():
+    result = second_reading(passes(MISSPELT, "Some other text " + MISSPELT))
+    assert result.status == Status.REVIEW
+    assert result.reason == (
+        'Two readings of the warning disagree: the AI reader read "Surgeon", and basic text '
+        'reading read "Surgeron". Please check it by eye.'
+    )
+
+
+def test_a_difference_only_one_pass_sees_is_taken_for_a_misreading():
+    result = second_reading(passes(MISSPELT, GOVERNMENT_WARNING))
+    assert result.status == Status.PASS
+
+
+def test_both_passes_agreeing_with_the_ai_reader_pass():
+    assert second_reading(passes(GOVERNMENT_WARNING, GOVERNMENT_WARNING)).status == Status.PASS
+
+
+def test_no_claim_when_a_pass_did_not_read_the_warning():
+    assert second_reading(passes(MISSPELT, "750 mL 40% Alc./Vol.")) is None
+    assert second_reading(passes(MISSPELT, "GOVERNMENT WARNING: unreadable smudge")) is None
+    assert second_reading(None) is None
+
+
+def test_capitals_punctuation_and_spacing_dont_count():
+    looks_different = (
+        GOVERNMENT_WARNING.upper()
+        .replace("(1) ", "(1)")
+        .replace("alcoholic beverages", "alcoholicbeverages".upper())
+    )
+    assert second_reading(passes(looks_different, looks_different)).status == Status.PASS
+
+
+def test_digits_read_for_letters_dont_count():
+    misread = GOVERNMENT_WARNING.replace("ability to drive", "ability 10 drive")
+    assert second_reading(passes(misread, misread)).status == Status.PASS
+
+
+def test_the_second_reading_is_part_of_the_warning_check():
+    checks = check_warning(read_warning(GOVERNMENT_WARNING), passes(MISSPELT, MISSPELT))
+    assert worst(c.status for c in checks) == Status.REVIEW
+    assert check_warning(read_warning(GOVERNMENT_WARNING)) == check_warning(
+        read_warning(GOVERNMENT_WARNING), None
+    )

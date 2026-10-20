@@ -1,4 +1,4 @@
-<section class="results" aria-labelledby="results-heading" id="results">
+<section class="results" aria-labelledby="results-heading" id="results" data-second-reading="{{ second_reading }}">
   <h1 id="results-heading" tabindex="-1">Results</h1>
   {% for line in summary %}
   <p class="summary summary-{{ line.css }}"><span aria-hidden="true">{{ line.icon }}</span> {{ line.text }}</p>
