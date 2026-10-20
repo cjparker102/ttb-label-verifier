@@ -75,8 +75,9 @@ number comes from a third set of 24, chosen after the rules were changed using t
   Check this.
 - 9 false Problems on fields that are fine, against 41 on the first set before the changes.
   The causes are listed in EVALUATION.md and not fixed, so that the third set stays an honest
-  measure: a net contents bug, a country stated only in the bottler statement, brands that
-  neither reader finds, and two misreadings.
+  measure: a country stated only in the bottler statement, brands that neither reader finds,
+  two misreadings, and a net contents bug ("1 pint (16 fl oz)" added up to 2 pints). That bug
+  was fixed after the run, so the numbers above are from before the fix.
 - Both conditions TTB noted on these approvals, on things the tool checks, were flagged, for
   TTB's reasons.
 

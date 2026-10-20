@@ -138,3 +138,51 @@ def test_none_of_several_sizes_fails():
     result = check_net_contents("13.2 gallons", read("15.5 Gallons 7.75 Gallons 5.16 Gallons"))
     assert result.status == Status.FAIL
     assert "none of them" in result.reason
+
+
+# The same amount written in two units counts once (found on approved labels in TTB's
+# Public COLA Registry: "1 pint (16 fl oz)" was added up to 2 pints).
+
+
+@pytest.mark.parametrize(
+    ("text", "ml"),
+    [
+        ("12 FL OZ (355 mL)", "355"),  # two systems: metric counts
+        ("1 PINT (16 FL OZ)", "473.2"),
+        ("CONTENTS 1 PINT (16 FL. OZ)", "473.2"),
+        ("1 QUART (32 FL OZ)", "946.4"),
+        ("750 mL (25.4 FL OZ)", "750"),
+        ("1 PINT 9 FL OZ", "739.3"),  # a pint and 9 fluid ounces more still add up
+        ("1 GAL 1 QT", "4731.8"),
+    ],
+)
+def test_the_same_amount_in_two_units(text, ml):
+    assert parse_volume(text).ml.quantize(Decimal("0.1")) == Decimal(ml)
+
+
+@pytest.mark.parametrize(
+    ("label", "application"),
+    [
+        ("12 FL OZ (355 mL)", "12 fl oz"),
+        ("12 FL OZ (355 mL)", "355 mL"),
+        ("1 PINT (16 FL OZ)", "1 pint"),
+        ("1 PINT (16 FL OZ)", "16 fl oz"),
+        ("750 mL (25.4 FL OZ)", "750 mL"),
+        ("750 mL (25.4 FL OZ)", "25.4 fl oz"),
+        ("1 PINT 9 FL OZ", "25 fl oz"),
+    ],
+)
+def test_common_forms_match_the_application(label, application):
+    assert check_net_contents(application, read(label)).status == Status.PASS
+
+
+@pytest.mark.parametrize(
+    ("label", "application"),
+    [
+        ("1 PINT (16 FL OZ)", "2 pints"),
+        ("1 PINT (16 FL OZ)", "12 fl oz"),
+        ("1 PINT 9 FL OZ", "1 pint"),
+    ],
+)
+def test_a_different_amount_still_fails(label, application):
+    assert check_net_contents(application, read(label)).status == Status.FAIL

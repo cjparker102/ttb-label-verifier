@@ -118,8 +118,9 @@ All rules are in `app/rules/`, and each has its own tests.
 - **Net contents** are converted to milliliters first (mL, cl, L, fl oz, pints, quarts, gallons),
   allowing 0.5% for rounding. The ℮ sign is ignored. When a label gives both systems, such as
   "16.9 FL. OZ. (500 mL)", the amount in the application's units is the one compared.
-  Amounts in falling units add up ("1 pint 9 fl oz"), and the same amount given twice ("1L
-  ... 1 liter") counts once. A label that lists different sizes, as keg labels with a box to
+  Amounts in falling units add up when each is less than one of the unit before it ("1 pint
+  9 fl oz"). The same amount given twice counts once, in the same unit ("1L ... 1 liter") or
+  in another ("1 PINT (16 FL OZ)"). A label that lists different sizes, as keg labels with a box to
   tick for each do, needs review if the application's size is among them ("Please check which
   one the label marks"), and fails if it isn't. For wine and spirits, each listed size must
   be an authorized size. "US" before the unit and "GALS" are understood.

@@ -291,18 +291,26 @@ labels contain warning-text differences that TTB didn't mention: the tool flagge
 the heading's colon and a missing final period as Check this, but missed square brackets around
 the statement numbers, which Claude read as parentheses. It still shows 9 false Problems:
 
-- "1 pint (16 fl oz)" is added up to 2 pints (2 labels): a bug the fresh set found.
+- "1 pint (16 fl oz)" is added up to 2 pints (2 labels): a bug the fresh set found, fixed after
+  this run (below).
 - A country of origin stated only inside the bottler statement ("bottled in Scotland") isn't
   found (2 labels).
 - A brand isn't found when Claude takes another name for it and the application's brand is under
   6 letters (so not looked for), written differently on the label, or split across lines (3).
 - Claude read a type word for the class ("Añejo"), and read the line after the warning into it.
 
+**Fixed after the third set's run: one bug.** The same amount written in two units, as in "1
+PINT (16 FL OZ)", now counts once instead of adding up; amounts in falling units still add up
+when each is less than one of the unit before it ("1 PINT 9 FL OZ"). **The third-set numbers
+above were measured before this fix.** Replaying that run's saved readings through the fixed
+rule, strict goes from 256 to 260 of 280: the 4 net contents false Problems on 2 labels become
+Matches, and nothing else changes. That set has now been seen, so this is not an honest
+measure of the fix. The 31 samples are unchanged.
+
 **Not fixed, from the fresh and third sets.** Fixing these now would make the third set a tuning
 set too; a fourth set would be needed to measure fixes.
 
-- Bugs: "1 pint (16 fl oz)" is added up to 2 pints; a company name with a digit in it is taken
-  for a street address.
+- A bug: a company name with a digit in it is taken for a street address.
 - A country of origin stated only in the bottler statement isn't found.
 - The second reading can read text beside the warning into it, and compares words only, so
   it can't catch a missing comma or brackets read as parentheses.

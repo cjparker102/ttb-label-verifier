@@ -104,3 +104,6 @@ answer key. The other 15:
 
 **Speed.** 48 of 48 checks under 5 seconds (median 2.85 s, slowest 4.04 s). Tesseract's second
 reading was ready in time on 48 of 48 (in process, on a laptop).
+
+**After this run.** The "1 pint (16 fl oz)" bug was fixed: the same amount in two units now
+counts once. These numbers were measured before the fix.

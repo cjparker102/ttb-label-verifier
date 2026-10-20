@@ -98,11 +98,13 @@ def close(a: Decimal, b: Decimal) -> bool:
 
 def one_amount(amounts: list[tuple[str, Decimal, Decimal]]) -> tuple[Amounts, tuple[Decimal, ...]]:
     """Amounts in one system, as (unit name, mL, mL per unit), read as one statement.
-    Falling units, as in "1 pint 9 fl oz", add up. The same amount given twice, as in
-    "1L ... 1 liter", counts once. Different sizes are a list to choose from: the first
-    is returned as the amount, and all of them as the sizes."""
-    falling = all(a[2] > b[2] for a, b in zip(amounts, amounts[1:], strict=False))
-    if len(amounts) <= 1 or falling:
+    Falling units add up when each part is less than one of the unit before it, as in
+    "1 pint 9 fl oz". The same amount given twice, in the same unit or not, counts once:
+    "1L ... 1 liter", "1 PINT (16 FL OZ)". Different sizes are a list to choose from: the
+    first is returned as the amount, and all of them as the sizes."""
+    pairs = list(zip(amounts, amounts[1:], strict=False))
+    adds_up = all(a[2] > b[2] and b[1] < a[2] * (1 - TOLERANCE) for a, b in pairs)
+    if len(amounts) <= 1 or adds_up:
         return tuple((name, ml) for name, ml, _ in amounts), ()
     sizes: list[Decimal] = []
     for _, ml, _ in amounts:
