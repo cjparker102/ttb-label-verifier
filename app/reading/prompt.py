@@ -41,10 +41,13 @@ bottled", is not this statement on its own.
 - government_warning: the full health warning statement, from its heading to the \
 end. Its wording is set by law, but labels sometimes misprint it. Copy it letter by \
 letter as printed, with any misspelt, missing, or extra word, and any missing comma, \
-period, or parenthesis. Never write it from memory. heading_bold: do the words \
-"GOVERNMENT WARNING" look bold compared with the rest of the statement? rest_bold: \
-does the rest of the statement look bold? Answer cant_tell if the image does not show \
-it clearly.
+period, or parenthesis. Never write it from memory. heading_bold: look closely \
+at the strokes of the letters. Answer yes only if the letters of "GOVERNMENT WARNING" \
+are visibly thicker and darker than the letters of the words right after them, as in \
+a bold typeface. Capital letters, a colon, or a larger size alone do not make the \
+heading bold. Answer no if the strokes look the same thickness, and cant_tell if you \
+are not sure. rest_bold: does the rest of the statement look bold? Answer cant_tell if \
+the image does not show it clearly.
 - image_problems: anything that makes an image hard to read.
 - alcohol_statements and net_contents_statements: every distinct alcohol content \
 statement, and every distinct net contents statement, that appears anywhere on any \

@@ -329,6 +329,11 @@ in 13 seconds, and the batch finished (`docs/measurements/large-upload-2026-10-1
   such as FD&C Yellow No. 5, sulfites, and age statements.
 - **The Alcohol Facts and allergen labeling rules** are only proposed, so they aren't checked.
 - **Bold type** can only be judged by eye from a photo, so anything uncertain is sent for review.
+  But Claude's judgment of bold varies, and can say "bold" when the heading isn't: on a sample
+  whose heading is in capitals but not bold, an earlier prompt said "bold" 2 times in 6 readings.
+  The prompt now asks about the thickness of the strokes and says capitals alone aren't bold:
+  1 time in 8, while two bold samples were read as bold 10 times in 10. So a heading that
+  isn't bold can still pass.
 - **The app runs as one instance,** because batch jobs and usage counts live in memory. A
   production version would need shared storage for them, which is a policy decision.
 - **Accuracy was measured on 31 code-drawn labels,** 8 of them made to look like poor photos

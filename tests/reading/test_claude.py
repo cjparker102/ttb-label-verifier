@@ -101,3 +101,10 @@ def test_the_reader_reports_every_alcohol_and_net_contents_statement():
     # Readings saved before the lists existed still load, with empty lists.
     old = recorded_reading()
     assert (old.alcohol_statements, old.net_contents_statements) == ([], [])
+
+
+def test_the_reader_is_told_capitals_alone_are_not_bold():
+    # A sample whose heading is in capitals but not bold was read as bold 6 times in 6 with
+    # an earlier prompt, and 1 time in 8 with this one (Oct 20, 2026).
+    assert "visibly thicker and darker" in INSTRUCTIONS
+    assert "Capital letters, a colon, or a larger size alone do not make the" in INSTRUCTIONS
