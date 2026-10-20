@@ -46,8 +46,8 @@ use and what was checked.
 
 On 31 sample labels (23 clean, 8 made to look like poor photos), with Claude Haiku 5.5:
 
-- **Every field result was as expected,** 217 of 217: no planted problem was shown as
-  Matches, and no fine field was shown as a Problem.
+- **No planted problem was shown as Matches, and no fine field as a Problem:** 216 of 217
+  field results as expected, the other an acceptable Check this on a photo-like label.
 - **Every label was checked in under 5 seconds** in process (median 2.5 s, slowest 4.2 s). On
   the live app, end to end from a home connection, all 93 single checks on Oct 20 were under
   5 seconds (median 2.5 s, p95 3.2 s, slowest 4.6 s). On Oct 19, 30 of 31 were; one slow
@@ -63,15 +63,16 @@ On 31 sample labels (23 clean, 8 made to look like poor photos), with Claude Hai
 An earlier run found one false Problem, on a French wine's importer statement. It was fixed
 and checked again. The labels are drawn by code, so this is a first measure, not proof.
 
-**On 24 real approved labels** from TTB's Public COLA Registry (a private test on Oct 20):
+**On real approved labels** from TTB's Public COLA Registry (a private test, Oct 20), the honest
+number comes from a fresh set of 24, chosen after the rules were tuned on another 24:
 
-- Every planted problem was shown as a Problem, 24 of 24.
-- TTB noted 7 conditions on those approvals that the tool checks, such as an alcohol statement
-  to correct, and the tool flagged 6, for the same reasons.
-- **But it showed 41 false Problems** on fields that are fine. It compares the bottler, brand,
-  and class too literally for real labels: "LLC" left out, the state spelt out, a fanciful name
-  read as the brand. These are not fixed yet.
-- One false pass: Claude read the same warning twice and found its missing comma only once.
+- 258 of 283 strict field results and 45 of 53 judgment calls were as expected.
+- Every planted problem was flagged, 22 of 24 as Problem.
+- 9 false Problems on fields that are fine, down from 41 on the first set before the changes.
+- **6 false passes**, on 3 labels: an alcohol statement in a form TTB doesn't allow, a misspelt
+  warning heading that Claude read spelt correctly, and a front label whose net contents
+  contradict the back label's. These, and two bugs the fresh set found, are listed but not
+  fixed, so that the fresh set stays an honest measure.
 
 See [docs/EVALUATION.md](docs/EVALUATION.md) for the method, the details, and the limits.
 

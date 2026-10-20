@@ -311,11 +311,12 @@ in 13 seconds, and the batch finished (`docs/measurements/large-upload-2026-10-1
 - **The app runs as one instance,** because batch jobs and usage counts live in memory. A
   production version would need shared storage for them, which is a policy decision.
 - **Accuracy was measured on 31 code-drawn labels,** 8 of them made to look like poor photos
-  (tilted, blurry, dim, glare), and on 24 real approved labels from TTB's Public COLA Registry.
-  On the real labels, the bottler, brand, and class comparisons proved too literal, giving
-  false Problems. Real camera photos are not yet in the test set. See
-  [EVALUATION.md](EVALUATION.md).
+  (tilted, blurry, dim, glare), and on two sets of 24 real approved labels from TTB's Public
+  COLA Registry: one the rules were tuned on, and a fresh one. On the fresh set, 6 field
+  results were false passes and 9 false Problems; the causes are listed, not fixed. Real camera
+  photos are not yet in the test set. See [EVALUATION.md](EVALUATION.md).
 - **Claude may read the warning as it should be,** not as printed: a misspelt word read as spelt
   correctly, or a missing comma put in. The second reading by Tesseract catches a misspelt word
-  only when Tesseract can read the warning, and doesn't compare punctuation. So the warning
-  check can miss small errors.
+  only when Tesseract can read the warning, and doesn't compare punctuation. It finds the
+  warning by its heading, so a misspelt heading defeats it. So the warning check can miss
+  small errors.

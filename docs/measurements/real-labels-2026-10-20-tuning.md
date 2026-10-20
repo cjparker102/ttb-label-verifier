@@ -63,7 +63,7 @@ after the rules were changed because of that run: the bottler, brand, class, and
 contents comparisons, and a second reading of the warning by Tesseract. The changes were
 developed against these labels, so this is the **tuning set**, and its numbers flatter the
 rules. A fresh set of labels, chosen by the same rule after the changes were finished, gives
-the honest number.
+the honest number: [real-labels-2026-10-20-fresh.md](real-labels-2026-10-20-fresh.md).
 
 - Tesseract's second reading was ready in time on 48 of 48 checks (in process, on a laptop).
 - The misspelt warning is now shown as Check this on both copies of its label, because the
