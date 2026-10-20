@@ -45,18 +45,19 @@ some fields to look at are also outlined on the picture. See [APPROACH](docs/APP
 | Dave Morrison | Judgment ("STONE'S THROW" is "Stone's Throw") | Met for capitals, punctuation, company forms, and state names |
 | Dave Morrison | Don't make my life harder | Partly: 11 false Problems on 24 real labels (fourth set), 5 of them where the registry's brand isn't the label's |
 | Jenny Park | Warning word for word; heading in capitals and bold | Wording and capitals checked; bold is judged by the AI and can be wrong |
-| Jenny Park | Imperfect photos | Partly: simulated poor photos give acceptable results, with photo tips; real camera photos are untested |
+| Jenny Park | Imperfect photos | Partly: simulated poor photos give acceptable results, with photo tips. One real bottle photo found three reading problems, fixed and tested on a drawn sample that copies them; more real photos are needed |
 
 ## Latest results
 
-- **31 sample labels**, code-drawn, in process (commit `2ebfda9`): no false Problems; 1 false
-  pass, a warning heading that isn't bold read as bold (about 1 time in 5); 31 of 31 under 5
-  seconds.
+- **32 sample labels**, code-drawn, in process, three runs (commit `8b1d574`): no false
+  Problems; 1 false pass in one run, a warning heading that isn't bold read as bold (about 1
+  time in 5); 32 of 32 under 5 seconds.
 - **24 real approved labels** from TTB's Public COLA Registry, a fourth set chosen after the
   last rule changes, the honest measure (commit `6530f56`): 252 of 274 strict field results and
   50 of 62 judgment calls as expected; 24 of 24 planted problems detected; 1 false pass (an
   alcohol statement with a decimal comma, "5,8 %"); 11 false Problems; 44 of 48 checks under 5
-  seconds.
+  seconds. Replayed after the fixes for a real bottle photo: 8 false Problems (not an honest
+  measure, as these labels had been seen).
 - **Live app** (commit `77dd73a`, 2 CPUs): single checks median 2.9 s, 31 of 31 under 5 s;
   a batch of 300 labels in 4.1 to 4.5 minutes, 294 and 297 of 300 rows as expected (the second
   run's misses: that bold heading twice, a bottler once; the first run didn't record which).
@@ -78,7 +79,8 @@ is lost, and about 600 then fit), or split the batch.
 - Real labels were tested as the artwork sent to TTB, not as photos of bottles.
 - Not checked: type size, contrast, standards of identity, required disclosures.
 - One instance: batch jobs and usage limits live in memory and are lost if the app restarts.
-- The sets are small: 31 code-drawn labels and four sets of 24 real ones.
+- The sets are small: 32 code-drawn labels, four sets of 24 real ones, and one real bottle
+  photo.
 
 Settings and deployment: [DEPLOY](docs/DEPLOY.md).
 

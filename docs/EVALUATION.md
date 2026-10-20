@@ -51,34 +51,46 @@ acceptable, because the photo really is harder to read.
 
 ## Results with Claude Haiku 5.5
 
-The latest run, on Oct 20, 2026, after the rules were changed for real labels (see below): in
-process, with the app's default settings (1568-pixel pictures, thinking off, low effort) and
-outlines on, as in a single check. Full results:
-[evaluation-2026-10-20-anthropic.md](measurements/evaluation-2026-10-20-anthropic.md).
+The latest runs, on Oct 20, 2026, after the changes for a real bottle photo (commit
+`8b1d574`, see below), with the new sample that copies it: in process, with the app's default
+settings (1568-pixel pictures, thinking off, low effort) and outlines on, as in a single
+check. Three runs were made; the table is the first. Full results:
+[evaluation-2026-10-20-anthropic-4.md](measurements/evaluation-2026-10-20-anthropic-4.md),
+[-5](measurements/evaluation-2026-10-20-anthropic-5.md),
+[-6](measurements/evaluation-2026-10-20-anthropic-6.md).
 
 | Measure | Result |
 |---|---|
-| False passes | **0** of 217 field results |
-| False fails | **0** |
-| Field results as expected | 216 of 217; the other is Check this on a photo-like label, which is acceptable |
-| Clean label fields read exactly as printed | 159 of 161 |
-| Time per label (median / p95 / max) | 2.49 s / 3.25 s / 3.97 s |
-| Labels checked in under 5 seconds | 31 of 31 |
+| False passes | **0** of 224 field results (1 in the second run, 0 in the third) |
+| False fails | **0** in all three runs |
+| Field results as expected | 224 of 224, counting Check this on a photo-like label and a note on a match as acceptable |
+| Clean label fields read exactly as printed | 165 of 168 |
+| Time per label (median / p95 / max) | 2.66 s / 3.48 s / 3.56 s |
+| Labels checked in under 5 seconds | 32 of 32, in all three runs |
 | Fields to look at that were outlined on the picture | 17 of 23 |
-| Checks where Tesseract's second reading was ready in time | 31 of 31 |
-| AI cost for the 31 labels (estimate from tokens) | $0.022, about 0.07 cents a label |
+| Checks where Tesseract's second reading was ready in time | 32 of 32 |
+| AI cost for the 32 labels (estimate from tokens) | $0.026, about 0.08 cents a label |
 
-The Check this is on the photo taken from far away: Claude marked its warning hard to read.
-The Oct 19 run, before the changes, had all 217 as expected
+The second run's false pass is the known one: the warning heading that isn't bold, read as
+bold. The new sample was read whole in all three runs: its class on the back, "ALC. 5% BY VOL",
+and the warning with its heading. Claude read its brand as "VESPERLY MOONLIT BRAMBLE", which
+matches with a note. The third run is marked "-dirty" only because this page was being edited
+while it ran; the app's code was `8b1d574`.
+
+Earlier, on Oct 20 before these changes, a run of the 31 samples then had all but one field
+as expected ([evaluation-2026-10-20-anthropic.md](measurements/evaluation-2026-10-20-anthropic.md)),
+and the Oct 19 run, before the changes for real labels, had all 217 as expected
 ([evaluation-2026-10-19-anthropic.md](measurements/evaluation-2026-10-19-anthropic.md)).
 
-The two clean fields not read exactly didn't change any result:
+The three clean fields not read exactly didn't change any result:
 
 - On the label whose warning heading is not bold, Claude said it couldn't tell whether the
   heading was bold, rather than "no". The rule treats anything short of a clear yes as
   Check this, which is the expected result.
 - On the French wine, Claude copied both "Mis en bouteille au château" and the "Imported by"
   statement, as its instructions now say. The answer key lists only the importer statement.
+- On the new sample, Claude read the brand with the fanciful name under it, "VESPERLY MOONLIT
+  BRAMBLE". The application's brand is in it, so it matches with a note.
 
 The 6 fields not outlined are the brand in Japanese script, which Tesseract can't read in
 English mode, and fields on five of the hard photos (blurry, glare, tilted, and far away). Those still
@@ -374,8 +386,22 @@ condition missed. Its 11 false Problems, on 8 labels:
 - A class shorter on the label than in the application ("Stout" for "Stout Ale").
 
 4 of its 48 checks took over 5 seconds (the slowest 7.2 s), against none on the third set; the
-median, 3.0 s, was close to the third set's 2.8 s. No rule has been changed because of this
-set.
+median, 3.0 s, was close to the third set's 2.8 s. No rule was changed because of this set.
+
+**Changed afterwards, for a real bottle photo (Oct 20, afternoon).** A photo of a real bottle
+found three things: a warning heading on a line of its own that Claude left out, a fanciful
+name Claude took for the class (printed small on the back), and "ALC." dropped from the
+alcohol statement. The changes (see [APPROACH.md](APPROACH.md)): a heading seen elsewhere
+counts as present, and a missing heading alone is Check this; the application's class found
+elsewhere on the label is used in place of what Claude read; Claude is told to copy the whole
+alcohol statement; and an alcohol content the application gives but the label doesn't show
+needs review even where the label may leave it out. Replaying this set's saved readings
+through the changed rules (no AI request, Tesseract given all the time it needs, commit
+`8b1d574`), 3 of the 11 false Problems become right: the wine's class is found on its back
+label, its missed alcohol range becomes Check this, and the warning read without its heading
+becomes Check this. Strict goes from 252 to 254 of 274, judgment calls from 50 to 52 of 62;
+nothing else changes, and the decimal-comma false pass remains. Two of those false Problems
+had the same causes as the photo, so this replay is not an honest measure of the changes.
 
 ## The warning's second reading on real labels
 
