@@ -119,9 +119,11 @@ def test_the_public_report_has_totals_and_ids_but_nothing_about_any_one_label(pr
     )
     for private in ("SECRET", "Secret Distilling", "Nashville", "750 mL", "OTHER BRAND"):
         assert private not in page
-    for line in page.splitlines():  # an ID never shares a line with a result
+    # An ID shares a line only with its planted problem's result, never with the real
+    # label's own results.
+    for line in page.splitlines():
         if "26002001000021" in line:
-            assert line == "- 26002001000021"
+            assert line in ("- 26002001000021", "| 26002001000021 | Brand name | Problem |")
 
 
 def test_strict_and_judgment_calls_are_counted_apart(private_set):
@@ -170,3 +172,38 @@ def test_issues_flagged_on_approved_labels_are_matched_with_the_fields_ttb_noted
     assert "| Issues flagged on the labels as approved | 2: 1 Problem, 1 Check this |" in page
     assert "| Of those, on a field TTB's qualifications name | 1 of 2 |" in page
     assert "| Fields TTB's qualifications name, flagged by the tool | 1 of 2 |" in page
+
+
+def test_planted_problems_are_published_label_by_label_with_how_they_were_caught(private_set):
+    cases = load_cases(private_set)
+    results = {
+        "measured_at": "2026-10-21T09:00:00",
+        "commit": "abc",
+        "settings": {},
+        "records": [
+            {
+                "id": "26002001000021",
+                "photo": None,
+                "got": {"brand_name": "pass", "net_contents": "review"},
+                "judgments": {"brand_name": "exact", "net_contents": "exact"},
+                "causes": {"brand_name": "pass", "net_contents": "other review"},
+            },
+            {
+                "id": "26002001000021-planted",
+                "photo": None,
+                "got": {"brand_name": "review", "net_contents": "pass"},
+                "judgments": {"brand_name": "review_instead_of_fail", "net_contents": "exact"},
+                "causes": {"brand_name": "other review", "net_contents": "pass"},
+            },
+        ],
+    }
+    totals = public_summary(cases, results, summarize(results))
+    assert totals["planted_how"] == {"sent to review for another reason": 1}
+    page = public_markdown(results, totals)
+    assert "| Planted problems sent to review for another reason | 1 |" in page
+    assert "| Planted problems detected, shown as Problem | 0 |" in page
+    assert (
+        "| 26002001000021 | Brand name | Check this | sent to review for another reason |" in page
+    )
+    # The real label's own results are not published label by label.
+    assert "Net contents" not in page.split("## Planted problems, label by label")[1]

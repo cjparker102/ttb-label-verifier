@@ -65,6 +65,26 @@ def result_word(field) -> str:
     return str(field.status)
 
 
+UNCLEAR = "hard to read"
+NOT_SHOWN = "The label doesn't show"
+
+
+def cause(field) -> str:
+    """Why a field came out as it did: "comparison fail" or "comparison review" when its
+    comparison with the application raised it; "other fail" or "other review" when
+    something else did (print too hard to read, a statement missing from the label, a TTB
+    rule); "pass" otherwise. Planted problems are "detected" only by their comparison."""
+    if field.status not in ("fail", "review"):
+        return "pass"
+    first = field.checks[0]
+    by_comparison = (
+        first.status in ("fail", "review")
+        and UNCLEAR not in first.reason
+        and not first.reason.startswith(NOT_SHOWN)
+    )
+    return f"{'comparison' if by_comparison else 'other'} {field.status}"
+
+
 def judge(expected: str | list[str], got: str) -> str:
     """How one field's result compares with what was planted. A list means more than one
     result is right, and the first is the main one."""
@@ -174,6 +194,7 @@ async def evaluate_here(entries: list[dict], reader_name: str) -> dict:
             ],
             outlined=[highlight.field for highlight in outcome.highlights],
             second_reading=outcome.second_reading,
+            causes={field.field: cause(field) for field in outcome.result.fields},
         )
         print(f"{entry['id']:50} {outcome.seconds:5.2f} s  {describe(record)}")
         records.append(record)

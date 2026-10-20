@@ -253,6 +253,8 @@ third set is the honest number.**
 | **Judgment calls:** two answers right, either given | 39 of 69 | 67 of 69 | 45 of 53 | **50 of 56** |
 | False passes | 1 | 1 | 6 | **0** |
 | Planted problems shown as Problem | 24 of 24 | 23 of 24 | 22 of 24 | **23 of 24** (1 as Check this) |
+| Of those, **detected**: raised by the field's comparison with the application | | | | **22 of 24** |
+| Flagged for **another reason** (print too hard to read, a statement missing) | | | | **2** (1 Problem, 1 Check this) |
 | Issues flagged on the labels as approved | 62 | 31 | 33 | **31** |
 | Of those, false Problems (the key says the field is fine) | 41 | 5 | 9 | **9** |
 | Conditions TTB noted on things the tool checks, flagged | 6 of 7 | 6 of 7 | 5 of 6 | **2 of 2** |
@@ -285,7 +287,12 @@ heading. (On that label the second reading still can't help: one of Tesseract's 
 read its stylized lettering, and both must agree.)
 
 **The third set** had no false passes, and all 22 planted problems on fields that were fine on
-the unchanged label were shown as Problem. The changed alcohol form check flagged one statement
+the unchanged label were shown as Problem. Counting how each planted problem was caught: 22 were
+**detected**, raised by the field's comparison with the application; 2 were flagged for
+**another reason**: a label with no country of origin statement at all (Problem), and a bottler
+statement Claude found hard to read (Check this). The planted problems are published label by
+label in [the third set's note](measurements/real-labels-2026-10-20-third.md); the real labels'
+own results are not. The changed alcohol form check flagged one statement
 without "by" or a slash. Both conditions TTB noted were flagged, for TTB's reasons. Some approved
 labels contain warning-text differences that TTB didn't mention: the tool flagged a space before
 the heading's colon and a missing final period as Check this, but missed square brackets around

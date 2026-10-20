@@ -228,3 +228,27 @@ def test_a_run_never_overwrites_an_earlier_one(tmp_path):
     assert unused(stem, ".md") == tmp_path / "real-labels-2026-10-20-2"
     (tmp_path / "real-labels-2026-10-20-2.json").write_text("second run")
     assert unused(stem, ".json", ".md") == tmp_path / "real-labels-2026-10-20-3"
+
+
+def test_a_field_is_detected_only_when_its_comparison_raised_it():
+    from app.rules.results import Check, Status
+    from app.rules.verdict import FieldResult
+    from tools.evaluate import cause
+
+    def field(*checks):
+        return FieldResult("brand_name", "Brand name", "X", "Y", 1, checks)
+
+    differs = Check(Status.FAIL, 'The label says "Y" but the application says "X".')
+    trade_name = Check(Status.REVIEW, "It may be a trade name the company uses. Please check.")
+    unclear = Check(Status.REVIEW, "Part of the brand name is hard to read on the label.")
+    missing = Check(Status.FAIL, "The label doesn't show the brand name.")
+    matches = Check(Status.PASS, "The brand name matches the application.")
+    rule = Check(
+        Status.REVIEW, "Brand name, class/type, and alcohol content must be on the same side."
+    )
+    assert cause(field(differs)) == "comparison fail"
+    assert cause(field(trade_name)) == "comparison review"
+    assert cause(field(unclear)) == "other review"
+    assert cause(field(missing)) == "other fail"
+    assert cause(field(matches, rule)) == "other review"
+    assert cause(field(matches)) == "pass"

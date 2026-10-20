@@ -28,6 +28,24 @@ KINDS = {
     "malt_beverage": "malt beverages",
 }
 FINE = {"exact", "note_difference"}
+# How a planted problem was caught: by the comparison with the application (detected), or
+# flagged for something else, such as print too hard to read.
+HOW = {
+    "comparison fail": "detected, shown as Problem",
+    "comparison review": "detected, shown as Check this",
+    "other fail": "shown as Problem for another reason",
+    "other review": "sent to review for another reason",
+    "pass": "missed, shown as Matches",
+}
+FIELD_TITLES = {
+    "brand_name": "Brand name",
+    "class_type": "Class or type",
+    "alcohol_content": "Alcohol content",
+    "net_contents": "Net contents",
+    "bottler_name_address": "Bottler or importer",
+    "country_of_origin": "Country of origin",
+}
+WORDS = {"fail": "Problem", "review": "Check this", "pass": "Matches", "pass_with_note": "Matches"}
 FLAGGED = {"fail", "review"}
 
 
@@ -59,6 +77,22 @@ def public_summary(cases: list[dict], results: dict, summary: dict) -> dict:
             (judgment if isinstance(expected[field], list) else strict)[verdict] += 1
     planted = [r for r in scored if by_id[r["id"]]["kind"] == "planted"]
     caught = Counter(r["judgments"][by_id[r["id"]]["planted_field"]] for r in planted)
+    # Planted problems are made up, so their results are published label by label: they
+    # say nothing about the real labels' own flaws.
+    planted_rows = []
+    for record in planted:
+        case = by_id[record["id"]]
+        field = case["planted_field"]
+        how = HOW[record["causes"][field]] if "causes" in record else None
+        planted_rows.append(
+            {
+                "ttb_id": case["ttb_id"],
+                "field": field,
+                "result": record["got"].get(field, ""),
+                "how": how,
+            }
+        )
+    planted_rows.sort(key=lambda row: row["ttb_id"])
     # Issues flagged on the labels as approved, and the fields TTB's qualifications name.
     approved = [r for r in scored if by_id[r["id"]]["kind"] == "as approved"]
     flagged = Counter()
@@ -83,6 +117,8 @@ def public_summary(cases: list[dict], results: dict, summary: dict) -> dict:
         "planted_caught_as_problem": caught["exact"],
         "planted_caught_as_check_this": caught["review_instead_of_fail"],
         "planted_missed": caught["false_pass"],
+        "planted_how": dict(Counter(row["how"] for row in planted_rows if row["how"])),
+        "planted_rows": planted_rows,
         "flagged_as_problem": flagged["fail"],
         "flagged_as_check_this": flagged["review"],
         "ttb_noted": noted,
@@ -126,6 +162,11 @@ def public_markdown(results: dict, totals: dict) -> str:
         ),
         ("Planted problems shown as Check this", totals["planted_caught_as_check_this"]),
         ("Planted problems missed (shown as Matches)", totals["planted_missed"]),
+        *[
+            (f"Planted problems {how}", totals["planted_how"].get(how, 0))
+            for how in HOW.values()
+            if totals["planted_how"]
+        ],
         (
             "Issues flagged on the labels as approved",
             f"{flagged}: {totals['flagged_as_problem']} Problem, "
@@ -173,6 +214,7 @@ def public_markdown(results: dict, totals: dict) -> str:
         "|---|---|",
         *[f"| {measure} | {result} |" for measure, result in rows],
         "",
+        *planted_table(totals),
         "## TTB IDs",
         "",
         "Each can be looked up in the registry. They are listed in order of ID, not of results.",
@@ -180,3 +222,31 @@ def public_markdown(results: dict, totals: dict) -> str:
         *[f"- {ttb_id}" for ttb_id in totals["ttb_ids"]],
     ]
     return "\n".join(lines) + "\n"
+
+
+def planted_table(totals: dict) -> list[str]:
+    """The planted problems label by label. A planted problem is a made-up change to the
+    application, so this says nothing about the real labels' own results."""
+    if not totals["planted_rows"]:
+        return []
+    detailed = any(row["how"] for row in totals["planted_rows"])
+    lines = [
+        "## Planted problems, label by label",
+        "",
+        "Each label was checked a second time with one field of its application changed to a "
+        "wrong value. These made-up problems are published label by label; the real labels' own "
+        "results are not. **Detected** means the field's comparison with the application raised "
+        "it; **another reason** means the field was flagged for something else, such as print "
+        "too hard to read.",
+        "",
+        "| TTB ID | Field changed | Result | How |"
+        if detailed
+        else "| TTB ID | Field changed | Result |",
+        "|---|---|---|---|" if detailed else "|---|---|---|",
+    ]
+    for row in totals["planted_rows"]:
+        cells = [row["ttb_id"], FIELD_TITLES[row["field"]], WORDS.get(row["result"], row["result"])]
+        if detailed:
+            cells.append(row["how"] or "")
+        lines.append("| " + " | ".join(cells) + " |")
+    return [*lines, ""]

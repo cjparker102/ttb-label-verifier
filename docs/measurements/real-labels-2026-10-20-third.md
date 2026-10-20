@@ -107,3 +107,38 @@ reading was ready in time on 48 of 48 (in process, on a laptop).
 
 **After this run.** The "1 pint (16 fl oz)" bug was fixed: the same amount in two units now
 counts once. These numbers were measured before the fix.
+
+## Planted problems, label by label
+
+Each label was checked a second time with one field of its application changed to a wrong value. These made-up problems are published label by label; the real labels' own results are not. **Detected** means the field's comparison with the application raised it; **another reason** means the field was flagged for something else, such as print too hard to read.
+
+| TTB ID | Field changed | Result | How |
+|---|---|---|---|
+| 26001001000002 | Country of origin | Problem | detected, shown as Problem |
+| 26001001000022 | Alcohol content | Problem | detected, shown as Problem |
+| 26002001000034 | Brand name | Problem | detected, shown as Problem |
+| 26002001000035 | Net contents | Problem | detected, shown as Problem |
+| 26002001000073 | Class or type | Problem | detected, shown as Problem |
+| 26002001000167 | Alcohol content | Problem | detected, shown as Problem |
+| 26002001000171 | Brand name | Problem | detected, shown as Problem |
+| 26002001000233 | Alcohol content | Problem | detected, shown as Problem |
+| 26003001000031 | Class or type | Problem | detected, shown as Problem |
+| 26004001000035 | Net contents | Problem | detected, shown as Problem |
+| 26004001000067 | Brand name | Problem | detected, shown as Problem |
+| 26005001000057 | Alcohol content | Problem | detected, shown as Problem |
+| 26005001000416 | Class or type | Problem | detected, shown as Problem |
+| 26005001000621 | Net contents | Problem | detected, shown as Problem |
+| 26006001000149 | Country of origin | Problem | detected, shown as Problem |
+| 26006001000608 | Alcohol content | Problem | detected, shown as Problem |
+| 26007001000289 | Bottler or importer | Problem | detected, shown as Problem |
+| 26007001000749 | Brand name | Problem | detected, shown as Problem |
+| 26008001000089 | Country of origin | Problem | shown as Problem for another reason |
+| 26008001000199 | Alcohol content | Problem | detected, shown as Problem |
+| 26008001000664 | Class or type | Problem | detected, shown as Problem |
+| 26014001000719 | Net contents | Problem | detected, shown as Problem |
+| 26015001000998 | Brand name | Problem | detected, shown as Problem |
+| 26034001000607 | Bottler or importer | Check this | sent to review for another reason |
+
+How each planted problem was caught was worked out on Oct 20 after the run, by replaying the
+saved readings through the code that ran (commit `e54a509`): the replay gave the same result as
+the run for every field of all 48 checks.
