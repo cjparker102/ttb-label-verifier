@@ -234,6 +234,19 @@ then a batch of 300 rows, the 31 samples repeated, twice with `tools/batch_live.
 The 8-second reading deadline never sent a batch label to basic text reading: Claude answered
 every one in time, with 8 read at once.
 
+### Oct 20, afternoon: revision 26, with the fixes for a real bottle photo
+
+Revision 26 (image `71177c1`, 2 CPUs) adds the changes for a real bottle photo and the 32nd
+sample ([evaluation-2026-10-20-deployed-5.md](measurements/evaluation-2026-10-20-deployed-5.md)).
+
+| Measure | Result |
+|---|---|
+| Single checks, end to end (median / p95 / max) | 2.85 s / 3.95 s / 5.84 s, 31 of 32 under 5 s |
+| Batch of 32 | 31.9 s, every label read by Claude |
+| Field results, batch of 32 | no false passes and no false Problems; the new sample as expected, its brand read with the fanciful name (a note) |
+
+The check over 5 seconds spent 5.7 s inside the app, so the wait was the AI provider's answer.
+
 ## Results with basic text reading (offline)
 
 The same 31 labels, read with Tesseract OCR only, as when Claude can't be reached. Full

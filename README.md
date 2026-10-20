@@ -37,7 +37,7 @@ some fields to look at are also outlined on the picture. See [APPROACH](docs/APP
 
 | Who | Asked for | Status |
 |---|---|---|
-| Sarah Chen | Results in about 5 seconds | Met: live single checks, median 2.9 s, 31 of 31 under 5 s |
+| Sarah Chen | Results in about 5 seconds | Met: live single checks, median 2.85 s, 31 of 32 under 5 s |
 | Sarah Chen | Simple enough for anyone | Built for it: large type, plain words, one main button. Checked by hand by keyboard alone and with VoiceOver ([ACCESSIBILITY](docs/ACCESSIBILITY.md)) |
 | Sarah Chen, Janet | Batches of 200 to 300 labels | Met: a spreadsheet plus pictures, loose or zipped; 300 labels in about 4.5 minutes |
 | Marcus Williams | Standalone, on Azure, nothing sensitive stored | Met: one container. This app keeps pictures in memory only, and deletes batch results after 30 minutes |
@@ -58,9 +58,10 @@ some fields to look at are also outlined on the picture. See [APPROACH](docs/APP
   alcohol statement with a decimal comma, "5,8 %"); 11 false Problems; 44 of 48 checks under 5
   seconds. Replayed after the fixes for a real bottle photo: 8 false Problems (not an honest
   measure, as these labels had been seen).
-- **Live app** (commit `77dd73a`, 2 CPUs): single checks median 2.9 s, 31 of 31 under 5 s;
-  a batch of 300 labels in 4.1 to 4.5 minutes, 294 and 297 of 300 rows as expected (the second
-  run's misses: that bold heading twice, a bottler once; the first run didn't record which).
+- **Live app** (commit `71177c1`, 2 CPUs): single checks median 2.85 s, 31 of 32 under 5 s
+  (the slowest 5.8 s); no false passes or false Problems. On the earlier revision (`77dd73a`),
+  a batch of 300 labels took 4.1 to 4.5 minutes, 294 and 297 of 300 rows as expected (the
+  second run's misses: that bold heading twice, a bottler once; the first didn't record which).
 - **Cost**: about 0.08 cents a label.
 
 History, method, and limits: [EVALUATION](docs/EVALUATION.md).
