@@ -61,7 +61,9 @@ Each can be looked up in the registry. They are listed in order of ID, not of re
 The **fresh set**: 24 other approved labels, chosen by the same rule as the first set after the
 rule changes were finished, skipping the first set's labels and companies. The answer key was
 checked by Christopher against the pictures before the run, and nothing in the app was changed
-after these labels were seen. So this is the honest measure. The first set's runs are in
+after these labels were seen. So this was the honest measure, until two fixes were made because
+of it; a third set, chosen after them, is now:
+[real-labels-2026-10-20-third.md](real-labels-2026-10-20-third.md). The first set's runs are in
 [real-labels-2026-10-20.md](real-labels-2026-10-20.md) (before the changes) and
 [real-labels-2026-10-20-tuning.md](real-labels-2026-10-20-tuning.md) (after them).
 

@@ -220,7 +220,7 @@ These times are on a laptop; on the app's one Azure CPU, basic text reading is s
 
 ## Real labels from the COLA Registry
 
-Approved labels from TTB's Public COLA Registry, in two sets of 24 (8 spirits, 8 wine, and 8
+Approved labels from TTB's Public COLA Registry, in three sets of 24 (8 spirits, 8 wine, and 8
 malt beverages each, all received in 2026). Each label was checked twice, once as approved and
 once with one problem planted in its application data: 48 checks a set, in process, with the
 app's default settings. The pictures, application data, answer keys, and per-label results are
@@ -229,36 +229,40 @@ kept private and never committed. Only totals and the TTB IDs are published.
 - **How they were chosen:** by a rule fixed before looking at any label. For each slot (a
   class/type code, domestic or imported), the first approved label approval with a picture, in
   the registry's own order, one per company. The registry was asked slowly, 3 seconds between
-  requests. The second set skipped the first set's labels and companies.
+  requests. Each set skipped the earlier sets' labels and companies.
 - **The application data:** brand name from the registry, word for word. Bottler or importer:
   the company the registry lists, with its city and state. Country of origin from the registry.
   Class, alcohol content, and net contents were copied from the label, because the registry has
   no such fields.
 - **The answer keys** were checked by Christopher against every picture before each set's first
-  run. Some answers are judgment calls, where two results are right (Matches or Check this for a
-  warning that may be bold, for example). Accuracy is given separately for these, never combined.
+  run, including every flaw seen on the approved labels. Some answers are judgment calls, where
+  two results are right (Matches or Check this for a warning that may be bold, for example).
+  Accuracy is given separately for these, never combined.
 
-### Three runs
+### Four runs on three sets
 
 The first run showed far too many false Problems, so the rules were changed, using that set's
-labels: the **tuning set**. Then a **fresh set** was chosen by the same rule and checked once,
-with nothing changed after its labels were seen. **The fresh set is the honest number.**
+labels: the **tuning set**. A **fresh set** was then chosen and checked once; it found two
+gaps behind false passes, which were fixed, so it became tuning too. A **third set** was then
+chosen and checked once, with nothing in the app changed after its labels were seen. **The
+third set is the honest number.**
 
-| Measure | Tuning set, before the changes | Tuning set, after | **Fresh set** |
-|---|---|---|---|
-| **Strict:** fields with one right answer, as expected | 205 of 267 | 251 of 267 | **258 of 283** |
-| **Judgment calls:** two answers right, either given | 39 of 69 | 67 of 69 | **45 of 53** |
-| False passes | 1 | 1 | **6** (3 labels, both copies) |
-| Planted problems shown as Problem | 24 of 24 | 23 of 24 | **22 of 24** (2 as Check this) |
-| Issues flagged on the labels as approved | 62 | 31 | **33** |
-| Of those, false Problems (the key says the field is fine) | 41 | 5 | **9** |
-| Conditions TTB noted on things the tool checks, flagged | 6 of 7 | 6 of 7 | **5 of 6** (4 for TTB's reason) |
-| Checks under 5 seconds | 47 of 48 | 48 of 48 | **47 of 48** |
-| AI cost | about 4 cents | about 4 cents | about 4 cents |
+| Measure | Tuning set, before the changes | Tuning set, after | Fresh set | **Third set** |
+|---|---|---|---|---|
+| **Strict:** fields with one right answer, as expected | 205 of 267 | 251 of 267 | 258 of 283 | **256 of 280** |
+| **Judgment calls:** two answers right, either given | 39 of 69 | 67 of 69 | 45 of 53 | **50 of 56** |
+| False passes | 1 | 1 | 6 | **0** |
+| Planted problems shown as Problem | 24 of 24 | 23 of 24 | 22 of 24 | **23 of 24** (1 as Check this) |
+| Issues flagged on the labels as approved | 62 | 31 | 33 | **31** |
+| Of those, false Problems (the key says the field is fine) | 41 | 5 | 9 | **9** |
+| Conditions TTB noted on things the tool checks, flagged | 6 of 7 | 6 of 7 | 5 of 6 | **2 of 2** |
+| Checks under 5 seconds | 47 of 48 | 48 of 48 | 47 of 48 | **48 of 48** |
+| AI cost | about 4 cents | about 4 cents | about 4 cents | about 4 cents |
 
 Details: [first run](measurements/real-labels-2026-10-20.md),
 [tuning set after the changes](measurements/real-labels-2026-10-20-tuning.md),
-[fresh set](measurements/real-labels-2026-10-20-fresh.md).
+[fresh set](measurements/real-labels-2026-10-20-fresh.md),
+[third set](measurements/real-labels-2026-10-20-third.md).
 
 **The first run** found that the comparisons were too literal for real labels: "LLC" left out,
 the state spelt out, a street address added, a fanciful name read as the brand, a class printed
@@ -269,47 +273,51 @@ compared rather than its exact words, and a different company name in the same c
 needs review as a possible trade name; the application's whole brand is looked for elsewhere on
 the label; a class printed with other words matches unless a word that makes a different class
 is among them; a size given twice counts once and several listed sizes need review; and the
-warning gets a second reading by Tesseract. A test makes sure no name from either set is in the
-app's code.
+warning gets a second reading by Tesseract. A test makes sure no name from any set is in code
+written after that set was fetched.
 
-**The fresh set** has fewer false Problems than before the changes (9 against 41), but more
-false passes than the tuning set (6 against 1):
+**The fresh set** had 6 false passes, on 3 labels: an alcohol statement in a form TTB doesn't
+allow ("BY/VOL"), a misspelt warning heading that Claude read spelt correctly, and a front
+label whose net contents contradict the back label's. Two of these gaps were then fixed,
+generally: the alcohol form check for spirits now follows the three formats of 27 CFR
+5.65(b)(2) exactly, and the second reading finds the warning by its text when it can't find the
+heading. (On that label the second reading still can't help: one of Tesseract's passes can't
+read its stylized lettering, and both must agree.)
 
-- An alcohol statement in a form TTB doesn't allow ("BY/VOL") passed the form check. TTB noted it.
-- A misspelt word in a warning's heading: Claude read it spelt correctly, and the second reading
-  didn't run, because it finds the warning by its heading.
-- A front label whose net contents contradict the back label's: Claude read the back label's.
+**The third set** had no false passes, and all 22 planted problems on fields that were fine on
+the unchanged label were shown as Problem. The changed alcohol form check flagged one statement
+without "by" or a slash. Both conditions TTB noted were flagged, for TTB's reasons. Some approved
+labels contain warning-text differences that TTB didn't mention: the tool flagged a space before
+the heading's colon and a missing final period as Check this, but missed square brackets around
+the statement numbers, which Claude read as parentheses. It still shows 9 false Problems:
 
-On another label, Claude read a misspelt word in the warning spelt correctly and the second
-reading caught it. Some approved labels contain warning-text differences that the tool flags,
-including some TTB didn't mention.
+- "1 pint (16 fl oz)" is added up to 2 pints (2 labels): a bug the fresh set found.
+- A country of origin stated only inside the bottler statement ("bottled in Scotland") isn't
+  found (2 labels).
+- A brand isn't found when Claude takes another name for it and the application's brand is under
+  6 letters (so not looked for), written differently on the label, or split across lines (3).
+- Claude read a type word for the class ("Añejo"), and read the line after the warning into it.
 
-**Found by the fresh set.** Two gaps behind false passes were then fixed, generally, after the
-fresh set's run, so the fresh set can't measure them; a third set will:
-
-- The alcohol form check for spirits now follows the three formats of 27 CFR 5.65(b)(2)
-  exactly, so "BY/VOL" needs review.
-- The second reading finds the warning by its text when it can't find the heading. On the label
-  with the misspelt heading, Tesseract's usual pass now reads the misspelling, but its other
-  pass can't read the stylized lettering, and both must agree, so that label is still missed.
-
-Replaying the saved readings through the fixed rules, the 31 samples are unchanged, and on the
-fresh set the false passes go from 6 to 4. These sets were seen before, so that is not an honest
-measure. Not fixed yet:
+**Not fixed, from the fresh and third sets.** Fixing these now would make the third set a tuning
+set too; a fourth set would be needed to measure fixes.
 
 - Bugs: "1 pint (16 fl oz)" is added up to 2 pints; a company name with a digit in it is taken
   for a street address.
-- The second reading can read text beside the warning into it.
+- A country of origin stated only in the bottler statement isn't found.
+- The second reading can read text beside the warning into it, and compares words only, so
+  it can't catch a missing comma or brackets read as parentheses.
 - An alcohol range ("11-14%") is compared as one number.
-- Brands in stylized lettering that neither reader reads are still missed when Claude takes
-  another name for the brand.
+- Brands that neither reader finds as a whole phrase are missed when Claude takes another name
+  for the brand.
+- Claude sometimes reads a type word ("Blanco", "Añejo") as the class, or text next to a field
+  into it.
 
 ## Limits of this evaluation
 
 - **The sample labels are drawn by code,** by the same project that wrote the rules. Real
   labels have curved bottles, foil, embossing, script fonts, and busy artwork. The real labels
   are a check on that, but they are the artwork submitted to TTB, not photos of bottles, and
-  24 fresh labels is a small set.
+  the honest measure rests on one set of 24 labels.
 - **The photo-like labels are simulated** (rotated, skewed, blurred, darkened, with a glare
   spot), not taken with a camera.
 - **The set is small.** No false passes in 217 field results is encouraging, but it does not
@@ -327,7 +335,7 @@ uv run python -m tools.evaluate --url https://... --deployed-as "revision ..., i
 uv run python -m tools.time_live --url https://... --phone  # phone-sized photos, timed
 uv run python -m tools.time_live --url https://... --sample all --runs 2  # every sample, twice
 uv run python -m tools.evaluate --only old-tom-bourbon     # some labels only
-uv run --env-file .env python -m tools.evaluate --cases private/cola-fresh/cases.json  # real labels, kept private
+uv run --env-file .env python -m tools.evaluate --cases private/cola-third/cases.json  # real labels, kept private
 ```
 
 Each run with Claude costs about two cents; against a deployed app, about four, because each

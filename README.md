@@ -68,15 +68,17 @@ An earlier run found one false Problem, on a French wine's importer statement. I
 and checked again. The labels are drawn by code, so this is a first measure, not proof.
 
 **On real approved labels** from TTB's Public COLA Registry (a private test, Oct 20), the honest
-number comes from a fresh set of 24, chosen after the rules were tuned on another 24:
+number comes from a third set of 24, chosen after the rules were changed using two earlier sets:
 
-- 258 of 283 strict field results and 45 of 53 judgment calls were as expected.
-- Every planted problem was flagged, 22 of 24 as Problem.
-- 9 false Problems on fields that are fine, down from 41 on the first set before the changes.
-- **6 false passes**, on 3 labels: an alcohol statement in a form TTB doesn't allow, a misspelt
-  warning heading that Claude read spelt correctly, and a front label whose net contents
-  contradict the back label's. These, and two bugs the fresh set found, are listed but not
-  fixed, so that the fresh set stays an honest measure.
+- 256 of 280 strict field results and 50 of 56 judgment calls were as expected.
+- **No false passes.** Every planted problem was flagged, 23 of 24 as Problem; the other was
+  Check this.
+- 9 false Problems on fields that are fine, against 41 on the first set before the changes.
+  The causes are listed in EVALUATION.md and not fixed, so that the third set stays an honest
+  measure: a net contents bug, a country stated only in the bottler statement, brands that
+  neither reader finds, and two misreadings.
+- Both conditions TTB noted on these approvals, on things the tool checks, were flagged, for
+  TTB's reasons.
 
 See [docs/EVALUATION.md](docs/EVALUATION.md) for the method, the details, and the limits.
 
