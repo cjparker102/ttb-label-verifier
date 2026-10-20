@@ -127,6 +127,33 @@ Since Oct 20, a single check sends the same request a second time when the first
 answered within 4 seconds, and uses whichever answer arrives first. See the live results
 below for what it did.
 
+### Did the statement lists slow the reader? (Oct 20)
+
+The fourth set of real labels had 4 of 48 checks over 5 seconds, against none on the third.
+It was also the first set read since Claude was asked to list every alcohol and net contents
+statement. In the fourth set's run, 8 of 48 checks had no answer after 4 seconds and were
+asked again; its slow checks' token counts are doubled because both requests are paid for,
+which made them look like long readings. Per request, output went from a median of 568
+tokens (third set) to 594.
+
+So the reader was measured with and without the lists, on the same labels: the fourth set's
+24 twice and the 32 samples once, each label read by both, in random order, one request at a
+time, with no second request
+([statement-lists-2026-10-20.md](measurements/statement-lists-2026-10-20.md)).
+
+| | Without lists | With lists |
+|---|---|---|
+| Output tokens, median | 455 | 496 (+41 a label) |
+| Seconds, median / p95 | 2.61 / 3.26 | 2.65 / 3.64 |
+| Paired difference, label by label | | +0.04 s median, +0.14 s mean; slower in 43 of 80 pairs |
+| Requests over 4 seconds | 0 of 80 | 2 of 80 (7.4 s and 4.2 s) |
+
+The lists cost about 40 output tokens and a few hundredths of a second, not the slow checks.
+The two slow requests wrote about 600 tokens, like their pairs, and the same labels with the
+same reader took 2.6 s in the other round; and the fourth set's 24 labels, read again with
+the lists, were slow 2 times in 48 instead of 8. The slow checks were slow answers from the
+AI provider at the time of the run. The lists were kept as they are.
+
 ## On the live app, end to end
 
 The same 31 labels were sent to the deployed app through its web pages
@@ -399,7 +426,9 @@ condition missed. Its 11 false Problems, on 8 labels:
 - A class shorter on the label than in the application ("Stout" for "Stout Ale").
 
 4 of its 48 checks took over 5 seconds (the slowest 7.2 s), against none on the third set; the
-median, 3.0 s, was close to the third set's 2.8 s. No rule was changed because of this set.
+median, 3.0 s, was close to the third set's 2.8 s. The cause was slow answers from the AI
+provider during the run, not the statement lists (see "Did the statement lists slow the
+reader?" above). No rule was changed because of this set.
 
 **Changed afterwards, for a real bottle photo (Oct 20, afternoon).** A photo of a real bottle
 found three things: a warning heading on a line of its own that Claude left out, a fanciful
