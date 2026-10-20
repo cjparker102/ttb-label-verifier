@@ -4,7 +4,7 @@ import csv
 import io
 import re
 import zipfile
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from openpyxl import load_workbook
 
@@ -84,6 +84,42 @@ ALIASES = {tidy_heading(alias): column for column, aliases in COLUMNS.items() fo
 
 def split_file_names(cell: str) -> tuple[str, ...]:
     return tuple(name.strip() for name in re.split(r"[;\n|]", cell) if name.strip())
+
+
+@dataclass(frozen=True)
+class SpreadsheetFile:
+    name: str  # the file name, or its path inside a ZIP or 7z file
+    data: bytes = field(repr=False)
+    archive: str | None = None  # the ZIP or 7z file it was found in
+
+    def __str__(self) -> str:
+        return f'"{self.name}" in {self.archive}' if self.archive else f'"{self.name}"'
+
+
+def choose_spreadsheet(
+    added: SpreadsheetFile | None, found: list[SpreadsheetFile]
+) -> tuple[SpreadsheetFile | None, str | None]:
+    """The batch's spreadsheet: the one added in the spreadsheet box or, if that box was
+    left empty, one found in a ZIP or 7z file of pictures, the first by name. Also a note
+    saying which one was used, whenever one was found in a ZIP or 7z file."""
+    found = sorted(found, key=lambda sheet: (sheet.name.casefold(), sheet.archive or ""))
+    if added is not None:
+        if not found:
+            return added, None
+        return added, f"Spreadsheet used: {added}, the one you added. Not used: {listed(found)}."
+    if not found:
+        return None, None
+    chosen, rest = found[0], found[1:]
+    if not rest:
+        return chosen, f"Spreadsheet used: {chosen}."
+    return chosen, (
+        f"Spreadsheet used: {chosen}, the first by name of the {len(found)} found. "
+        f"Not used: {listed(rest)}."
+    )
+
+
+def listed(sheets: list[SpreadsheetFile]) -> str:
+    return ", ".join(str(sheet) for sheet in sheets)
 
 
 def read_spreadsheet(name: str, data: bytes) -> list[ApplicationRow]:

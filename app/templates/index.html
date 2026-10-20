@@ -39,7 +39,7 @@
   <form method="post" action="/samples/batch" data-busy="Starting the batch…">
     <button type="submit" class="button-secondary">Try a sample batch of all {{ sample_count }} labels</button>
   </form>
-  <p class="sample-files"><a href="/samples/files.zip">Download the sample files</a>: the {{ sample_picture_count }} pictures and their spreadsheet in one ZIP file, to try the upload forms below with real files.</p>
+  <p class="sample-files"><a href="/samples/files.zip">Download the sample files</a>: the {{ sample_picture_count }} pictures and their spreadsheet in one ZIP file, to try the upload forms below with real files. Added on its own under "Check many labels", the ZIP checks every sample.</p>
 </section>
 {% endif %}
 
@@ -91,10 +91,10 @@
     <fieldset>
       <legend>1. Spreadsheet of applications</legend>
       <label for="spreadsheet">CSV or Excel file, one row per application</label>
-      <p class="hint" id="spreadsheet-hint">Columns: file names, beverage type, brand name, class or type, alcohol content, net contents, bottler name and address, country of origin. Separate several file names with a semicolon. <a href="/template.csv">Download a spreadsheet template</a>.</p>
+      <p class="hint" id="spreadsheet-hint">Columns: file names, beverage type, brand name, class or type, alcohol content, net contents, bottler name and address, country of origin. Separate several file names with a semicolon. <a href="/template.csv">Download a spreadsheet template</a>. Or leave this box empty and put the spreadsheet in the ZIP file with the pictures.</p>
       <div class="drop-zone" data-drop-for="spreadsheet">
         <p class="drop-text" aria-hidden="true">Drag the spreadsheet here, or</p>
-        <input type="file" id="spreadsheet" name="spreadsheet" accept=".csv,.xlsx,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" required aria-describedby="spreadsheet-hint">
+        <input type="file" id="spreadsheet" name="spreadsheet" accept=".csv,.xlsx,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" aria-describedby="spreadsheet-hint">
         <p class="chosen-count" data-count-for="spreadsheet" data-none="No spreadsheet chosen yet" data-one="1 spreadsheet chosen" data-many="{n} spreadsheets chosen" hidden>No spreadsheet chosen yet</p>
         <ul class="chosen-files" data-chosen-for="spreadsheet" aria-live="polite"></ul>
       </div>

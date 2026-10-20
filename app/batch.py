@@ -67,6 +67,7 @@ class BatchJob:
     unused_pictures: list[str]
     state: str = "queued"  # queued, running, finished
     finished_at: float | None = None
+    notes: list[str] = field(default_factory=list)  # about the upload, such as which spreadsheet
     work: list[Work] = field(default_factory=list, repr=False)
     task: asyncio.Task | None = field(default=None, repr=False)
 

@@ -4,6 +4,7 @@ Nothing is ever extracted to disk, so a path like "../../evil" could not escape
 anyway; such entries are still refused and reported, so the user knows.
 """
 
+import dataclasses
 import io
 import stat
 import zipfile
@@ -14,6 +15,7 @@ import py7zr.exceptions
 import py7zr.io
 
 from app.intake.images import FORMATS, image_kind
+from app.intake.spreadsheet import SpreadsheetFile
 
 MB = 1024 * 1024
 MAX_ITEMS = 2000  # entries listed in the ZIP, pictures or not
@@ -26,6 +28,7 @@ ARCHIVE_ENDINGS = (".zip", ".7z", ".rar", ".tar", ".gz", ".tgz", ".bz2", ".xz")
 SEVEN_ZIP = b"7z\xbc\xaf\x27\x1c"
 ARCHIVE_SIGNATURES = (b"PK\x03\x04", SEVEN_ZIP, b"Rar!", b"\x1f\x8b")
 CLUTTER = ("__macosx/", ".ds_store", "thumbs.db", "desktop.ini")
+SPREADSHEET_ENDINGS = (".csv", ".xlsx")
 
 
 class ArchiveError(ValueError):
@@ -42,6 +45,8 @@ class Skipped:
 class Unpacked:
     pictures: dict[str, bytes] = field(default_factory=dict)  # by file name, without folders
     skipped: list[Skipped] = field(default_factory=list)
+    # Spreadsheets found in a ZIP or 7z file. One may be the batch's spreadsheet.
+    spreadsheets: list[SpreadsheetFile] = field(default_factory=list)
 
 
 def base_name(path: str) -> str:
@@ -60,7 +65,10 @@ def is_unsafe_path(path: str) -> bool:
 
 def is_clutter(path: str) -> bool:
     lowered = path.replace("\\", "/").casefold()
-    return any(marker in lowered for marker in CLUTTER) or base_name(lowered).startswith("._")
+    # "._" files are Mac file details; "~$" files are Office's lock files.
+    return any(marker in lowered for marker in CLUTTER) or base_name(lowered).startswith(
+        ("._", "~$")
+    )
 
 
 def is_link(entry: zipfile.ZipInfo) -> bool:
@@ -133,6 +141,8 @@ def keep(unpacked: Unpacked, seen: set[str], path: str, content: bytes, kind: st
         unpacked.skipped.append(
             Skipped(path, f"Larger than {MAX_PICTURE_BYTES // MB} MB when unpacked.")
         )
+    elif name.casefold().endswith(SPREADSHEET_ENDINGS):  # before the archive check: .xlsx is a ZIP
+        unpacked.spreadsheets.append(SpreadsheetFile(path, content))
     elif content.startswith(ARCHIVE_SIGNATURES):
         unpacked.skipped.append(Skipped(path, NESTED))
     elif image_kind(content) is None:
@@ -259,7 +269,8 @@ def unpack_7z(data: bytes) -> Unpacked:
 
 
 def collect_pictures(files: list[tuple[str, bytes]]) -> Unpacked:
-    """Gather the pictures from a batch upload: loose pictures, ZIP or 7z files, or both."""
+    """Gather the pictures from a batch upload: loose pictures, ZIP or 7z files, or both.
+    Spreadsheets inside ZIP or 7z files are gathered too."""
     collected = Unpacked()
     seen: set[str] = set()
 
@@ -278,6 +289,9 @@ def collect_pictures(files: list[tuple[str, bytes]]) -> Unpacked:
         if is_zip or is_7z:
             unpacked = unpack_zip(data) if is_zip else unpack_7z(data)
             collected.skipped += [Skipped(f"{name}: {s.name}", s.reason) for s in unpacked.skipped]
+            collected.spreadsheets += [
+                dataclasses.replace(sheet, archive=name) for sheet in unpacked.spreadsheets
+            ]
             for inner, content in unpacked.pictures.items():
                 add(inner, content, f"{name}: {inner}")
         elif image_kind(data):

@@ -43,6 +43,35 @@ def test_system_clutter_is_skipped_and_listed():
     assert set(reasons(unpacked)) == {"__MACOSX/._front.png", ".DS_Store"}
 
 
+def test_spreadsheets_are_kept_apart_from_the_pictures():
+    xlsx = make_zip(("[Content_Types].xml", b"<Types/>"))  # an .xlsx file is a ZIP inside
+    unpacked = unpack_zip(
+        make_zip(("front.png", PNG), ("batch/applications.csv", b"a,b\n"), ("Book.XLSX", xlsx))
+    )
+    assert list(unpacked.pictures) == ["front.png"]
+    assert [(sheet.name, sheet.data) for sheet in unpacked.spreadsheets] == [
+        ("batch/applications.csv", b"a,b\n"),
+        ("Book.XLSX", xlsx),  # not taken for an archive inside the archive
+    ]
+    assert unpacked.skipped == []
+
+
+def test_office_lock_files_are_clutter():
+    unpacked = unpack_zip(make_zip(("~$applications.xlsx", b"lock"), ("front.png", PNG)))
+    assert unpacked.spreadsheets == []
+    assert reasons(unpacked) == {"~$applications.xlsx": "A system file, not a picture."}
+
+
+def test_a_batch_remembers_which_archive_each_spreadsheet_came_from():
+    collected = archives.collect_pictures(
+        [("one.zip", make_zip(("a.csv", b"x"))), ("two.zip", make_zip(("b.csv", b"y")))]
+    )
+    assert [str(sheet) for sheet in collected.spreadsheets] == [
+        '"a.csv" in one.zip',
+        '"b.csv" in two.zip',
+    ]
+
+
 def test_files_that_are_not_pictures_are_judged_by_content():
     unpacked = unpack_zip(make_zip(("notes.png", b"just some text"), ("real.dat", PNG)))
     assert list(unpacked.pictures) == ["real.dat"]

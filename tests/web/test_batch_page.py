@@ -3,6 +3,7 @@
 import asyncio
 import io
 import json
+import re
 import threading
 import time
 import zipfile
@@ -185,14 +186,100 @@ def test_unusable_uploads_say_why(client, spreadsheet, pictures, message):
     assert message in response.text
 
 
+NO_SPREADSHEET = "Add the spreadsheet of applications, or put it in the ZIP file with the pictures."
+
+
 def test_missing_spreadsheet_or_pictures(client):
     use_reader(ReplayReader())
     response = client.post(
         "/batches", files=[("pictures", ("a.zip", samples_zip(), "application/zip"))]
     )
-    assert "Add the spreadsheet of applications." in response.text
+    assert response.status_code == 422
+    assert NO_SPREADSHEET in response.text  # none in the box, and none in the ZIP file
     response = client.post("/batches", files=[("spreadsheet", ("a.csv", SPREADSHEET, "text/csv"))])
     assert "Add the label pictures, or a ZIP file of them." in response.text
+    assert NO_SPREADSHEET not in response.text
+    response = client.post("/batches", files=[("other", ("x.txt", b"x", "text/plain"))])
+    assert NO_SPREADSHEET in response.text
+    assert "Add the label pictures, or a ZIP file of them." in response.text
+
+
+def test_the_spreadsheet_box_may_be_left_empty(client):
+    page = client.get("/").text
+    box = re.search(r'<input type="file" id="spreadsheet"[^>]*>', page).group(0)
+    assert "required" not in box  # the browser lets the form go with only a ZIP file
+    assert "Or leave this box empty and put the spreadsheet in the ZIP file" in page
+
+
+def notes_on(client, response) -> list[str]:
+    assert response.status_code == 303
+    url = response.headers["location"]
+    wait_until_finished(client, url)
+    return app.state.batches.get(url.rsplit("/", 1)[-1]).notes
+
+
+def test_a_spreadsheet_inside_the_zip_is_used_when_the_box_is_empty(client):
+    use_reader(ReplayReader())
+    archive = samples_zip(extra=[("batch/applications.csv", SPREADSHEET)])
+    response = client.post(
+        "/batches",
+        files=[("pictures", ("labels.zip", archive, "application/zip"))],
+        follow_redirects=False,
+    )
+    job = app.state.batches.get(response.headers["location"].rsplit("/", 1)[-1])
+    assert notes_on(client, response) == [
+        'Spreadsheet used: "batch/applications.csv" in labels.zip.'
+    ]
+    assert job.total == len(EXPECTED)
+    assert all(item.outcome is not None for item in job.items)
+    assert job.skipped_files == []  # the spreadsheet isn't listed as a skipped picture
+    page = " ".join(client.get(response.headers["location"]).text.split())
+    assert "Spreadsheet used: &#34;batch/applications.csv&#34; in labels.zip." in page
+
+
+def test_with_several_spreadsheets_in_the_zip_the_first_by_name_is_used(client):
+    use_reader(ReplayReader())
+    one_row = SPREADSHEET.split(b"\n", 2)
+    archive = samples_zip(
+        extra=[("b/more.csv", one_row[0] + b"\n" + one_row[1]), ("a/all.csv", SPREADSHEET)]
+    )
+    response = start_with_pictures_only(client, archive)
+    assert notes_on(client, response) == [
+        'Spreadsheet used: "a/all.csv" in labels.zip, the first by name of the 2 found. '
+        'Not used: "b/more.csv" in labels.zip.'
+    ]
+    job = app.state.batches.get(response.headers["location"].rsplit("/", 1)[-1])
+    assert job.total == len(EXPECTED)  # every row of a/all.csv, not the one row of b/more.csv
+
+
+def test_the_spreadsheet_in_the_box_wins_over_one_in_the_zip(client):
+    use_reader(ReplayReader())
+    one_row = b"\n".join(SPREADSHEET.split(b"\n", 2)[:2])
+    archive = samples_zip(extra=[("applications.csv", SPREADSHEET)])
+    response = start(client, spreadsheet=one_row, pictures=archive)
+    assert notes_on(client, response) == [
+        'Spreadsheet used: "applications.csv", the one you added. '
+        'Not used: "applications.csv" in labels.zip.'
+    ]
+    job = app.state.batches.get(response.headers["location"].rsplit("/", 1)[-1])
+    assert job.total == 1
+
+
+def test_a_broken_spreadsheet_in_the_zip_is_named(client):
+    use_reader(ReplayReader())
+    archive = samples_zip(extra=[("applications.csv", b"just,some\nwords,here\n")])
+    response = start_with_pictures_only(client, archive)
+    assert response.status_code == 422
+    assert "The spreadsheet needs a column for" in response.text
+    assert "Spreadsheet used: &#34;applications.csv&#34; in labels.zip." in response.text
+
+
+def start_with_pictures_only(client, archive):
+    return client.post(
+        "/batches",
+        files=[("pictures", ("labels.zip", archive, "application/zip"))],
+        follow_redirects=False,
+    )
 
 
 def test_batch_limits_are_enforced(client):

@@ -23,7 +23,14 @@ from app.export import results_workbook
 from app.intake.archives import MAX_PICTURES, ArchiveError, Skipped, collect_pictures
 from app.intake.images import ACCEPT, FORMATS, shrink_to_jpeg
 from app.intake.matching import match_rows
-from app.intake.spreadsheet import HEADINGS, ApplicationRow, SpreadsheetError, read_spreadsheet
+from app.intake.spreadsheet import (
+    HEADINGS,
+    ApplicationRow,
+    SpreadsheetError,
+    SpreadsheetFile,
+    choose_spreadsheet,
+    read_spreadsheet,
+)
 from app.limits import Limits, RequestSizeLimit, SecurityHeaders, how_long, visitor_id
 from app.presenting import (
     BEVERAGE_CHOICES,
@@ -79,6 +86,7 @@ def can_read(reader: LabelReader | None) -> bool:
 
 NOT_SET_UP = "The label reader is not set up on this server. Please tell the administrator."
 COULD_NOT_READ = "The label could not be read just now. Please try again in a moment."
+NO_SPREADSHEET = "Add the spreadsheet of applications, or put it in the ZIP file with the pictures."
 
 
 def too_big(size: int, cap: int) -> str:
@@ -262,11 +270,12 @@ async def start_batch(request: Request, reader: Annotated[LabelReader | None, De
         return page(request, 422, errors=[f"Please send no more than {MAX_PICTURES} pictures."])
 
     sheet = form.get("spreadsheet")
+    has_sheet = isinstance(sheet, UploadFile) and bool(sheet.filename)
     uploads = [f for f in form.getlist("pictures") if isinstance(f, UploadFile) and f.filename]
     errors = []
-    if not isinstance(sheet, UploadFile) or not sheet.filename:
-        errors.append("Add the spreadsheet of applications.")
     if not uploads:
+        if not has_sheet:  # and no ZIP file it could be in
+            errors.append(NO_SPREADSHEET)
         errors.append("Add the label pictures, or a ZIP file of them.")
     if not can_read(reader):
         errors.append(NOT_SET_UP)
@@ -274,17 +283,26 @@ async def start_batch(request: Request, reader: Annotated[LabelReader | None, De
         await form.close()
         return page(request, 422, errors=errors)
 
+    note = None
     try:
-        rows = read_spreadsheet(sheet.filename, await sheet.read())
+        # A spreadsheet in its own box is read first, so a mistake in it shows at once.
+        added = SpreadsheetFile(sheet.filename, await sheet.read()) if has_sheet else None
+        rows = read_spreadsheet(added.name, added.data) if added else None
         files = [(upload.filename, await upload.read()) for upload in uploads]
         await form.close()
         collected = await asyncio.to_thread(collect_pictures, files)
+        chosen, note = choose_spreadsheet(added, collected.spreadsheets)
+        if chosen is None:
+            return page(request, 422, errors=[NO_SPREADSHEET])
+        if rows is None:
+            rows = read_spreadsheet(chosen.name, chosen.data)
     except (SpreadsheetError, ArchiveError) as error:
         await form.close()
-        return page(request, 422, errors=[str(error)])
+        return page(request, 422, errors=[str(error), *([note] if note else [])])
     del files
 
-    return await start_job(request, reader, rows, collected.pictures, collected.skipped)
+    notes = [note] if note else []
+    return await start_job(request, reader, rows, collected.pictures, collected.skipped, notes)
 
 
 async def start_job(
@@ -293,10 +311,12 @@ async def start_job(
     rows: list[ApplicationRow],
     batch_pictures: dict[str, bytes],
     skipped: list[Skipped],
+    notes: list[str] | None = None,
 ):
     """Start a batch and go to its page. Shared by uploads and the sample batch."""
     matched, unused = match_rows(rows, batch_pictures)
     job = new_job(matched, skipped, unused)
+    job.notes = notes or []
     if job.work:
         # Pictures wait in memory until their label is checked, so there is a cap on
         # how much all batches together may hold. Checked first, so that a batch turned

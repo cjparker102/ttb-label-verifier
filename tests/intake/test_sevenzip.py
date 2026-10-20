@@ -94,6 +94,12 @@ def test_a_damaged_7z_file():
         unpack_7z(b"7z\xbc\xaf\x27\x1c not really")
 
 
+def test_spreadsheets_in_7z_files_are_kept_apart_from_the_pictures():
+    unpacked = unpack_7z(make_7z(("front.png", PNG), ("applications.csv", b"a,b\n" * 20)))
+    assert list(unpacked.pictures) == ["front.png"]
+    assert [sheet.name for sheet in unpacked.spreadsheets] == ["applications.csv"]
+
+
 def test_a_batch_can_include_7z_files():
     collected = collect_pictures([("labels.7z", make_7z(("front.png", PNG))), ("back.jpg", JPEG)])
     assert collected.pictures == {"front.png": PNG, "back.jpg": JPEG}

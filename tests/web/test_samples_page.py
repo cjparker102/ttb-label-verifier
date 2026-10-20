@@ -167,19 +167,17 @@ def test_the_downloaded_files_go_through_the_upload_form(client):
     assert (job.skipped_files, job.unused_pictures) == ([], [])
 
 
-def test_the_download_itself_can_be_sent_as_the_pictures(client):
+def test_the_download_on_its_own_is_a_whole_batch(client):
     use_reader(ReplayReader())
     download = client.get("/samples/files.zip").content
-    sheet = (SAMPLES_DIR / "applications.csv").read_bytes()
-    files = [
-        ("spreadsheet", ("applications.csv", sheet, "text/csv")),
-        ("pictures", ("ttb-sample-labels.zip", download, "application/zip")),
-    ]
+    files = [("pictures", ("ttb-sample-labels.zip", download, "application/zip"))]
     job = finished_job(client, client.post("/batches", files=files, follow_redirects=False))
+    assert job.total == len(EXPECTED)
     assert all(item.state == ItemState.DONE for item in job.items)
-    # The spreadsheet inside the ZIP isn't a picture, so it is listed as skipped.
-    skipped = [skipped.name for skipped in job.skipped_files]
-    assert skipped == ["ttb-sample-labels.zip: ttb-sample-labels/applications.csv"]
+    assert job.notes == [
+        'Spreadsheet used: "ttb-sample-labels/applications.csv" in ttb-sample-labels.zip.'
+    ]
+    assert job.skipped_files == []
 
 
 def test_changed_warning_wording_shows_track_changes(client):

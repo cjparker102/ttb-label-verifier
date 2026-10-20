@@ -198,6 +198,10 @@ comes out as "Check this", never as "Matches".
 
 A batch is a CSV or Excel spreadsheet with one row per application, plus the pictures, or ZIP
 or 7z files of them. Rows are matched to pictures by file name, ignoring folders and capitals.
+The spreadsheet may also come inside the ZIP or 7z file: if the spreadsheet box is left
+empty, a spreadsheet found there is used, the first by name if there are several. Whenever a
+spreadsheet is found in a ZIP or 7z file, the results page says which one was used and which
+were not; one added in the spreadsheet box always wins.
 Labels are checked in the background, eight at a time, while the page shows progress, with
 problems first.
 

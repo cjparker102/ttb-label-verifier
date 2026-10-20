@@ -3,7 +3,13 @@ import io
 import pytest
 from openpyxl import Workbook
 
-from app.intake.spreadsheet import MAX_ROWS, SpreadsheetError, read_spreadsheet
+from app.intake.spreadsheet import (
+    MAX_ROWS,
+    SpreadsheetError,
+    SpreadsheetFile,
+    choose_spreadsheet,
+    read_spreadsheet,
+)
 from app.rules.application import BeverageType
 from tools.make_samples import PHOTOS, SAMPLES, SAMPLES_DIR
 
@@ -169,3 +175,39 @@ def test_spreadsheet_file_size_is_capped(monkeypatch):
     monkeypatch.setattr(spreadsheet, "MAX_BYTES", 100)
     with pytest.raises(SpreadsheetError, match="larger than"):
         read_spreadsheet("batch.csv", csv_bytes([HEADINGS, OLD_TOM]))
+
+
+ADDED = SpreadsheetFile("mine.csv", b"added")
+IN_ZIP = SpreadsheetFile("batch/apps.csv", b"zipped", "labels.zip")
+ANOTHER = SpreadsheetFile("Apps-old.xlsx", b"older", "labels.zip")
+
+
+def test_the_spreadsheet_box_alone_needs_no_note():
+    assert choose_spreadsheet(ADDED, []) == (ADDED, None)
+
+
+def test_with_the_box_empty_the_spreadsheet_in_the_zip_is_used_and_named():
+    assert choose_spreadsheet(None, [IN_ZIP]) == (
+        IN_ZIP,
+        'Spreadsheet used: "batch/apps.csv" in labels.zip.',
+    )
+
+
+def test_of_several_in_the_zip_the_first_by_name_is_used_and_the_rest_named():
+    assert choose_spreadsheet(None, [IN_ZIP, ANOTHER]) == (
+        ANOTHER,  # "Apps-old.xlsx" comes before "batch/apps.csv", ignoring capitals
+        'Spreadsheet used: "Apps-old.xlsx" in labels.zip, the first by name of the 2 found. '
+        'Not used: "batch/apps.csv" in labels.zip.',
+    )
+
+
+def test_the_spreadsheet_box_wins_and_the_note_names_what_was_not_used():
+    assert choose_spreadsheet(ADDED, [IN_ZIP, ANOTHER]) == (
+        ADDED,
+        'Spreadsheet used: "mine.csv", the one you added. '
+        'Not used: "Apps-old.xlsx" in labels.zip, "batch/apps.csv" in labels.zip.',
+    )
+
+
+def test_no_spreadsheet_anywhere():
+    assert choose_spreadsheet(None, []) == (None, None)

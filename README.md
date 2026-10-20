@@ -83,7 +83,8 @@ reading (OCR) only.
 
 To try a batch, use "Try a sample batch", or upload `samples/applications.csv` and the
 pictures in `samples/labels/`. On the home page, "Download the sample files" gives the same
-files as one ZIP.
+files as one ZIP, which also works as a whole batch on its own: when the spreadsheet box is
+left empty, a spreadsheet inside the ZIP is used.
 
 ## Settings
 

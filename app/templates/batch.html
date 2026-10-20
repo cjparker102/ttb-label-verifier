@@ -7,6 +7,9 @@
 {% block main %}
 <section class="results" aria-labelledby="batch-heading" id="batch" data-job="{{ job_id }}" data-state="{{ state }}">
   <h1 id="batch-heading">Batch results</h1>
+  {% for note in notes %}
+  <div class="notice" role="note"><p>{{ note }}</p></div>
+  {% endfor %}
   <p class="visually-hidden" id="batch-announce" aria-live="polite"></p>
   <div id="batch-results">
     {% include "_batch_results.html" %}

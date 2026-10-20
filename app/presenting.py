@@ -280,6 +280,7 @@ def batch_view(job: BatchJob) -> dict:
         "items": items if finished else [v for v in items if v["kind"] not in ("pass", "waiting")],
         "passed_so_far": count["pass"],
         "read_by_ocr": sum(1 for view in items if view["read_by_ocr"]),
+        "notes": job.notes,
         "skipped": job.skipped_files,
         "unused": job.unused_pictures,
     }
