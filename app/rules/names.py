@@ -122,6 +122,61 @@ def check_class(application: str, label: FieldReading) -> Check:
     )
 
 
+def class_elsewhere(
+    application: str, label: FieldReading, ocr: Passes | None
+) -> tuple[Check, FieldReading] | None:
+    """When the class or type doesn't match, the application's whole class or type, if
+    Tesseract found it elsewhere on the label, outside the warning: the AI reader can take a
+    fanciful name for the class when the class is printed small, on the back. The check, and
+    the class as found, which the TTB rules then use in place of the fanciful name. A short
+    class, which a common word could match by accident, or one with a word beside it that can
+    make it a different class, needs review."""
+    said = tidy(application)
+    wanted = name_words(said)
+    if not wanted:
+        return None
+    shown = tidy(label.text or "")
+    took = (
+        f'The AI reader took "{shown}" for the class or type, but the application\'s "{said}" '
+        "is also on the label"
+        if not is_missing(label)
+        else f'The application\'s class or type, "{said}", is on the label'
+    )
+    for number, passes in enumerate(ocr or [], start=1):
+        for words in passes:
+            page = without_warning(name_words(" ".join(word.text for word in words)))
+            start = find_words(wanted, page)
+            if start is None:
+                continue
+            found = FieldReading(
+                text=said, readability="clear", image_number=number, english_meaning=None
+            )
+            where = f"on image {number}, found by basic text reading"
+            beside = (
+                page[max(0, start - 2) : start]
+                + page[start + len(wanted) : start + len(wanted) + 2]
+            )
+            changing = [word for word in beside if word in CLASS_CHANGING]
+            if changing:
+                check = Check(
+                    Status.REVIEW,
+                    f'{took}, {where}, beside "{" ".join(changing)}", which can make it a '
+                    "different class or type. Please check.",
+                )
+            elif len("".join(wanted)) < SEARCHED_BRAND:
+                check = Check(
+                    Status.REVIEW,
+                    f"{took}, {where}. It is short, so it could be another word. Please check "
+                    "it is the class or type.",
+                )
+            else:
+                check = Check(
+                    Status.PASS, f"{took}, {where}.", note=f"Matches, found on image {number}"
+                )
+            return check, found
+    return None
+
+
 # The application's brand is looked for elsewhere on the label only if it has at least
 # this many letters and digits, so a short common word can't match by accident.
 SEARCHED_BRAND = 6

@@ -86,8 +86,18 @@ def test_needs_review(application, label):
 
 
 def test_label_may_leave_out_alcohol_when_rules_allow_it():
+    assert check_alcohol("", read(None), optional_on_label=True).status == Status.NOT_NEEDED
+
+
+def test_an_alcohol_content_in_the_application_but_not_found_needs_review_even_if_optional():
+    # Found replaying a real label: a table wine's statement, a range on the back label, was
+    # missed by the AI reader. Leaving it out is legal, but it may be printed (Oct 20, 2026).
     result = check_alcohol("12%", read(None), optional_on_label=True)
-    assert result.status == Status.NOT_NEEDED
+    assert result.status == Status.REVIEW
+    assert result.reason == (
+        'The application says "12%", but no alcohol content was found on the label. This '
+        "label may leave it out. Please check."
+    )
 
 
 # A range is never treated as one number (ChatGPT review, Oct 20, 2026).

@@ -109,6 +109,13 @@ All rules are in `app/rules/`, and each has its own tests.
     include one that makes a different class or type in TTB's standards of identity, such as
     "Flavored" (Vodka and Flavored Vodka), "Straight", "Sparkling", or "Non-Alcoholic", it
     needs review. The words come from 27 CFR 4.21, 5.142, 5.143, 5.150, and 7.65.
+  - If the class Claude read still doesn't match, the application's whole class or type is
+    looked for in Tesseract's reading of each picture, leaving out the warning, as for the
+    brand: a real bottle photo printed "WINE SPECIALTY" small on the back, and Claude took the
+    fanciful name on the front for the class. Found, it matches ("Matches, found on image 2"),
+    and every rule then uses it in place of what Claude read, so "Red Table Wine" found there
+    may still leave out the alcohol content. A class under 6 letters (a common word could
+    match by accident), or one beside a word that makes a different class, needs review.
   - For the bottler or importer, the company name, city, and state are compared, not the
     exact words, because real labels write them in many ways. These match, with the note
     "Matches, written differently": "LLC", "Inc.", or "Co." left out or written another way,
@@ -161,6 +168,13 @@ up to date as of Oct 15, 2026). The rules differ by beverage type:
     corrected when new labels are printed. So the tool flags them for a person to look at,
     rather than calling them a Problem. A changed, missing, or misspelt word is still a Problem.
   - "GOVERNMENT WARNING" must be in capitals, or it fails.
+  - A heading printed apart from the rest, larger or on a line of its own, can be left out
+    by Claude, which then reads the warning from "(1)" on (found on a real bottle photo). The
+    heading then counts as present if it was seen anyway: in another field of Claude's
+    reading, or by Tesseract on a picture. Its capitals are checked as seen, but a heading
+    Tesseract read in other letters needs review, not a Problem, since Tesseract can misread
+    a letter's case. If the heading wasn't seen, the warning needs review: a missing heading
+    alone is never a Problem. The rest of the warning is still checked word for word.
   - It must look bold, and the rest must not. Bold can't be confirmed from a photo, so
     anything short of a clear yes needs review.
   - **A second reading.** Claude can read a warning as it should be rather than as printed:
@@ -176,13 +190,15 @@ up to date as of Oct 15, 2026). The rules differ by beverage type:
     with small print or stylized lettering on real labels, or Tesseract isn't done 1 second
     after Claude, there is no second reading.
     In a batch, Tesseract reads only the picture with the warning, after Claude, so the warning
-    gets the same second reading at less cost; the brand is then looked for on that picture
-    only.
+    gets the same second reading at less cost; the brand, the class, and a heading Claude left
+    out are then looked for on that picture only.
 - **Alcohol content:**
   - Distilled spirits must state it (5.63(a)(3)).
   - Wine must state it unless it is "table" or "light" wine at 14% or less (4.36(a)).
   - Malt beverages need it only when alcohol comes from added flavors (7.63(a)(3)). The
     application doesn't say, so beer may leave it out.
+  - When a label may leave it out but the application states one and none is found, it needs
+    review rather than "Not needed": it may be printed where it wasn't read.
   - It must use an allowed form, such as "40% alc/vol" (5.65(b), 4.36(b), 7.65(b)). Proof
     alone is not enough. For spirits, the statement must be one of the three formats of
     5.65(b)(2): "Alcohol __ percent by volume", "__ percent alcohol by volume", or "Alcohol by
@@ -190,6 +206,9 @@ up to date as of Oct 15, 2026). The rules differ by beverage type:
     between alcohol and volume, and parentheses. So "Alc. 43% by/vol." and "40% Alc. Vol."
     need review; TTB asked for such a statement to be changed on an approved label. For wine
     and beer, the words for alcohol and volume and a percentage are enough, for now.
+  - The form can only be judged on the whole statement. On a real bottle photo printed "ALC.
+    5% BY VOL", Claude read "5% BY VOL", which then needed review. So Claude is told to copy
+    every word printed before and after the number, such as "ALC." or "BY VOL".
 - **Net contents:**
   - Spirits and wine use metric units (5.70(a), 4.37(a)). Beer uses US units (7.70).
   - Spirits and wine must be one of the authorized container sizes (5.203, 4.72). These

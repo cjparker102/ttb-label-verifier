@@ -14,10 +14,12 @@ The other goal is speed: the interviews asked for a result in about 5 seconds.
 
 ## The test labels
 
-There are 31 labels in `samples/`, drawn by `tools/make_samples.py` with made-up brands:
+There are 32 labels in `samples/`, drawn by `tools/make_samples.py` with made-up brands:
 
-- **23 clean labels.** Three have nothing wrong. The others each plant one or more known
-  problems, covering every rule:
+- **24 clean labels.** Four have nothing wrong; one of these, added on Oct 20, copies three
+  things a real bottle photo tripped over (a fanciful name larger than the brand with the
+  class small on the back, the warning's heading on a line of its own, and "ALC." before the
+  alcohol figure). The others each plant one or more known problems, covering every rule:
   - Mismatches: alcohol content, net contents, proof that doesn't fit the ABV.
   - Names: brand in capitals, accents, a brand in Japanese script against a romanized
     application.
@@ -30,7 +32,7 @@ There are 31 labels in `samples/`, drawn by `tools/make_samples.py` with made-up
 - **8 photo-like versions** of clean labels: tilted, at an angle, blurry, dim, with glare, and
   from far away.
 
-`samples/expected.json` holds the expected result for every field of every label (217 field
+`samples/expected.json` holds the expected result for every field of every label (224 field
 results in all), and what was planted, in plain words. It was written when the samples were
 drawn, before any evaluation ran.
 

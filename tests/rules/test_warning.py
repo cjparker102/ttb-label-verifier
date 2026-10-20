@@ -8,8 +8,10 @@ from app.rules.warning import (
     WARNING_TEXT_RULE,
     check_second_reading,
     check_warning,
+    heading_elsewhere,
 )
 from tests.rules.helpers import read_warning
+from tests.stand_ins import perfect_reading
 
 BODY = GOVERNMENT_WARNING.removeprefix("GOVERNMENT WARNING: ")
 
@@ -254,3 +256,85 @@ def test_a_warning_without_its_heading_is_still_compared():
 
 def test_a_few_words_alike_by_chance_dont_place_the_warning():
     assert second_reading(passes("Drink responsibly", "risk of the night")) is None
+
+
+# Found by a real photo of a bottle: the heading was printed apart from the rest, and the AI
+# reader read the warning from "(1)" on. A heading seen elsewhere counts as present, and a
+# missing heading alone is never a Problem.
+
+FROM_THE_BODY = BODY  # "(1) According to the Surgeon General, ..."
+
+
+def label_reading(warning_text, **other_fields):
+    """A whole reading, with the warning on image 2 and any other fields as given."""
+    truth = PRINTED | {
+        name: {"text": text, "image_number": 1} for name, text in other_fields.items()
+    }
+    warning = {"text": warning_text, "image_number": 2, "heading_bold": True}
+    return perfect_reading(truth | {"government_warning": warning})
+
+
+PRINTED = {
+    "brand_name": {"text": "QUILLMERE", "image_number": 1},
+    "class_type": {"text": "Red Wine", "image_number": 1},
+    "alcohol_content": {"text": "Alc. 12% by vol.", "image_number": 1},
+    "net_contents": {"text": "750 mL", "image_number": 1},
+    "bottler_name_address": {"text": "Bottled by QuillMere Cellars, Napa, CA", "image_number": 2},
+    "country_of_origin": {"text": None, "image_number": None},
+}
+
+
+def test_a_warning_read_without_its_heading_needs_review_not_a_problem():
+    checks = check_warning(read_warning(FROM_THE_BODY))
+    assert worst(statuses(checks)) == Status.REVIEW
+    assert Status.FAIL not in statuses(checks)
+    assert any('without its heading, "GOVERNMENT WARNING:"' in c.reason for c in checks)
+    assert not any("capital letters." in c.reason for c in checks)  # capitals unknown
+
+
+def test_other_differences_in_a_warning_read_without_its_heading_still_fail():
+    checks = check_warning(read_warning(MISSPELT.removeprefix("GOVERNMENT WARNING: ")))
+    assert checks[0].status == Status.FAIL and "pregnacy" in checks[0].reason
+
+
+def test_a_heading_found_by_basic_text_reading_counts_as_present():
+    reading = label_reading(FROM_THE_BODY)
+    ocr = [[[]], [[Word(w, 0, 0, 10, 10) for w in "GOVERNMENT WARNING: (1) According".split()]]]
+    seen = heading_elsewhere(reading, ocr)
+    assert seen.text == "GOVERNMENT WARNING" and seen.by_text_reading
+    checks = check_warning(reading.government_warning, None, seen)
+    assert worst(statuses(checks)) == Status.PASS
+    assert "on image 2, found by basic text reading, so it counts as present" in checks[1].reason
+
+
+def test_a_heading_the_ai_reader_put_in_another_field_counts_as_present():
+    reading = label_reading(FROM_THE_BODY, bottler_name_address="Bottled by X GOVERNMENT WARNING:")
+    seen = heading_elsewhere(reading, None)
+    assert seen.where == "in the AI reader's bottler statement" and not seen.by_text_reading
+    assert worst(statuses(check_warning(reading.government_warning, None, seen))) == Status.PASS
+
+
+def test_a_heading_seen_elsewhere_must_still_be_in_capitals():
+    by_ai = label_reading(FROM_THE_BODY, class_type="Red Wine Government Warning")
+    checks = check_warning(by_ai.government_warning, None, heading_elsewhere(by_ai, None))
+    assert worst(statuses(checks)) == Status.FAIL
+    # Tesseract can misread a letter's case, so what it read needs review instead.
+    reading = label_reading(FROM_THE_BODY)
+    ocr = [[[Word("Government", 0, 0, 9, 9), Word("Warning:", 0, 0, 9, 9)]]]
+    checks = check_warning(reading.government_warning, None, heading_elsewhere(reading, ocr))
+    assert worst(statuses(checks)) == Status.REVIEW
+    assert 'read the heading as "Government Warning"' in checks[-3].reason
+
+
+def test_no_heading_is_looked_for_when_the_warning_has_one():
+    assert heading_elsewhere(label_reading(GOVERNMENT_WARNING), None) is None
+    # A heading missing a word is a misprint, not a heading printed apart.
+    assert heading_elsewhere(label_reading("WARNING: " + BODY), None) is None
+    assert worst(statuses(check_warning(read_warning("WARNING: " + BODY)))) == Status.FAIL
+
+
+def test_the_second_reading_compares_the_warning_with_its_heading():
+    # Tesseract read the heading the AI reader left out: not a difference between them.
+    ocr = passes(GOVERNMENT_WARNING, GOVERNMENT_WARNING)
+    checks = check_warning(read_warning(FROM_THE_BODY), ocr)
+    assert not any(c.reason.startswith("Two readings") for c in checks)

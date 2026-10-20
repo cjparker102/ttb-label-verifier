@@ -73,6 +73,7 @@ class Warning:
     body: str = WARNING_BODY
     heading_bold: bool = True
     size: int = 40
+    heading_apart: bool = False  # the heading larger, centered on a line of its own
 
 
 @dataclass
@@ -789,6 +790,60 @@ SAMPLES = [
         ],
         expected={**all_pass(), "country_of_origin": "pass"},
     ),
+    Sample(
+        id="vesperly-wine-specialty",
+        title="Fanciful name in front, class on the back",
+        planted="Nothing wrong. It copies three things a real bottle photo tripped over: a "
+        "fanciful name larger than the brand, with the class printed small on the back; the "
+        'warning\'s heading on a line of its own; and "ALC." before the alcohol figure.',
+        beverage_type="Wine",
+        application=application_data(
+            "VESPERLY",
+            "Wine Specialty",
+            "5%",
+            "750 mL",
+            "Vesperly Cellars, Harlow Springs, California",
+        ),
+        panels=[
+            Panel(
+                [
+                    Space(300),
+                    Text("VESPERLY", 110, "serif", "brand_name", gap=60),
+                    Text("MOONLIT BRAMBLE", 190, "serif-bold", gap=500),
+                    Text("ALC. 5% BY VOL", 80, "sans", "alcohol_content", gap=60),
+                    Text("750 mL", 85, "sans-bold", "net_contents"),
+                ],
+                suffix="front",
+                paper="#f3eef6",
+                ink="#2e1f3d",
+            ),
+            Panel(
+                [
+                    Space(250),
+                    Text(
+                        "A light, sweet wine with a taste of ripe blackberries. Best served "
+                        "chilled.",
+                        58,
+                        "serif",
+                        gap=200,
+                    ),
+                    Text("WINE SPECIALTY", 50, "sans", "class_type", gap=60),
+                    Text(
+                        "Produced and bottled by Vesperly Cellars, Harlow Springs, California",
+                        50,
+                        "sans",
+                        "bottler_name_address",
+                        gap=200,
+                    ),
+                    Warning(heading_apart=True),
+                ],
+                suffix="back",
+                paper="#f3eef6",
+                ink="#2e1f3d",
+            ),
+        ],
+        expected=all_pass(class_type="pass_with_note"),  # in capitals on the label
+    ),
 ]
 
 
@@ -959,7 +1014,20 @@ def draw_panel(panel: Panel) -> Image.Image:
         else:
             heading_font = font("condensed-bold" if block.heading_bold else "condensed", block.size)
             body_font = font("condensed", block.size)
-            words = [(word, heading_font) for word in block.heading.split(" ")]
+            if block.heading_apart:
+                big = font(
+                    "condensed-bold" if block.heading_bold else "condensed", block.size * 3 // 2
+                )
+                draw.text(
+                    (MARGIN + (text_width - big.getlength(block.heading)) / 2, y),
+                    block.heading,
+                    font=big,
+                    fill=panel.ink,
+                )
+                y += block.size * 3
+                words = []
+            else:
+                words = [(word, heading_font) for word in block.heading.split(" ")]
             words += [(word, body_font) for word in block.body.split(" ")]
             centered, gap = False, 0
         line_height = round(block.size * 1.3)

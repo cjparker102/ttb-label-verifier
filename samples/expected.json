@@ -1128,6 +1128,56 @@
     }
   },
   {
+    "id": "vesperly-wine-specialty",
+    "title": "Fanciful name in front, class on the back",
+    "planted": "Nothing wrong. It copies three things a real bottle photo tripped over: a fanciful name larger than the brand, with the class printed small on the back; the warning's heading on a line of its own; and \"ALC.\" before the alcohol figure.",
+    "beverage_type": "Wine",
+    "images": [
+      "vesperly-wine-specialty_front.png",
+      "vesperly-wine-specialty_back.png"
+    ],
+    "truth": {
+      "brand_name": {
+        "text": "VESPERLY",
+        "image_number": 1
+      },
+      "class_type": {
+        "text": "WINE SPECIALTY",
+        "image_number": 2
+      },
+      "alcohol_content": {
+        "text": "ALC. 5% BY VOL",
+        "image_number": 1
+      },
+      "net_contents": {
+        "text": "750 mL",
+        "image_number": 1
+      },
+      "bottler_name_address": {
+        "text": "Produced and bottled by Vesperly Cellars, Harlow Springs, California",
+        "image_number": 2
+      },
+      "country_of_origin": {
+        "text": null,
+        "image_number": null
+      },
+      "government_warning": {
+        "text": "GOVERNMENT WARNING: (1) According to the Surgeon General, women should not drink alcoholic beverages during pregnancy because of the risk of birth defects. (2) Consumption of alcoholic beverages impairs your ability to drive a car or operate machinery, and may cause health problems.",
+        "image_number": 2,
+        "heading_bold": true
+      }
+    },
+    "expected": {
+      "brand_name": "pass",
+      "class_type": "pass_with_note",
+      "alcohol_content": "pass",
+      "net_contents": "pass",
+      "bottler_name_address": "pass",
+      "country_of_origin": "not_needed",
+      "government_warning": "pass"
+    }
+  },
+  {
     "id": "stones-throw-gin--tilted",
     "title": "Brand in capitals on the label (tilted photo)",
     "planted": "Brand in capitals on the label, mixed case in the application. Photographed tilted on a table.",

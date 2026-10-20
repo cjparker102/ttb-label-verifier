@@ -7,6 +7,7 @@ from app.rules.names import (
     check_brand,
     check_class,
     check_name,
+    class_elsewhere,
     statements,
     written_differently,
 )
@@ -514,3 +515,45 @@ def test_a_street_in_the_application_is_still_ignored():
         read("Bottled by Old Tom Distillery, Bardstown, Kentucky"),
     )
     assert result.status == Status.PASS
+
+
+# The class looked for elsewhere. Found by a real photo of a bottle: the AI reader took the
+# fanciful name for the class, which was printed small on the back label.
+
+
+def test_the_application_class_found_elsewhere_matches_and_says_where():
+    pages = tesseract("MOONLIT BRAMBLE", "WINE SPECIALTY Produced and bottled by QuillMere")
+    check, found = class_elsewhere("Wine Specialty", read("MOONLIT BRAMBLE"), pages)
+    assert check.status == Status.PASS
+    assert check.note == "Matches, found on image 2"
+    assert check.reason == (
+        'The AI reader took "MOONLIT BRAMBLE" for the class or type, but the application\'s '
+        '"Wine Specialty" is also on the label, on image 2, found by basic text reading.'
+    )
+    assert (found.text, found.image_number, found.readability) == ("Wine Specialty", 2, "clear")
+
+
+def test_a_class_the_ai_reader_missed_is_found_too():
+    check, _ = class_elsewhere("Wine Specialty", read(None), tesseract("wine specialty"))
+    assert check.status == Status.PASS
+    assert check.reason.startswith('The application\'s class or type, "Wine Specialty", is on')
+
+
+@pytest.mark.parametrize(
+    ("application", "page", "says"),
+    [
+        ("Lager", "LAGER", "It is short"),  # a short class could be another word
+        ("Red Wine", "SPARKLING RED WINE", 'beside "sparkling"'),
+        ("Vodka Specialty", "VODKA SPECIALTY FLAVORED", 'beside "flavored"'),
+    ],
+)
+def test_a_short_class_or_one_beside_a_class_changing_word_needs_review(application, page, says):
+    check, _ = class_elsewhere(application, read("MOONLIT BRAMBLE"), tesseract(page))
+    assert check.status == Status.REVIEW and says in check.reason
+
+
+def test_a_class_not_found_elsewhere_or_only_in_the_warning_stays_as_it_was():
+    assert class_elsewhere("Wine Specialty", read("MOONLIT"), tesseract("WINE SPECIAL")) is None
+    assert class_elsewhere("Wine Specialty", read("MOONLIT"), None) is None
+    in_warning = GOVERNMENT_WARNING.replace("drive a car", "drive a wine specialty car")
+    assert class_elsewhere("Wine Specialty", read("MOONLIT"), tesseract(in_warning)) is None

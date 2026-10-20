@@ -1,9 +1,10 @@
 """The government health warning statement and its checks."""
 
 import re
+from dataclasses import dataclass
 from difflib import SequenceMatcher
 
-from app.reading.schema import BoldLook, WarningReading
+from app.reading.schema import BoldLook, LabelReading, WarningReading
 from app.reading.words import Passes
 from app.rules.citations import WARNING_FORMAT as WARNING_FORMAT_RULE
 from app.rules.citations import WARNING_TEXT as WARNING_TEXT_RULE
@@ -277,7 +278,92 @@ def check_second_reading(label: WarningReading, ocr: Passes | None) -> Check | N
     )
 
 
-def check_warning(label: WarningReading, ocr: Passes | None = None) -> list[Check]:
+def read_from_the_body(text: str) -> bool:
+    """Whether the AI reader's warning starts at "(1)", with no sign of its heading. A heading
+    printed apart from the rest, larger or on a line of its own, can be left out."""
+    key = letters_and_numbers(text)
+    start = key.find("according")
+    return start != -1 and "government" not in key[:start] and "warning" not in key[:start]
+
+
+@dataclass(frozen=True)
+class SeenHeading:
+    """The warning's heading, seen somewhere other than in the AI reader's warning."""
+
+    text: str  # as printed, such as "GOVERNMENT WARNING"
+    where: str  # for the reason, such as "on image 2, found by basic text reading"
+    by_text_reading: bool  # found by Tesseract, whose capitals are less certain
+
+
+OTHER_FIELDS = {
+    "brand_name": "brand name",
+    "class_type": "class or type",
+    "alcohol_content": "alcohol content",
+    "net_contents": "net contents",
+    "bottler_name_address": "bottler statement",
+    "country_of_origin": "country of origin",
+}
+
+
+def heading_elsewhere(reading: LabelReading, ocr: Passes | None) -> SeenHeading | None:
+    """When the AI reader's warning leaves out its heading, the heading if it was seen
+    anyway: in another field of the AI reader's reading, or on a picture by Tesseract."""
+    if not read_from_the_body(tidy(reading.government_warning.text or "")):
+        return None
+    for name, title in OTHER_FIELDS.items():
+        match = HEADING_ANYWHERE.search(getattr(reading, name).text or "")
+        if match:
+            return SeenHeading(match.group(0), f"in the AI reader's {title}", False)
+    for number, passes in enumerate(ocr or [], start=1):
+        for words in passes:
+            for first, second in zip(words, words[1:], strict=False):
+                pair = letters_and_numbers(first.text), letters_and_numbers(second.text)
+                if pair[0] == "government" and pair[1].startswith("warning"):
+                    heading = f"{first.text} {second.text.rstrip(':;.,')}"
+                    where = f"on image {number}, found by basic text reading"
+                    return SeenHeading(heading, where, True)
+    return None
+
+
+def check_heading_seen(seen: SeenHeading | None) -> Check:
+    """A warning read from "(1)" on. Its heading counts as present if it was seen elsewhere;
+    if not, a person should look, but a missing heading alone is never a Problem: the AI
+    reader may have left out a heading printed apart from the rest."""
+    if seen:
+        return Check(
+            Status.PASS,
+            f'The AI reader read the warning from "(1)" on, but its heading, "{seen.text}", is '
+            f"{seen.where}, so it counts as present.",
+            citation=WARNING_TEXT_RULE,
+        )
+    return Check(
+        Status.REVIEW,
+        'The warning was read from "(1)" on, without its heading, "GOVERNMENT WARNING:". A '
+        "heading printed apart from the rest can be missed. Please check it is on the label, "
+        "in capital letters and bold.",
+        citation=WARNING_TEXT_RULE,
+    )
+
+
+def check_seen_capitals(seen: SeenHeading) -> Check | None:
+    """Capitals of a heading seen elsewhere. Tesseract can misread a letter's case, so a
+    heading it read in other letters needs review, not a Problem."""
+    capitals = check_capitals(seen.text)
+    if capitals and capitals.status == Status.FAIL and seen.by_text_reading:
+        return Check(
+            Status.REVIEW,
+            f'Basic text reading read the heading as "{seen.text}". "GOVERNMENT WARNING" must be '
+            "in capital letters. Please check it by eye.",
+            citation=WARNING_FORMAT_RULE,
+        )
+    return capitals
+
+
+def check_warning(
+    label: WarningReading, ocr: Passes | None = None, seen: SeenHeading | None = None
+) -> list[Check]:
+    """`seen` is the heading, if the AI reader left it out of the warning but it was seen
+    elsewhere on the label (see heading_elsewhere)."""
     if is_missing(label):
         return [
             Check(
@@ -287,8 +373,14 @@ def check_warning(label: WarningReading, ocr: Passes | None = None) -> list[Chec
             )
         ]
     text = tidy(label.text or "")
-    checks = [check_wording(text, is_unclear(label))]
-    capitals = check_capitals(text)
+    if read_from_the_body(text):
+        # The rest is checked as if the heading were there, so other differences still count.
+        label = label.model_copy(update={"text": f"{HEADING}: {text}"})
+        checks = [check_wording(label.text, is_unclear(label)), check_heading_seen(seen)]
+        capitals = check_seen_capitals(seen) if seen else None
+    else:
+        checks = [check_wording(text, is_unclear(label))]
+        capitals = check_capitals(text)
     if capitals:
         checks.append(capitals)
     second = check_second_reading(label, ocr)

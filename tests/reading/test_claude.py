@@ -103,6 +103,14 @@ def test_the_reader_reports_every_alcohol_and_net_contents_statement():
     assert (old.alcohol_statements, old.net_contents_statements) == ([], [])
 
 
+def test_the_reader_is_told_to_copy_the_whole_alcohol_statement():
+    # A real photo of a bottle printed "ALC. 5% BY VOL", and Claude read "5% BY VOL", which
+    # the alcohol form check then flagged (Oct 20, 2026).
+    assert 'such as "ALC.", "ALCOHOL", "BY VOL", or "ABV"' in INSTRUCTIONS
+    assert "Never shorten it to the number" in INSTRUCTIONS
+    assert "each copied whole and exactly as printed" in INSTRUCTIONS
+
+
 def test_the_reader_is_told_capitals_alone_are_not_bold():
     # A sample whose heading is in capitals but not bold was read as bold 6 times in 6 with
     # an earlier prompt, and 1 time in 8 with this one (Oct 20, 2026).

@@ -87,9 +87,12 @@ def check_alcohol(application: str, label: FieldReading, optional_on_label: bool
                 "Neither the application nor the label states the alcohol content.",
             )
         if optional_on_label:
+            # Legal to leave out, but the application states one, so it may be printed
+            # where the AI reader missed it: a person should look.
             return Check(
-                Status.NOT_NEEDED,
-                f'The application says "{said}", but this label may leave the alcohol content out.',
+                Status.REVIEW,
+                f'The application says "{said}", but no alcohol content was found on the label. '
+                "This label may leave it out. Please check.",
             )
         return Check(
             Status.FAIL,

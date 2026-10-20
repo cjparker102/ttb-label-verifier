@@ -6,6 +6,7 @@ from pathlib import Path
 import pytest
 
 from app.reading.schema import LabelReading
+from app.reading.words import Word
 from app.rules.application import Application, BeverageType
 from app.rules.results import Status
 from app.rules.verdict import check_label
@@ -90,3 +91,20 @@ def test_disagreeing_statements_reach_the_fields():
     )
     fields = {f.field: f for f in check_label(application_for(entry["id"]), agreeing).fields}
     assert fields["alcohol_content"].status == Status.PASS
+
+
+def test_a_class_found_elsewhere_is_used_by_every_rule():
+    """The AI reader took a fanciful name for the class, but Tesseract found the application's
+    class. The TTB rules then use it: "Red Table Wine" may leave out the alcohol content."""
+    entry = next(e for e in EXPECTED if e["id"] == "meadowvine-table-wine")
+    right = check_label(application_for(entry["id"]), perfect_reading(entry["truth"]))
+    misread = perfect_reading(entry["truth"]).model_copy(deep=True)
+    misread.class_type.text = "Moonlit Bramble"
+    without = check_label(application_for(entry["id"]), misread)
+    assert {f.field: f.status for f in without.fields}["alcohol_content"] == Status.FAIL
+    ocr = [[[Word(w, 0, 0, 10, 10) for w in "MEADOWVINE RED TABLE WINE 750 mL".split()]]]
+    found = check_label(application_for(entry["id"]), misread, ocr)
+    assert [f.status for f in found.fields] == [f.status for f in right.fields]
+    class_type = next(f for f in found.fields if f.field == "class_type")
+    assert class_type.label_says == "Red Table Wine"
+    assert class_type.checks[0].note == "Matches, found on image 1"

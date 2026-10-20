@@ -8,11 +8,11 @@ from app.reading.words import Passes
 from app.rules.alcohol import check_alcohol, check_alcohol_statements
 from app.rules.application import Application
 from app.rules.countries import check_country
-from app.rules.names import check_bottler, check_brand, check_class
+from app.rules.names import check_bottler, check_brand, check_class, class_elsewhere
 from app.rules.net_contents import check_net_contents, check_net_contents_statements
 from app.rules.results import Check, Status, worst
 from app.rules.ttb import alcohol_may_be_left_out, ttb_checks
-from app.rules.warning import GOVERNMENT_WARNING, check_warning
+from app.rules.warning import GOVERNMENT_WARNING, check_warning, heading_elsewhere
 
 
 @dataclass(frozen=True)
@@ -55,6 +55,14 @@ def check_label(
 ) -> LabelResult:
     """Match checks first, then the TTB rule checks for the same field. `ocr` is a
     second reading of the label by Tesseract, if there is one."""
+    class_check = check_class(application.class_type, reading.class_type)
+    if class_check.status == Status.FAIL:
+        # The application's class found elsewhere on the label is preferred over what the
+        # AI reader took for the class, such as a fanciful name, for every rule.
+        found = class_elsewhere(application.class_type, reading.class_type, ocr)
+        if found:
+            class_check, class_type = found
+            reading = reading.model_copy(update={"class_type": class_type})
     rules = ttb_checks(application, reading)
 
     def field(name: str, title: str, said: str, checks: list[Check]) -> FieldResult:
@@ -76,7 +84,7 @@ def check_label(
                 "class_type",
                 "Class / type",
                 a.class_type,
-                [check_class(a.class_type, r.class_type)],
+                [class_check],
             ),
             field(
                 "alcohol_content",
@@ -108,7 +116,7 @@ def check_label(
                 "government_warning",
                 "Government warning",
                 GOVERNMENT_WARNING,
-                check_warning(r.government_warning, ocr),
+                check_warning(r.government_warning, ocr, heading_elsewhere(r, ocr)),
             ),
         )
     )
