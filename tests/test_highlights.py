@@ -183,7 +183,12 @@ def test_both_passes_find_a_short_line_standing_alone():
         ("ridgewick-rye-wrong-abv--angled", "alcohol_content", "46%"),
     ],
 )
-def test_the_outline_surrounds_the_problem_on_a_real_sample(sample_id, field_name, printed):
+def test_the_outline_surrounds_the_problem_on_a_real_sample(
+    monkeypatch, sample_id, field_name, printed
+):
+    # Where the outline goes, not how long a check waits for it (tested below): a reader
+    # that answers at once leaves Tesseract no head start, and a slow CI runner needs it.
+    monkeypatch.setattr("app.checking.OUTLINE_WAIT", 30)
     entry = EXPECTED[sample_id]
     images = [(name, (LABELS_DIR / name).read_bytes()) for name in entry["images"]]
     reader = PerfectReader([entry["truth"]])

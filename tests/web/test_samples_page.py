@@ -189,7 +189,8 @@ def test_changed_warning_wording_shows_track_changes(client):
 
 
 @pytest.mark.skipif(not tesseract_available(), reason="Tesseract is not installed")
-def test_the_problem_is_outlined_on_the_label_picture(client):
+def test_the_problem_is_outlined_on_the_label_picture(client, monkeypatch):
+    monkeypatch.setattr("app.checking.OUTLINE_WAIT", 30)  # the outline, not the time limit
     sample_id = "ridgewick-rye-wrong-abv"
     use_reader(PerfectReader([EXPECTED[sample_id]["truth"]]))
     page = client.post(f"/samples/{sample_id}/check").text

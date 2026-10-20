@@ -140,7 +140,8 @@ def sample_page(sample_id: str) -> str:
 
 
 @pytest.mark.skipif(not tesseract_available(), reason="Tesseract is not installed")
-def test_a_result_page_is_read_back():
+def test_a_result_page_is_read_back(monkeypatch):
+    monkeypatch.setattr("app.checking.OUTLINE_WAIT", 30)  # the page, not the time limit
     shown = from_page(sample_page("ridgewick-rye-wrong-abv"))
     assert shown["read_by"] == "ai"
     assert 0 < shown["server_seconds"] < 60
