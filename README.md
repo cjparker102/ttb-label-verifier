@@ -49,8 +49,13 @@ On 31 sample labels (23 clean, 8 made to look like poor photos), with Claude Hai
 - **Every field result was as expected,** 217 of 217: no planted problem was shown as
   Matches, and no fine field was shown as a Problem.
 - **Every label was checked in under 5 seconds** in process (median 2.5 s, slowest 4.2 s). On
-  the live app, end to end from a home connection, the median was 2.95 s and 30 of 31 were
-  under 5 seconds; one slow answer from the API took 8.8 s.
+  the live app, end to end from a home connection, all 93 single checks on Oct 20 were under
+  5 seconds (median 2.5 s, p95 3.2 s, slowest 4.6 s). On Oct 19, 30 of 31 were; one slow
+  answer from the API took 8.8 s.
+- **A slow answer is asked for again:** if Claude hasn't answered a single check after 4
+  seconds, the same request is sent again and the first answer is used. In those 93 checks
+  that happened twice, and the first answer still came first both times, so its effect on a
+  really slow answer is not measured yet.
 - **The first check after a quiet spell** waits about 23 seconds more, while Azure starts the
   app. It scales to zero after 5 minutes without requests.
 - **The AI cost** was about 0.07 cents a label.

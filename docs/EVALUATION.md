@@ -103,9 +103,9 @@ measurably to the time, because Tesseract finds the words while Claude reads: th
 was 2.38 s without them, and 2.39 s and 2.46 s with them. Every run is kept in the git
 history (`093322d`, `7f94e72`, `fa442c7`, `dbc98dc`).
 
-If slow answers come back, one option is to send the same request a second time when the
-first hasn't answered within about 3.5 seconds, and use whichever answer arrives first. It
-would add roughly a cent per hundred labels. It is not built.
+Since Oct 20, a single check sends the same request a second time when the first hasn't
+answered within 4 seconds, and uses whichever answer arrives first. See the live results
+below for what it did.
 
 ## On the live app, end to end
 
@@ -140,6 +140,29 @@ The slow first check is Azure starting the app after it has scaled to zero: pull
 image, creating the container, starting it, and a health probe. It happens after about 5
 minutes without requests. Keeping one replica running would remove it; that's an open cost
 decision.
+
+### Oct 20: slow answers asked for again
+
+After a single check started asking Claude again when it has no answer after 4 seconds, the
+evaluation was run on the live app again (revision 19, image `ee5ecb0`), followed by two more
+passes over every sample with `tools/time_live.py --sample all --runs 2`. Details:
+[live-single-check-2026-10-20.md](measurements/live-single-check-2026-10-20.md) and
+[evaluation-2026-10-20-deployed.md](measurements/evaluation-2026-10-20-deployed.md).
+
+| Single checks, end to end | Oct 19 (31) | Oct 20, evaluation run (31) | Oct 20, all (93) |
+|---|---|---|---|
+| Median / p95 / slowest | 2.95 s / 4.65 s / 8.79 s | 2.51 s / 4.44 s / 4.62 s | 2.54 s / 3.17 s / 4.62 s |
+| Under 5 seconds | 30 of 31 | 31 of 31 | 93 of 93 |
+| Asked again | not built | 2 | 2 |
+
+The evaluation run again had every field result as expected (217 of 217), every label read
+by Claude, and the batch took 13.7 s.
+
+The better tail is not the second request's doing. It was sent twice in 93 checks, and both
+times the first request still answered first (after 4.1 and 4.3 s). Claude was simply
+quicker that day: no answer took more than 4.5 s inside the app. The slow answer the second
+request is meant for (8.6 s on Oct 19) didn't happen in 93 checks, so how much it helps then
+is not yet measured. Its cost was measured: 2 extra requests in 93 checks.
 
 ## Results with basic text reading (offline)
 
@@ -179,9 +202,10 @@ uv run --env-file .env python -m tools.evaluate            # Claude, in this pro
 uv run python -m tools.evaluate --reader ocr               # offline reader only, no cost
 uv run python -m tools.evaluate --url https://... --deployed-as "revision ..., image ..."
 uv run python -m tools.time_live --url https://... --phone  # phone-sized photos, timed
+uv run python -m tools.time_live --url https://... --sample all --runs 2  # every sample, twice
 uv run python -m tools.evaluate --only old-tom-bourbon     # some labels only
 ```
 
 Each run with Claude costs about two cents; against a deployed app, about four, because each
-label is read twice. Results are saved to `docs/measurements/` as JSON and Markdown, exactly
-as measured.
+label is read twice. A slow answer asked for again adds one more request. Results are saved to
+`docs/measurements/` as JSON and Markdown, exactly as measured.

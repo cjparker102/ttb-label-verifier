@@ -66,7 +66,9 @@ marks the field unclear, which can only lead to "Check this".
   now and then takes 8 or more. If a single check has no answer after 4 seconds, the same
   request is sent again, and whichever answer comes first is used; the other is cancelled.
   Both count in the cost estimates, as if both had run to the end. Batches don't do this:
-  their labels are read eight at a time, and nobody is waiting on any one of them.
+  their labels are read eight at a time, and nobody is waiting on any one of them. In 93
+  checks on the live app it happened twice, and the first answer still came first both times
+  (`docs/measurements/live-single-check-2026-10-20.md`).
 
 ## The rules
 
