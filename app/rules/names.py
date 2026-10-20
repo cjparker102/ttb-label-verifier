@@ -3,7 +3,8 @@
 import re
 from dataclasses import dataclass, replace
 
-from app.reading.schema import FieldReading
+from app.reading.schema import FieldReading, LabelReading
+from app.reading.words import Passes
 from app.rules.places import US_STATES
 from app.rules.results import Check, Status
 from app.rules.text import (
@@ -119,6 +120,79 @@ def check_class(application: str, label: FieldReading) -> Check:
         f'The label says "{shown}", which includes the application\'s "{said}" with other words.',
         note="Matches, with other words",
     )
+
+
+# The application's brand is looked for elsewhere on the label only if it has at least
+# this many letters and digits, so a short common word can't match by accident.
+SEARCHED_BRAND = 6
+WARNING_WORDS = 45  # about as many as the government warning has
+
+
+def without_warning(words: list[str]) -> list[str]:
+    """A page's words without the government warning, from its heading to "problems"."""
+    for i in range(len(words) - 1):
+        if words[i] == "government" and words[i + 1].startswith("warning"):
+            end = next(
+                (
+                    j
+                    for j in range(i, min(len(words), i + WARNING_WORDS + 10))
+                    if words[j] == "problems"
+                ),
+                i + WARNING_WORDS,
+            )
+            return words[:i] + words[end + 1 :]
+    return words
+
+
+def check_brand(application: str, reading: LabelReading, ocr: Passes | None = None) -> Check:
+    """The brand on the label, as the AI reader took it, against the application. Labels
+    often show a fanciful name more prominently than the brand, or print the brand only
+    in the bottler statement. So if they differ, the application's whole brand is looked
+    for elsewhere on the label, and the note says where it was found."""
+    what = "brand name"
+    label = reading.brand_name
+    result = check_name(what, application, label)
+    if result.status != Status.FAIL:
+        return result
+    said = tidy(application)
+    wanted = name_words(said)
+    if len("".join(wanted)) < SEARCHED_BRAND:
+        return result
+    shown = tidy(label.text or "")
+    if not is_missing(label) and find_words(wanted, name_words(shown)) is not None:
+        return Check(
+            Status.PASS,
+            f'The label\'s brand name, "{shown}", includes the application\'s "{said}" with '
+            "other words.",
+            note="Matches, with other words",
+        )
+    # The words of a class or type, such as "Straight Bourbon", aren't a brand.
+    if find_words(wanted, name_words(reading.class_type.text or "")) is not None:
+        return result
+    took = (
+        f'The AI reader took "{shown}" for the brand name, but the application\'s "{said}" is '
+        "also on the label"
+        if not is_missing(label)
+        else f'The application\'s brand name, "{said}", is on the label'
+    )
+    bottler = reading.bottler_name_address
+    if bottler.text and find_words(wanted, name_words(bottler.text)) is not None:
+        return Check(
+            Status.PASS,
+            f"{took}, in the bottler statement on image {bottler.image_number}: "
+            f'"{tidy(bottler.text)}".',
+            note="Matches, found in the bottler statement",
+        )
+    for number, passes in enumerate(ocr or [], start=1):
+        for words in passes:
+            page = without_warning(name_words(" ".join(word.text for word in words)))
+            if find_words(wanted, page) is not None:
+                return Check(
+                    Status.PASS,
+                    f"{took}, on image {number}, found by basic text reading.",
+                    note=f"Matches, found on image {number}",
+                )
+    return result
 
 
 def strip_lead_in(text: str) -> str:

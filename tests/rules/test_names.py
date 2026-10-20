@@ -1,8 +1,11 @@
 import pytest
 
-from app.rules.names import check_bottler, check_class, check_name, statements
+from app.reading.schema import LabelReading
+from app.reading.words import Word
+from app.rules.names import check_bottler, check_brand, check_class, check_name, statements
 from app.rules.results import Status
-from tests.rules.helpers import read
+from app.rules.warning import GOVERNMENT_WARNING
+from tests.rules.helpers import read, read_warning
 
 
 @pytest.mark.parametrize(
@@ -372,3 +375,83 @@ def test_a_class_not_on_the_label_as_a_whole_phrase_fails(application, label):
 def test_the_class_rules_still_apply_first():
     assert check_class("Vodka", read("VODKA")).note == "Matches, different capitals"
     assert check_class("Vodka", read(None)).status == Status.FAIL
+
+
+# The brand. Labels often show a fanciful name more prominently than the brand, or print
+# the brand only in the bottler statement (found on approved labels in TTB's Public COLA
+# Registry), so the AI reader can take another name for the brand.
+
+
+def label_reading(brand, bottler=None, class_type="Cabernet Sauvignon"):
+    return LabelReading(
+        brand_name=read(brand),
+        class_type=read(class_type),
+        alcohol_content=read("13.5% Alc./Vol."),
+        net_contents=read("750 mL"),
+        bottler_name_address=read(bottler, image_number=2),
+        country_of_origin=read(None),
+        government_warning=read_warning(GOVERNMENT_WARNING),
+        image_problems=[],
+    )
+
+
+def tesseract(*pages):
+    """Tesseract's words, one pass for each picture."""
+    return [[[Word(word, 0, 0, 10, 10) for word in page.split()]] for page in pages]
+
+
+def test_a_brand_found_in_the_bottler_statement_matches_and_says_where():
+    reading = label_reading("Midnight Owl", "Produced and bottled by Harbor Hill Cellars, Napa, CA")
+    result = check_brand("HARBOR HILL CELLARS", reading)
+    assert result.status == Status.PASS
+    assert result.note == "Matches, found in the bottler statement"
+    assert 'took "Midnight Owl" for the brand name' in result.reason
+    assert "on image 2" in result.reason
+
+
+def test_a_brand_read_with_other_words_matches():
+    result = check_brand("HARBOR HILL", label_reading("Harbor Hill Midnight Owl"))
+    assert (result.status, result.note) == (Status.PASS, "Matches, with other words")
+
+
+def test_a_brand_found_by_basic_text_reading_says_which_image():
+    ocr = tesseract("Midnight Owl Cabernet", "HARBOR HILL CELLARS est. 1998")
+    result = check_brand("Harbor Hill Cellars", label_reading("Midnight Owl"), ocr)
+    assert (result.status, result.note) == (Status.PASS, "Matches, found on image 2")
+    assert "found by basic text reading" in result.reason
+
+
+def test_only_the_whole_brand_counts():
+    ocr = tesseract("Midnight Owl by Harbor Hill")
+    reading = label_reading("Midnight Owl", "Bottled by Harbor Hill, Napa, CA")
+    assert check_brand("Harbor Hill Cellars", reading, ocr).status == Status.FAIL
+
+
+def test_a_short_brand_is_not_looked_for_elsewhere():
+    reading = label_reading("Midnight Owl", "Bottled by Oak Cellars, Napa, CA")
+    assert check_brand("OAK", reading, tesseract("OAK BARREL AGED")).status == Status.FAIL
+
+
+def test_the_warning_and_the_class_dont_count_as_the_brand():
+    assert (
+        check_brand(
+            "Surgeon General", label_reading("Midnight Owl"), tesseract(GOVERNMENT_WARNING)
+        ).status
+        == Status.FAIL
+    )
+    reading = label_reading("Midnight Owl", class_type="Straight Bourbon Whiskey")
+    ocr = tesseract("Straight Bourbon Whiskey")
+    assert check_brand("Straight Bourbon", reading, ocr).status == Status.FAIL
+
+
+def test_a_planted_brand_still_fails():
+    reading = label_reading("Midnight Owl", "Produced and bottled by Harbor Hill Cellars, Napa, CA")
+    ocr = tesseract("Midnight Owl", "Harbor Hill Cellars")
+    assert check_brand("HARBOR VALE CELLARS", reading, ocr).status == Status.FAIL
+
+
+def test_a_brand_the_ai_reader_missed_can_be_found_elsewhere():
+    reading = label_reading(None, "Produced and bottled by Harbor Hill Cellars, Napa, CA")
+    result = check_brand("Harbor Hill Cellars", reading)
+    assert result.status == Status.PASS
+    assert result.reason.startswith('The application\'s brand name, "Harbor Hill Cellars", is on')

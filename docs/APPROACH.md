@@ -88,6 +88,14 @@ All rules are in `app/rules/`, and each has its own tests.
     into statements at words like "Bottled by" or "Imported by". One statement can match the
     application, but if the application says what its company did, only a statement saying
     the same can.
+  - For the brand, labels often show a fanciful name more prominently than the brand, or
+    print the brand only in the bottler statement, so the AI reader can take another name
+    for it. If the brand it read doesn't match, the application's whole brand is looked for
+    as a phrase: in the brand it read, among other words ("Matches, with other words"); in
+    the bottler statement ("Matches, found in the bottler statement"); and in Tesseract's
+    reading of each picture, leaving out the warning ("Matches, found on image 2"). Only a
+    brand of at least 6 letters and digits is looked for, so a short common word can't match
+    by accident, and words that are part of the class or type don't count.
   - For the class or type, labels often print other words with it: an appellation, a
     fanciful name, "Premium". If the application's whole class or type is on the label as a
     phrase, it matches, with the note "Matches, with other words". But if the other words

@@ -8,7 +8,7 @@ from app.reading.words import Passes
 from app.rules.alcohol import check_alcohol
 from app.rules.application import Application
 from app.rules.countries import check_country
-from app.rules.names import check_bottler, check_class, check_name
+from app.rules.names import check_bottler, check_brand, check_class
 from app.rules.net_contents import check_net_contents
 from app.rules.results import Check, Status, worst
 from app.rules.ttb import alcohol_may_be_left_out, ttb_checks
@@ -66,7 +66,7 @@ def check_label(
                 "brand_name",
                 "Brand name",
                 a.brand_name,
-                [check_name("brand name", a.brand_name, r.brand_name)],
+                [check_brand(a.brand_name, r, ocr)],
             ),
             field(
                 "class_type",
