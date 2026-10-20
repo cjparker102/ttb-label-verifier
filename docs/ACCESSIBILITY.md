@@ -26,7 +26,7 @@ readers. The app aims at WCAG 2.2 AA, and at AAA for text contrast.
   results heading.
 - **Windows High Contrast mode:** badges and summaries keep their borders.
 
-## Checked so far (Oct 19, 2026)
+## Checked so far (Oct 19 to 20, 2026)
 
 | Check | How | Result |
 |---|---|---|
@@ -36,10 +36,10 @@ readers. The app aims at WCAG 2.2 AA, and at AAA for text contrast.
 | A phone (390 pixels wide, touch), Oct 20 | Screenshots in headless Chrome with touch emulated, choosing files through its DevTools protocol | Pass: no drag hint on touch, "3 pictures chosen" in place of "No file chosen", and the links at the top jump to each section |
 | 400% zoom (320 pixels wide, WCAG 1.4.10) | The same pages at 320 pixels | Pass, after one fix: the picture box on the home page didn't shrink to fit, and cut off its hint text. Now tested. |
 | Every interaction reachable by keyboard | Read through the templates and script: no custom clickable elements, no positive `tabindex` | Pass |
+| A keyboard-only run-through, by a person, Oct 20 | Christopher Parker, in a real browser: Tab and Enter only, through a sample check and its results | Pass |
+| A screen reader spot check, by a person, Oct 20 | Christopher Parker, with VoiceOver on macOS, following what it spoke in its caption panel | Pass |
 
-## Still to do by a person
+## Not yet checked by a person
 
-- **A keyboard-only run-through** of a single check and a batch, start to finish, in a real
-  browser.
-- **A screen reader spot check** with VoiceOver (macOS) or NVDA (Windows): the home page, a
-  result with a Problem, and a batch in progress.
+- A batch, start to finish, by keyboard alone and with a screen reader.
+- NVDA or JAWS on Windows, which agency computers are more likely to have.

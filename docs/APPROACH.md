@@ -369,10 +369,11 @@ in 13 seconds, and the batch finished (`docs/measurements/large-upload-2026-10-1
 - **The app runs as one instance,** because batch jobs and usage counts live in memory. A
   production version would need shared storage for them, which is a policy decision.
 - **Accuracy was measured on 31 code-drawn labels,** 8 of them made to look like poor photos
-  (tilted, blurry, dim, glare), and on three sets of 24 real approved labels from TTB's Public
-  COLA Registry: two the rules were changed with, and a third, the honest measure. On the
-  third set there were no false passes and 9 false Problems; their causes are listed, not
-  fixed. Real camera photos are not yet in the test set. See [EVALUATION.md](EVALUATION.md).
+  (tilted, blurry, dim, glare), and on four sets of 24 real approved labels from TTB's Public
+  COLA Registry: three the rules were changed with, and a fourth, the honest measure. On the
+  fourth set there was 1 false pass (an alcohol statement with a decimal comma) and 11 false
+  Problems; their causes are listed, not fixed. Real camera photos are not yet in the test
+  set. See [EVALUATION.md](EVALUATION.md).
 - **Claude may read the warning as it should be,** not as printed: a misspelt word read as spelt
   correctly, or a missing comma put in. The second reading by Tesseract catches a misspelt word
   only when both of Tesseract's passes can read the warning, and doesn't compare punctuation.

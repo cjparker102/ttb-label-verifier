@@ -241,11 +241,12 @@ These times are on a laptop; on the app's one Azure CPU, basic text reading is s
 
 ## Real labels from the COLA Registry
 
-Approved labels from TTB's Public COLA Registry, in three sets of 24 (8 spirits, 8 wine, and 8
+Approved labels from TTB's Public COLA Registry, in four sets of 24 (8 spirits, 8 wine, and 8
 malt beverages each, all received in 2026). Each label was checked twice, once as approved and
 once with one problem planted in its application data: 48 checks a set, in process, with the
 app's default settings. The pictures, application data, answer keys, and per-label results are
-kept private and never committed. Only totals and the TTB IDs are published.
+kept private and never committed. Only totals, the TTB IDs, and the results for the planted
+problems, which are made up, are published.
 
 - **How they were chosen:** by a rule fixed before looking at any label. For each slot (a
   class/type code, domestic or imported), the first approved label approval with a picture, in
@@ -260,32 +261,35 @@ kept private and never committed. Only totals and the TTB IDs are published.
   two results are right (Matches or Check this for a warning that may be bold, for example).
   Accuracy is given separately for these, never combined.
 
-### Four runs on three sets
+### Five runs on four sets
 
 The first run showed far too many false Problems, so the rules were changed, using that set's
 labels: the **tuning set**. A **fresh set** was then chosen and checked once; it found two
 gaps behind false passes, which were fixed, so it became tuning too. A **third set** was then
-chosen and checked once, with nothing in the app changed after its labels were seen. **The
-third set is the honest number.**
+chosen and checked once; the gaps it found were fixed on the night of Oct 20, so it became
+tuning as well. A **fourth set** was then chosen and checked once, at commit `6530f56`, with
+nothing in the app changed since its labels were seen. **The fourth set is the honest
+number.**
 
-| Measure | Tuning set, before the changes | Tuning set, after | Fresh set | **Third set** |
-|---|---|---|---|---|
-| **Strict:** fields with one right answer, as expected | 205 of 267 | 251 of 267 | 258 of 283 | **256 of 280** |
-| **Judgment calls:** two answers right, either given | 39 of 69 | 67 of 69 | 45 of 53 | **50 of 56** |
-| False passes | 1 | 1 | 6 | **0** |
-| Planted problems shown as Problem | 24 of 24 | 23 of 24 | 22 of 24 | **23 of 24** (1 as Check this) |
-| Of those, **detected**: raised by the field's comparison with the application | | | | **22 of 24** |
-| Flagged for **another reason** (print too hard to read, a statement missing) | | | | **2** (1 Problem, 1 Check this) |
-| Issues flagged on the labels as approved | 62 | 31 | 33 | **31** |
-| Of those, false Problems (the key says the field is fine) | 41 | 5 | 9 | **9** |
-| Conditions TTB noted on things the tool checks, flagged | 6 of 7 | 6 of 7 | 5 of 6 | **2 of 2** |
-| Checks under 5 seconds | 47 of 48 | 48 of 48 | 47 of 48 | **48 of 48** |
-| AI cost | about 4 cents | about 4 cents | about 4 cents | about 4 cents |
+| Measure | Tuning set, before the changes | Tuning set, after | Fresh set | Third set | **Fourth set** |
+|---|---|---|---|---|---|
+| **Strict:** fields with one right answer, as expected | 205 of 267 | 251 of 267 | 258 of 283 | 256 of 280 | **252 of 274** |
+| **Judgment calls:** two answers right, either given | 39 of 69 | 67 of 69 | 45 of 53 | 50 of 56 | **50 of 62** |
+| False passes | 1 | 1 | 6 | 0 | **2** (one label, in both its checks) |
+| Planted problems shown as Problem | 24 of 24 | 23 of 24 | 22 of 24 | 23 of 24 (1 as Check this) | **24 of 24** |
+| Of those, **detected**: raised by the field's comparison with the application | | | | 22 of 24 | **24 of 24** |
+| Flagged for **another reason** (print too hard to read, a statement missing) | | | | 2 (1 Problem, 1 Check this) | **0** |
+| Issues flagged on the labels as approved | 62 | 31 | 33 | 31 | **34** |
+| Of those, false Problems (the key says the field is fine) | 41 | 5 | 9 | 9 | **11** |
+| Conditions TTB noted on things the tool checks, flagged | 6 of 7 | 6 of 7 | 5 of 6 | 2 of 2 | **1 of 2** |
+| Checks under 5 seconds | 47 of 48 | 48 of 48 | 47 of 48 | 48 of 48 | **44 of 48** (slowest 7.2 s) |
+| AI cost | about 4 cents | about 4 cents | about 4 cents | about 4 cents | about 5 cents |
 
 Details: [first run](measurements/real-labels-2026-10-20.md),
 [tuning set after the changes](measurements/real-labels-2026-10-20-tuning.md),
 [fresh set](measurements/real-labels-2026-10-20-fresh.md),
-[third set](measurements/real-labels-2026-10-20-third.md).
+[third set](measurements/real-labels-2026-10-20-third.md),
+[fourth set](measurements/real-labels-2026-10-20-fourth.md).
 
 **The first run** found that the comparisons were too literal for real labels: "LLC" left out,
 the state spelt out, a street address added, a fanciful name read as the brand, a class printed
@@ -335,18 +339,41 @@ rule, strict goes from 256 to 260 of 280: the 4 net contents false Problems on 2
 Matches, and nothing else changes. That set has now been seen, so this is not an honest
 measure of the fix. The 31 samples are unchanged.
 
-**Not fixed, from the fresh and third sets.** Fixing these now would make the third set a tuning
-set too; a fourth set would be needed to measure fixes.
+**Changed after the third set (the night of Oct 20).** General rules, not fixes for single
+labels; the fourth set is their honest measure.
 
-- A bug: a company name with a digit in it is taken for a street address.
-- A country of origin stated only in the bottler statement isn't found.
-- The second reading can read text beside the warning into it, and compares words only, so
-  it can't catch a missing comma or brackets read as parentheses.
-- An alcohol range ("11-14%") is compared as one number.
-- Brands that neither reader finds as a whole phrase are missed when Claude takes another name
-  for the brand.
-- Claude sometimes reads a type word ("Blanco", "Añejo") as the class, or text next to a field
-  into it.
+- A company name with a digit in it stays the company, not a street address.
+- A country named only in the bottler statement ("bottled in Scotland") gives Check this.
+- An alcohol range ("11-14%") always gives Check this, never one number.
+- A short brand found elsewhere, or a brand written differently (run together, another company
+  form), gives Check this, not Problem.
+- Claude lists every alcohol and net contents statement it sees; if they disagree, or a metric
+  amount disagrees with its US one, Check this.
+
+Not changed: the second reading compares words only, so it can't catch a missing comma or
+brackets read as parentheses; and Claude sometimes reads a type word ("Blanco", "Añejo") as the
+class, or text next to a field into it.
+
+**The fourth set** had all 24 planted problems detected by the comparison and shown as
+Problem. Two warning errors on approved labels that TTB didn't mention, a misspelt word and a
+heading in title case, were both shown as Problem. Its 2 false passes are one label, checked
+twice: an alcohol statement with a decimal comma ("5,8 %") was read as 5.8% and matched. TTB's
+approval asked for that statement to be changed to an allowed form, so it is also the one TTB
+condition missed. Its 11 false Problems, on 8 labels:
+
+- The registry's brand isn't the name the label shows as its brand (5 labels). It adds the type
+  or a company word to it (2); it is the beer's style, which Claude read as the class, and a
+  class is never taken for the brand (2); or it is a product name neither reader found as a
+  whole phrase (1).
+- Claude misread or missed a field (4 labels, 5 fields): a wine's vineyard name taken for its
+  class, and its alcohol statement on the back label missed; a country of origin missed; an
+  imported label's bottler statement read in place of its importer statement; a warning read
+  without its heading.
+- A class shorter on the label than in the application ("Stout" for "Stout Ale").
+
+4 of its 48 checks took over 5 seconds (the slowest 7.2 s), against none on the third set; the
+median, 3.0 s, was close to the third set's 2.8 s. No rule has been changed because of this
+set.
 
 ## The warning's second reading on real labels
 
@@ -403,7 +430,7 @@ uv run python -m tools.evaluate --url https://... --deployed-as "revision ..., i
 uv run python -m tools.time_live --url https://... --phone  # phone-sized photos, timed
 uv run python -m tools.time_live --url https://... --sample all --runs 2  # every sample, twice
 uv run python -m tools.evaluate --only old-tom-bourbon     # some labels only
-uv run --env-file .env python -m tools.evaluate --cases private/cola-third/cases.json  # real labels, kept private
+uv run --env-file .env python -m tools.evaluate --cases private/cola-fourth/cases.json  # real labels, kept private
 ```
 
 Each run with Claude costs about two cents; against a deployed app, about four, because each
