@@ -193,6 +193,12 @@ So for review week the app was given 2 CPUs and 4 GiB (revision 22, the same ima
 batches of the 31 labels then took 32.7 s and 29.5 s: about 1.0 s a label, so about 5 minutes
 for 300. The "try again in N minutes" estimate now counts 1.2 s a label.
 
+Revision 23 (image `e72cc4c`: that estimate, and the two fixes for false passes found by the
+fresh set, below), on 2 CPUs: every sample as expected, no false passes or false Problems, 31 of
+31 single checks under 5 seconds (median 2.88 s, slowest 4.44 s), the second reading ready on all
+31, and the batch in 28.6 s. Details:
+[evaluation-2026-10-20-deployed-3.md](measurements/evaluation-2026-10-20-deployed-3.md).
+
 ## Results with basic text reading (offline)
 
 The same 31 labels, read with Tesseract OCR only, as when Claude can't be reached. Full
