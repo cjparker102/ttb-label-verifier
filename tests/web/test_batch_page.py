@@ -24,7 +24,7 @@ SPREADSHEET = (SAMPLES_DIR / "applications.csv").read_bytes()
 
 
 def planted_counts() -> tuple[int, int, int]:
-    """How many sample labels should come out with problems, needing review, and with no issues found."""
+    """How many sample labels should come out with problems, needing review, or neither."""
     worst = []
     for entry in EXPECTED:
         results = set(entry["expected"].values())

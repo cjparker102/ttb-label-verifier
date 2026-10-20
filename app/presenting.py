@@ -200,6 +200,18 @@ def data_uri(jpeg: bytes) -> str:
 ITEM_ORDER = {"fail": 0, "not-checked": 1, "review": 2, "waiting": 3, "pass": 4}
 
 
+def duration(seconds: float) -> str:
+    """ "45 seconds", "1 second", or "4 minutes 52 seconds"."""
+    whole = max(1, round(seconds))
+    minutes, rest = divmod(whole, 60)
+    parts = []
+    if minutes:
+        parts.append(f"{minutes} minute{'s' if minutes != 1 else ''}")
+    if rest or not minutes:
+        parts.append(f"{rest} second{'s' if rest != 1 else ''}")
+    return " ".join(parts)
+
+
 def labels(count: int) -> str:
     return f"{count} label{'s' if count != 1 else ''}"
 
@@ -280,10 +292,9 @@ def batch_view(job: BatchJob) -> dict:
     checked = sum(1 for item in job.items if item.state == ItemState.DONE)
     if finished and checked and job.started_at is not None and job.finished_at is not None:
         total = job.finished_at - job.started_at
-        timing = (
-            f"Checked {labels(checked)} in {total:.0f} seconds, about {total / checked:.1f} "
-            "seconds a label."
-        )
+        each = total / checked
+        average = "under 0.1 seconds" if each < 0.05 else f"about {each:.1f} seconds"
+        timing = f"Checked {labels(checked)} in {duration(total)}, {average} a label."
     return {
         "job_id": job.id,
         "state": job.state,

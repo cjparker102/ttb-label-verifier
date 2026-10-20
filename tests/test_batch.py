@@ -313,3 +313,32 @@ def test_a_running_batch_gives_no_time_yet():
 
     job = new_job([good_row(2)], [], [])
     assert batch_view(job)["timing"] is None
+
+
+@pytest.mark.parametrize(
+    ("seconds", "said"),
+    [
+        (0.4, "1 second"),
+        (1, "1 second"),
+        (45, "45 seconds"),
+        (60, "1 minute"),
+        (292, "4 minutes 52 seconds"),
+    ],
+)
+def test_batch_times_read_naturally(seconds, said):
+    from app.presenting import duration
+
+    assert duration(seconds) == said
+
+
+def test_a_very_fast_batch_says_under_a_tenth_of_a_second_a_label():
+    from app.presenting import batch_view
+
+    times = iter([100.0, 101.0])
+    job = new_job([good_row(n) for n in range(2, 33)], [], [])
+
+    async def go():
+        await run_job(job, ReplayReader(), 1568, 8, asyncio.Semaphore(1), clock=lambda: next(times))
+
+    asyncio.run(go())
+    assert batch_view(job)["timing"] == "Checked 31 labels in 1 second, under 0.1 seconds a label."
