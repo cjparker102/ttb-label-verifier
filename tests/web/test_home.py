@@ -11,6 +11,11 @@ def test_home_page_shows_app_name():
     assert "<title>TTB Label Verifier</title>" in response.text
 
 
+def test_every_page_says_it_is_not_an_official_website():
+    for page in (client.get("/"), client.get("/batches/no-such-batch")):
+        assert "Prototype. Not an official TTB or U.S. government website." in page.text
+
+
 def test_health_check_reports_ok():
     response = client.get("/health")
     assert response.status_code == 200

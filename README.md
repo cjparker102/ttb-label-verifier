@@ -9,6 +9,8 @@ field, whether it matches the application and follows the basic TTB rules: **Mat
 
 **Live prototype:** https://ttb-label-verifier.kindmoss-39b6eae5.eastus2.azurecontainerapps.io
 
+Prototype. Not an official TTB or U.S. government website.
+
 ## Status
 
 In development (October 2026). These work and are deployed:
