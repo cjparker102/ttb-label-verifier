@@ -133,7 +133,7 @@ up to date as of Oct 15, 2026). The rules differ by beverage type:
   - It must look bold, and the rest must not. Bold can't be confirmed from a photo, so
     anything short of a clear yes needs review.
   - **A second reading.** Claude can read a warning as it should be rather than as printed:
-    on an approved label in the COLA Registry it read a misspelt "SURGEON" as spelt correctly.
+    on an approved label in the COLA Registry it read a misspelt word as spelt correctly.
     So Claude is told to copy the warning letter by letter, and Tesseract, which doesn't know
     the warning, reads it too. Its two passes read the picture separately. Where both read
     a word differently from Claude, the same way, the warning needs review: "Two readings of

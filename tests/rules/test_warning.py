@@ -171,7 +171,7 @@ def test_track_changes_of_a_correct_warning_is_one_unchanged_run():
 
 
 # A second reading by Tesseract. The AI reader can read a warning as it should be rather
-# than as printed: an approved label in TTB's Public COLA Registry misspells "SURGEON",
+# than as printed: an approved label in TTB's Public COLA Registry misspells a word in it,
 # and Claude read it spelt correctly.
 
 
@@ -180,7 +180,7 @@ def passes(*texts):
     return [[[Word(word, 0, 0, 10, 10) for word in text.split()] for text in texts]]
 
 
-MISSPELT = GOVERNMENT_WARNING.replace("Surgeon", "Surgeron")
+MISSPELT = GOVERNMENT_WARNING.replace("pregnancy", "pregnacy")
 
 
 def second_reading(ocr, text=GOVERNMENT_WARNING):
@@ -191,8 +191,8 @@ def test_both_passes_reading_a_word_differently_needs_review():
     result = second_reading(passes(MISSPELT, "Some other text " + MISSPELT))
     assert result.status == Status.REVIEW
     assert result.reason == (
-        'Two readings of the warning disagree: the AI reader read "Surgeon", and basic text '
-        'reading read "Surgeron". Please check it by eye.'
+        'Two readings of the warning disagree: the AI reader read "pregnancy", and basic text '
+        'reading read "pregnacy". Please check it by eye.'
     )
 
 
