@@ -111,13 +111,17 @@ All rules are in `app/rules/`, and each has its own tests.
   - A different company name in the same city and state needs review: it may be a trade name
     the company uses, which the app can't confirm. The same company in another city of the
     same state fails. The same company with no state shown needs review.
-- **Alcohol content** is read from forms like `45% Alc./Vol.`, `13,5% vol`, or `90 Proof`. Label
-  proof must be twice the ABV. Label and application must state the same number, allowing
+- **Alcohol content** is read from forms like `45% Alc./Vol.`, `13,5% vol`, or `90 Proof`. A
+  range such as "11-14%" is never taken for one number: it needs review. Label proof must be
+  twice the ABV. Label and application must state the same number, allowing
   only for rounding (±0.05 points). TTB's own tolerances, such as ±0.3 points for spirits,
   compare the label with the lab-tested liquid, not with the application, so they don't apply.
 - **Net contents** are converted to milliliters first (mL, cl, L, fl oz, pints, quarts, gallons),
   allowing 0.5% for rounding. The ℮ sign is ignored. When a label gives both systems, such as
-  "16.9 FL. OZ. (500 mL)", the amount in the application's units is the one compared.
+  "16.9 FL. OZ. (500 mL)", the amount in the application's units is the one compared. The two
+  must be the same amount, allowing 2% for separate rounding ("500 mL (17 FL OZ)"); if they
+  disagree, as in "750 mL (12 fl oz)", it needs review, or fails if the application matches
+  neither.
   Amounts in falling units add up when each is less than one of the unit before it ("1 pint
   9 fl oz"). The same amount given twice counts once, in the same unit ("1L ... 1 liter") or
   in another ("1 PINT (16 FL OZ)"). A label that lists different sizes, as keg labels with a box to

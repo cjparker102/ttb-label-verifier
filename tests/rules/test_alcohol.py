@@ -88,3 +88,24 @@ def test_needs_review(application, label):
 def test_label_may_leave_out_alcohol_when_rules_allow_it():
     result = check_alcohol("12%", read(None), optional_on_label=True)
     assert result.status == Status.NOT_NEEDED
+
+
+# A range is never treated as one number (ChatGPT review, Oct 20, 2026).
+
+
+@pytest.mark.parametrize(
+    "label",
+    ["ALC 11-14% BY VOL.", "11 - 14% alc/vol", "Alcohol 11 to 14 percent by volume", "12–13.5%"],
+)
+def test_an_alcohol_range_needs_review(label):
+    for application in ("13%", "14%", "11%", "20%"):
+        result = check_alcohol(application, read(label))
+        assert result.status == Status.REVIEW
+        assert "range of alcohol content" in result.reason
+
+
+@pytest.mark.parametrize(
+    "label", ["2019 - 14% alc/vol", "750 ML - 13% ALC/VOL", "45% Alc./Vol. - 90 Proof"]
+)
+def test_a_year_or_size_before_a_percentage_is_not_a_range(label):
+    assert "range" not in check_alcohol("13%", read(label)).reason

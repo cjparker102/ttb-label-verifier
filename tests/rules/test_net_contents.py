@@ -186,3 +186,37 @@ def test_common_forms_match_the_application(label, application):
 )
 def test_a_different_amount_still_fails(label, application):
     assert check_net_contents(application, read(label)).status == Status.FAIL
+
+
+# Metric and US amounts on one label must agree (ChatGPT review, Oct 20, 2026).
+
+
+@pytest.mark.parametrize(
+    "label", ["750 mL (12 fl oz)", "12 FL OZ (500 mL)", "1 L (16 FL OZ)", "355 mL (1 PINT)"]
+)
+def test_metric_and_us_amounts_that_disagree_need_review(label):
+    application = label.split(" (")[0].replace("FL OZ", "fl oz")
+    result = check_net_contents(application, read(label))
+    assert result.status == Status.REVIEW
+    assert "metric and US amounts disagree" in result.reason
+
+
+@pytest.mark.parametrize(
+    "label",
+    [
+        "500 mL (17 FL OZ)",  # rounded to whole fluid ounces: 0.5% off
+        "200 mL (6.8 FL OZ)",
+        "1.75 L (59.2 FL OZ)",
+        "16.9 FL. OZ. (500 mL)",
+        "12 FL OZ (355 mL)",
+    ],
+)
+def test_metric_and_us_amounts_rounded_separately_still_agree(label):
+    application = label.split(" (")[0]
+    assert check_net_contents(application, read(label)).status == Status.PASS
+
+
+def test_an_application_matching_neither_amount_fails():
+    result = check_net_contents("1 L", read("750 mL (12 fl oz)"))
+    assert result.status == Status.FAIL
+    assert "also disagree" in result.reason

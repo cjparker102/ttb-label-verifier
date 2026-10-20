@@ -28,6 +28,9 @@ THOUSANDS = re.compile(r"^[1-9]\d{0,2},\d{3}$")  # 1,750 is one thousand seven h
 
 # Converting between units rounds, so allow half a percent.
 TOLERANCE = Decimal("0.005")
+# A label's metric and US amounts are rounded separately ("500 mL (17 fl oz)" is 0.5% off,
+# "200 mL (6.8 fl oz)" 0.6%), so they count as the same amount within 2%.
+SYSTEMS_AGREE = Decimal("0.02")
 
 
 class CannotParse(ValueError):
@@ -179,6 +182,26 @@ def check_net_contents(application: str, label: FieldReading) -> Check:
             f'The label lists several sizes, "{shown}", and none of them is the '
             f'application\'s "{said}".',
         )
+
+    # A label giving both systems must give the same amount in each. If they disagree, as in
+    # "750 mL (12 fl oz)", a person must look, unless the application matches neither.
+    if on_label.metric and on_label.us:
+        metric_ml = sum((ml for _, ml in on_label.metric), Decimal(0))
+        us_ml = sum((ml for _, ml in on_label.us), Decimal(0))
+        if abs(metric_ml - us_ml) > SYSTEMS_AGREE * max(metric_ml, us_ml):
+            if any(close(ml, on_application.ml) for ml in (metric_ml, us_ml)):
+                return Check(
+                    Status.REVIEW,
+                    f'The label\'s metric and US amounts disagree: "{shown}" is '
+                    f"{show_ml(metric_ml)} in metric units but {show_ml(us_ml)} in US units. "
+                    "Please check it by eye.",
+                )
+            return Check(
+                Status.FAIL,
+                f'The label says "{shown}" but the application says "{said}". The label\'s '
+                f"metric and US amounts also disagree ({show_ml(metric_ml)} and "
+                f"{show_ml(us_ml)}).",
+            )
 
     # "16.9 FL. OZ. (500 mL)" is compared in fluid ounces with an application that says
     # "16.9 fl oz", and in milliliters with one that says "500 mL".

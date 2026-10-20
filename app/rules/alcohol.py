@@ -11,6 +11,11 @@ from app.rules.text import is_missing, is_unclear, tidy
 PERCENT = re.compile(r"(\d+(?:[.,]\d+)?)\s*(?:%|percent\b|per\s+cent\b)", re.IGNORECASE)
 PROOF = re.compile(r"(\d+(?:[.,]\d+)?)\s*°?\s*proof\b", re.IGNORECASE)
 BARE_NUMBER = re.compile(r"^\s*(\d+(?:[.,]\d+)?)\s*$")
+# A range such as "11-14%" or "11 to 14 percent": never one number.
+RANGE = re.compile(
+    r"(\d+(?:[.,]\d+)?)\s*%?\s*(?:-|–|—|to)\s*(\d+(?:[.,]\d+)?)\s*(?:%|percent\b)",
+    re.IGNORECASE,
+)
 
 # Label and application should state the same number, so only rounding is allowed.
 # TTB's tolerances (27 CFR 5.65, 4.36, 7.65) compare the label with the lab-tested
@@ -22,6 +27,14 @@ PROOF_TOLERANCE = Decimal("0.5")
 
 class CannotParse(ValueError):
     """The statement has no usable number, or more than one."""
+
+
+class AlcoholRange(CannotParse):
+    """The statement gives a range, such as "11-14%", not one figure."""
+
+    def __init__(self, low: Decimal, high: Decimal):
+        super().__init__(f"a range from {low} to {high}")
+        self.low, self.high = low, high
 
 
 @dataclass(frozen=True)
@@ -47,6 +60,10 @@ def show(number: Decimal) -> str:
 
 
 def parse_alcohol(text: str) -> AlcoholStatement:
+    for low, high in RANGE.findall(text):
+        low_number, high_number = to_number(low), to_number(high)
+        if low_number < high_number <= 100:  # not a year or a size before a percentage
+            raise AlcoholRange(low_number, high_number)
     percents = {to_number(n) for n in PERCENT.findall(text)}
     proofs = {to_number(n) for n in PROOF.findall(text)}
     if len(percents) > 1 or len(proofs) > 1:
@@ -86,6 +103,12 @@ def check_alcohol(application: str, label: FieldReading, optional_on_label: bool
         )
     try:
         on_label = parse_alcohol(shown)
+    except AlcoholRange as found:
+        return Check(
+            Status.REVIEW,
+            f"The label gives a range of alcohol content, from {show(found.low)}% to "
+            f'{show(found.high)}%, not one figure ("{shown}"). Please check it by eye.',
+        )
     except CannotParse:
         return Check(
             Status.REVIEW,
