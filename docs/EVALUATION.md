@@ -274,6 +274,11 @@ sample ([evaluation-2026-10-20-deployed-5.md](measurements/evaluation-2026-10-20
 
 The check over 5 seconds spent 5.7 s inside the app, so the wait was the AI provider's answer.
 
+Revision 27 (image `1f7ef3c`) adds the decimal-comma check and the new sample on the home page
+([evaluation-2026-10-20-deployed-6.md](measurements/evaluation-2026-10-20-deployed-6.md)):
+single checks 2.88 s / 4.31 s / 4.70 s (median / p95 / max), 32 of 32 under 5 seconds; a batch
+of 32 in 30.1 s; no false passes or false Problems.
+
 ## Results with basic text reading (offline)
 
 The same 31 labels, read with Tesseract OCR only, as when Claude can't be reached. Full
