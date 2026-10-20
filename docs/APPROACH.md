@@ -377,3 +377,26 @@ in 13 seconds, and the batch finished (`docs/measurements/large-upload-2026-10-1
   correctly, or a missing comma put in. The second reading by Tesseract catches a misspelt word
   only when both of Tesseract's passes can read the warning, and doesn't compare punctuation.
   So the warning check can miss small errors.
+
+## Code layout
+
+```
+app/
+  main.py          web routes
+  checking.py      check one label: prepare pictures, read, apply rules
+  batch.py         background batch jobs, kept in memory
+  export.py        Excel results, built in memory
+  limits.py        upload size limit, security headers, usage limits
+  presenting.py    results in plain words, for the pages
+  highlights.py    where each field to look at is on the label picture
+  photo_coach.py   tips for a better photo
+  samples.py       the sample labels behind "Try a sample"
+  intake/          pictures, ZIP and 7z files, spreadsheets, matching rows to pictures
+  reading/         the JSON contract, the Claude reader, and the OCR fallback
+  rules/           every matching and TTB rule, with eCFR citations
+  templates/, static/
+tools/             sample label generator, evaluation, and timing scripts
+samples/           sample labels, applications, expected results
+tests/
+docs/              approach, evaluation, accessibility, deployment, measurements
+```

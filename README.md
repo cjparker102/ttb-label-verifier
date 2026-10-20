@@ -1,191 +1,91 @@
 # TTB Label Verifier
 
-Checks alcohol label images against their application data and TTB labeling rules.
+Checks alcohol label pictures against their application data and basic TTB labeling rules. An
+agent adds a label's pictures and what the application says, or a whole batch as a spreadsheet
+plus pictures, and sees each field as **Matches**, **Check this**, or **Problem**, with one plain
+sentence saying why.
 
-A compliance agent adds a label's pictures and what the application says, or a whole batch
-as a spreadsheet plus a ZIP of pictures. The app reads each label and shows, field by
-field, whether it matches the application and follows the basic TTB rules: **Matches**,
-**Check this**, or **Problem**, each with one plain sentence saying why.
-
-**Live prototype:** https://ttb-label-verifier.kindmoss-39b6eae5.eastus2.azurecontainerapps.io
+**Demo:** https://ttb-label-verifier.kindmoss-39b6eae5.eastus2.azurecontainerapps.io (press a
+sample button; the first check after a quiet spell takes about 25 seconds more while Azure
+starts the app)
 
 Prototype. Not an official TTB or U.S. government website.
 
-## Status
+## Quick start
 
-In development (October 2026). These work and are deployed:
+Needs Python 3.12, [uv](https://docs.astral.sh/uv/), and Tesseract (`brew install tesseract`,
+or `apt-get install tesseract-ocr`).
 
-- single-label and batch checks, with an Excel download of batch results
-- sample labels to try with one click
-- drag and drop, and JPEG, PNG, WebP, GIF, HEIC, TIFF, and PDF pictures, alone or in ZIP or
-  7z files
-- each field to look at outlined on the label picture
-- tips for taking a better photo
-- the offline fallback
-- a second request to Claude when a single check's answer is slow
+```sh
+cp .env.example .env      # then put an Anthropic API key in .env
+uv sync
+uv run --env-file .env uvicorn app.main:app --reload    # open http://127.0.0.1:8000
+uv run pytest                                           # no network or API key needed
+```
 
-The evaluation has been run on the deployed app as well as in process: every sample label
-was read by Claude on the live app, and every field result was as expected (see
-[Accuracy and speed](#accuracy-and-speed)).
-
-Claude in Microsoft Foundry is built and tested offline. On Azure, the Foundry resource and
-keyless sign-in work, but the model deployment waits on quota.
+Without a key, the app reads labels with basic text reading (Tesseract) only.
 
 ## How it decides
 
-**AI reads, code decides.** Claude only reads the label and returns what is printed, field
-by field, as JSON. It never sees the application, and its output has no place for a verdict.
-Ordinary, tested Python code compares the reading with the application and applies the TTB
-rules. Every TTB check cites the eCFR paragraph it comes from.
+**AI reads, code decides.** Claude Haiku 5.5 only reads the label into JSON. It never sees the
+application, and its answer has no place for a verdict. Tested Python code compares the reading
+with the application and applies the TTB rules, each citing its eCFR paragraph. Where a reading
+is uncertain or a rule needs judgment, the answer is Check this, not Problem. In single checks,
+some fields to look at are also outlined on the picture. See [APPROACH](docs/APPROACH.md).
 
-See [docs/APPROACH.md](docs/APPROACH.md) for the approach, the rules, the assumptions, and the
-limits, and [docs/ACCESSIBILITY.md](docs/ACCESSIBILITY.md) for how the pages are made easy to
-use and what was checked.
+## Requirements, by stakeholder
 
-## Accuracy and speed
-
-On 31 sample labels (23 clean, 8 made to look like poor photos), with Claude Haiku 5.5:
-
-- **No planted problem was shown as Matches, and no fine field as a Problem:** 216 of 217
-  field results as expected, the other an acceptable Check this on a photo-like label.
-- **Every label was checked in under 5 seconds** in process (median 2.5 s, slowest 4.0 s). On
-  the live app, end to end from a home connection, all 93 single checks on Oct 20 were under
-  5 seconds (median 2.5 s, p95 3.2 s, slowest 4.6 s), and all 31 again after the rule changes
-  and the warning's second reading (median 2.7 s, slowest 4.4 s). On Oct 19, 30 of 31 were;
-  one slow answer from the API took 8.8 s.
-- **A slow answer is asked for again:** if Claude hasn't answered a single check after 4
-  seconds, the same request is sent again and the first answer is used. In those 93 checks
-  that happened twice, and the first answer still came first both times, so its effect on a
-  really slow answer is not measured yet.
-- **Batches are slower since the warning's second reading:** 31 labels took about 54 s on one
-  CPU, against 14 s before, because Tesseract's reading queues up. For review week the app has
-  2 CPUs, and 31 labels take about 31 s, so a batch of 300 takes about 5 minutes.
-- **The first check after a quiet spell** waits about 23 seconds more, while Azure starts the
-  app. It scales to zero after 5 minutes without requests.
-- **The AI cost** was about 0.07 cents a label.
-
-An earlier run found one false Problem, on a French wine's importer statement. It was fixed
-and checked again. The labels are drawn by code, so this is a first measure, not proof.
-
-**On real approved labels** from TTB's Public COLA Registry (a private test, Oct 20), the honest
-number comes from a third set of 24, chosen after the rules were changed using two earlier sets:
-
-- 256 of 280 strict field results and 50 of 56 judgment calls were as expected.
-- **No false passes.** Every planted problem was flagged, 23 of 24 as Problem; the other was
-  Check this.
-- 9 false Problems on fields that are fine, against 41 on the first set before the changes.
-  The causes are listed in EVALUATION.md and not fixed, so that the third set stays an honest
-  measure: a country stated only in the bottler statement, brands that neither reader finds,
-  two misreadings, and a net contents bug ("1 pint (16 fl oz)" added up to 2 pints). That bug
-  was fixed after the run, so the numbers above are from before the fix.
-- Both conditions TTB noted on these approvals, on things the tool checks, were flagged, for
-  TTB's reasons.
-
-See [docs/EVALUATION.md](docs/EVALUATION.md) for the method, the details, and the limits.
-
-## Run locally
-
-Requires Python 3.12, [uv](https://docs.astral.sh/uv/), and Tesseract, for the outlines and
-the offline fallback (`brew install tesseract` on macOS, `apt-get install tesseract-ocr` on
-Debian or Ubuntu). Without Tesseract the app still runs and Claude still reads the labels,
-but no fields are outlined on the pictures, and if Claude can't be reached, labels can't be
-checked at all.
-
-```sh
-cp .env.example .env      # then put your Anthropic API key in .env
-uv sync
-uv run --env-file .env uvicorn app.main:app --reload
-```
-
-Then open http://127.0.0.1:8000. Without an API key the app still runs, using basic text
-reading (OCR) only.
-
-To try a batch, use "Try a sample batch", or upload `samples/applications.csv` and the
-pictures in `samples/labels/`. On the home page, "Download the sample files" gives the same
-files as one ZIP, which also works as a whole batch on its own: when the spreadsheet box is
-left empty, a spreadsheet inside the ZIP is used.
-
-## Settings
-
-All settings come from environment variables. See [.env.example](.env.example).
-
-| Variable | Default | Meaning |
+| Who | Asked for | Status |
 |---|---|---|
-| `ANTHROPIC_API_KEY` | none | Key for the Claude API. In Azure it comes from a secret. |
-| `TTB_READER` | `anthropic` | `anthropic` (Claude through the Anthropic API), `foundry` (Claude in Microsoft Foundry, in Azure), or `ocr` (basic text reading only) |
-| `TTB_FOUNDRY_RESOURCE` | none | The Foundry resource name, for `TTB_READER=foundry`. In Azure the app signs in with its managed identity; no key is stored. |
-| `TTB_LABELS_PER_MINUTE` | `0` | Pace calls to the AI reader to stay inside a quota (`0` means no pacing) |
-| `TTB_BATCH_CONCURRENCY` | `8` | Labels read at the same time within a batch |
-| `TTB_OCR_FALLBACK` | `on` | Use basic text reading when Claude can't be reached |
-| `TTB_CLAUDE_MODEL` | `claude-haiku-5-5` | Claude model |
-| `TTB_CLAUDE_THINKING` | `off` (`adaptive` for Foundry) | `off` or `adaptive`. Foundry needs `adaptive`. |
-| `TTB_CLAUDE_EFFORT` | `low` | `low`, `medium`, or `high` (higher needs thinking on) |
-| `TTB_MAX_IMAGE_EDGE` | `1568` | Longest side, in pixels, of pictures sent to Claude |
+| Sarah Chen | Results in about 5 seconds | Met: live single checks, median 2.9 s, 31 of 31 under 5 s |
+| Sarah Chen | Simple enough for anyone | Built for it: large type, plain words, one main button. A manual screen-reader test is still to do ([ACCESSIBILITY](docs/ACCESSIBILITY.md)) |
+| Sarah Chen, Janet | Batches of 200 to 300 labels | Met: a spreadsheet plus pictures, loose or zipped; see the 300-label time below |
+| Marcus Williams | Standalone, on Azure, nothing sensitive stored | Met: one container. This app keeps pictures in memory only, and deletes batch results after 30 minutes |
+| Marcus Williams | Firewall blocks outside AI services | Partly: if the AI provider is blocked, a check falls back to offline OCR within about 8.5 s, giving Check this at most. Claude in Microsoft Foundry is optional, not yet validated |
+| Dave Morrison | Judgment ("STONE'S THROW" is "Stone's Throw") | Met for capitals, punctuation, company forms, and state names |
+| Dave Morrison | Don't make my life harder | Partly: 9 false Problems on 24 real labels (third set, before the latest fixes) |
+| Jenny Park | Warning word for word; heading in capitals and bold | Wording and capitals checked; bold is judged by the AI and can be wrong |
+| Jenny Park | Imperfect photos | Partly: simulated poor photos give acceptable results, with photo tips; real camera photos are untested |
 
-The model, thinking, and image size defaults were picked from a timing test, recorded in
-[docs/measurements](docs/measurements).
+## Latest results
 
-## Run the checks
+- **31 sample labels**, code-drawn, in process (commit `2ebfda9`): no false Problems; 1 false
+  pass, a warning heading that isn't bold read as bold; 31 of 31 under 5 seconds.
+- **24 real approved labels** from TTB's Public COLA Registry, the honest measure (commit
+  `e54a509`): 256 of 280 strict field results and 50 of 56 judgment calls as expected; no false
+  passes; 22 of 24 planted problems detected; 9 false Problems. The fixes made since were tested
+  on labels already seen, so they are not yet measured honestly.
+- **Live app**: _to be filled in after the redeploy._
+- **Cost**: about 0.08 cents a label.
 
-```sh
-uv run ruff check .
-uv run ruff format --check .
-uv run pytest
-```
+History, method, and limits: [EVALUATION](docs/EVALUATION.md).
 
-The tests need no network and no API key. Where Claude would be called, they use readings
-recorded from real runs or built from the sample labels' printed text. Tests that run
-Tesseract are skipped if it isn't installed. CI installs it, so they run there.
+## Batches and large photos
 
-## Sample labels
+A batch upload can be up to 200 MB, with up to 300 applications. Every picture is shrunk to
+1568 pixels before reading, so large phone photos work, but they fill the 200 MB quickly: at
+4 MB each, about 50 fit. Resize photos to about 1600 pixels on the long side first (nothing
+is lost, and about 600 then fit), or split the batch.
 
-`tools/make_samples.py` draws the sample labels in `samples/labels/`, with made-up brands,
-and writes `samples/applications.csv` and `samples/expected.json`. There are 23 labels, each
-with known planted errors and the expected result for every field, plus 8 photo-like
-versions (tilted, blurry, dim, glare, and so on). One label carries a prompt-injection
-attempt. Regenerate with `uv run python -m tools.make_samples`. Sample labels are for
-evaluation; a production version would remove them.
+## Limitations
 
-`tools/evaluate.py` checks every sample and records accuracy, speed, and cost in
-`docs/measurements/`, in process or against the deployed app. `tools/time_live.py` times
-single checks on the deployed app, with phone-sized photos if asked. See
-[docs/EVALUATION.md](docs/EVALUATION.md).
+- Bold type is judged by the AI from the picture, and can be wrong.
+- The warning's second reading, by Tesseract, is missing on more than half of real labels.
+- Real labels were tested as the artwork sent to TTB, not as photos of bottles.
+- Not checked: type size, contrast, standards of identity, required disclosures.
+- One instance: batch jobs and usage limits live in memory and are lost if the app restarts.
+- The sets are small: 31 code-drawn labels and three sets of 24 real ones.
 
-## Project layout
+Settings and deployment: [DEPLOY](docs/DEPLOY.md).
 
-```
-app/
-  main.py          web routes
-  checking.py      check one label: prepare pictures, read, apply rules
-  batch.py         background batch jobs, kept in memory
-  export.py        Excel results, built in memory
-  limits.py        upload size limit, security headers, usage limits
-  presenting.py    results in plain words, for the pages
-  highlights.py    where each field to look at is on the label picture
-  photo_coach.py   tips for a better photo
-  samples.py       the sample labels behind "Try a sample"
-  intake/          pictures, ZIP and 7z files, spreadsheets, matching rows to pictures
-  reading/         the JSON contract, the Claude reader, and the OCR fallback
-  rules/           every matching and TTB rule, with eCFR citations
-  templates/, static/
-tools/             sample label generator, evaluation, and timing scripts
-samples/           sample labels, applications, expected results
-tests/
-docs/              approach, evaluation, accessibility, deployment, measurements
-```
-
-## Deployment
-
-The app runs as one container on Azure Container Apps. See [docs/DEPLOY.md](docs/DEPLOY.md).
-
-## Tools used to build this project
+## Tools used
 
 - [Claude Code](https://claude.com/claude-code) (Anthropic), an AI coding assistant, used under
-  Christopher Parker's direction for planning, research, code, and tests.
+  Christopher Parker's direction for planning, research, code, and tests. ChatGPT (OpenAI)
+  reviewed the project and suggested changes.
 - Claude Haiku 5.5 reads the labels, through the Anthropic Python SDK (or Microsoft Foundry,
   signing in with azure-identity).
-- Tesseract OCR finds where words are on a label, for the outlines, and is the offline
-  fallback reader.
-- Python 3.12, FastAPI, Jinja2, Pillow, pillow-heif (HEIC), pypdfium2 (PDF), py7zr (7z),
-  openpyxl (reading spreadsheets), XlsxWriter (writing results), pytest, ruff, and uv.
+- Tesseract OCR: outlines, the warning's second reading, and the offline fallback.
+- Python 3.12, FastAPI, Jinja2, Pillow, pillow-heif, pypdfium2, py7zr, openpyxl, XlsxWriter,
+  pytest, ruff, and uv.
 - Azure Container Apps and Azure Container Registry host the prototype.

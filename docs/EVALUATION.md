@@ -358,6 +358,21 @@ caught 2 misspellings Claude read as spelt correctly. The rule is unchanged.
 - **The live runs were from one home connection,** one check at a time. An agency network,
   or many agents at once, would give different times.
 
+## The sample labels and tools
+
+`tools/make_samples.py` draws the sample labels in `samples/labels/`, with made-up brands,
+and writes `samples/applications.csv` and `samples/expected.json`. There are 23 labels, each
+with known planted errors and the expected result for every field, plus 8 photo-like
+versions (tilted, blurry, dim, glare, and so on). One label carries a prompt-injection
+attempt. Regenerate with `uv run python -m tools.make_samples`. Sample labels are for
+evaluation; a production version would remove them.
+
+`tools/evaluate.py` checks every sample and records accuracy, speed, and cost in
+`docs/measurements/`, in process or against the deployed app. `tools/time_live.py` times
+single checks on the deployed app, with phone-sized photos if asked.
+`tools/blocked_provider.py` times a check when the AI provider can't be reached, and
+`tools/second_reading.py` measures the warning's second reading on the private real labels.
+
 ## Run it again
 
 ```sh
