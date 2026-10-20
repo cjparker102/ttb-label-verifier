@@ -1,9 +1,10 @@
 """Matching rules for names: brand name, class/type, and bottler name and address."""
 
 import re
-from dataclasses import replace
+from dataclasses import dataclass, replace
 
 from app.reading.schema import FieldReading
+from app.rules.places import US_STATES
 from app.rules.results import Check, Status
 from app.rules.text import (
     cosmetic_differences,
@@ -113,11 +114,199 @@ def statements(text: str) -> list[str]:
     return parts
 
 
+def lead_in(statement: str) -> str:
+    """The words before the company, such as "Distilled by"."""
+    match = LEAD_IN.match(tidy(statement))
+    return match.group(0).strip(" :") if match else ""
+
+
 def role(statement: str) -> set[str]:
     """What the company did, from the words before "by" or "for": {"bottled"} for
     "Bottled by ...". Empty if the statement doesn't say."""
     match = LEAD_IN.match(tidy(statement))
     return {bare(word) for word in match.group(0).split()} & ACTIONS if match else set()
+
+
+# Words that only give a company's legal form. Labels often leave them out.
+LEGAL_FORMS = {
+    "co", "company", "corp", "corporation", "inc", "incorporated", "llc", "lllp", "llp", "lp",
+    "ltd", "limited", "pllc", "plc", "gmbh", "srl", "sarl",
+}  # fmt: skip
+# Short forms in place names: St. Louis is Saint Louis.
+PLACE_WORDS = {"saint": "st", "mount": "mt", "fort": "ft"}
+SEPARATOR = ","
+ZIP = re.compile(r"^\d{5}(?:\d{4})?$")
+
+
+def address_words(text: str) -> list[str]:
+    """The lower-case words of a name and address. "&" is "and", periods and apostrophes
+    are dropped (N.Y. is ny), and other punctuation becomes a separator."""
+    text = tidy(text).casefold().replace("&", " and ").replace(".", "").replace("'", "")
+    return [
+        PLACE_WORDS.get(word, word) if word[0].isalnum() else SEPARATOR
+        for word in re.findall(r"[^\W_]+|[^\w\s]", text)
+    ]
+
+
+def words_only(words: list[str]) -> list[str]:
+    return [word for word in words if word != SEPARATOR]
+
+
+def state_code(words: list[str]) -> str | None:
+    """The postal abbreviation, if the words are a state's name or abbreviation."""
+    joined = " ".join(words)
+    for code, name in US_STATES.items():
+        if joined in (code.casefold(), name.casefold()):
+            return code
+    return None
+
+
+@dataclass(frozen=True)
+class Address:
+    company: list[str]  # its words, without legal forms such as LLC
+    city: list[str]
+    state: str  # postal abbreviation
+
+
+def parse_address(text: str) -> Address | None:
+    """A name and address written "Company, City, State", as in an application, or None
+    if it isn't in that form. A street between the company and the city is ignored."""
+    parts = [part.strip() for part in tidy(text).split(",") if part.strip()]
+    if len(parts) < 3:
+        return None
+    state = state_code(words_only(address_words(re.sub(r"\s*[\d-]{5,10}$", "", parts[-1]))))
+    if state is None:
+        return None
+    company = [
+        word
+        for part in parts[:-2]
+        if not any(c.isdigit() for c in part)  # a street address
+        for word in words_only(address_words(part))
+        if word not in LEGAL_FORMS
+    ]
+    city = words_only(address_words(parts[-2]))
+    if not company or not city:
+        return None
+    return Address(company, city, state)
+
+
+def starts_with_company(address: Address, words: list[str]) -> bool:
+    """Whether the words begin with the company's whole name. Legal forms and punctuation
+    may differ. The name must end there: "Tidewick Brewing" is not "Tidewick Brewing
+    Collective", but it may be followed by a street, "DBA", or the city."""
+    i = 0
+
+    def skip(i: int) -> int:
+        while i < len(words) and (words[i] == SEPARATOR or words[i] in LEGAL_FORMS):
+            i += 1
+        return i
+
+    for word in address.company:
+        i = skip(i)
+        if i >= len(words) or words[i] != word:
+            return False
+        i += 1
+    if skip(i) > i or i == len(words):
+        return True
+    following = words[i]
+    return (
+        following == "dba"
+        or any(c.isdigit() for c in following)
+        or words_only(words[i:])[: len(address.city)] == address.city
+    )
+
+
+def state_names(state: str) -> list[list[str]]:
+    return [[state.casefold()], US_STATES[state].casefold().split()]
+
+
+def has_place(address: Address, words: list[str]) -> bool:
+    """Whether the words give the city followed by its state, by name or abbreviation."""
+    plain = words_only(words)
+    size = len(address.city)
+    for i in range(len(plain) - size + 1):
+        if plain[i : i + size] == address.city:
+            rest = plain[i + size :]
+            if any(rest[: len(name)] == name for name in state_names(address.state)):
+                return True
+    return False
+
+
+def has_state(state: str, words: list[str]) -> bool:
+    """Whether the words name the state: in full, or as its abbreviation after a comma or
+    before a ZIP code or the end. So the word "in" isn't taken for Indiana."""
+    full, short = state_names(state)[1], state.casefold()
+    plain = words_only(words)
+    if any(plain[i : i + len(full)] == full for i in range(len(plain))):
+        return True
+    for i, word in enumerate(words):
+        if word != short:
+            continue
+        after = words[i + 1] if i + 1 < len(words) else None
+        if (
+            (i > 0 and words[i - 1] == SEPARATOR)
+            or after in (None, SEPARATOR)
+            or (after and ZIP.match(after))
+        ):
+            return True
+    return False
+
+
+def same_name_or(result: Check, said: str, shown: str) -> Check:
+    """For a name and address not written "Company, City, State": the same company
+    name before the first comma needs review."""
+    said_name, shown_name = said.split(",")[0], shown.split(",")[0]
+    if loose_key(said_name) == loose_key(shown_name):
+        return Check(
+            Status.REVIEW,
+            f'Same company name, but the address is written differently. The label says "{shown}" '
+            f'and the application says "{said}".',
+        )
+    return result
+
+
+def compare_bottler(what: str, application: str, statement: str) -> Check:
+    """One statement on the label against the application. The company, city, and state
+    are compared, not the exact words: labels leave out "LLC", spell the state out, or
+    add a street address and ZIP code."""
+    said, shown = strip_lead_in(application), strip_lead_in(statement)
+    result = compare_names(what, said, shown)
+    if result.status != Status.FAIL:
+        return result
+    address = parse_address(said)
+    if address is None:
+        return same_name_or(result, said, shown)
+    company = starts_with_company(address, address_words(shown))
+    # The place can be in the words before "by": "Bottled in Napa, California by ...".
+    place = has_place(address, address_words(statement))
+    both = f'The label says "{shown}" and the application says "{said}".'
+    if company and place:
+        return Check(
+            Status.PASS,
+            f"{both} Same company, city, and state, written differently.",
+            note="Matches, written differently",
+        )
+    if company and has_state(address.state, address_words(statement)):
+        return Check(
+            Status.FAIL,
+            f'Same company name, but a different city. The label says "{shown}" but the '
+            f'application says "{said}".',
+        )
+    if company:
+        return Check(
+            Status.REVIEW,
+            f"Same company name, but the address is written differently. {both}",
+        )
+    if place:
+        return Check(
+            Status.REVIEW,
+            f'The label names a different company in the same city and state: "{shown}". The '
+            f'application says "{said}". It may be a trade name the company uses. Please check.',
+        )
+    return result
+
+
+RANK = {Status.PASS: 0, Status.REVIEW: 1, Status.FAIL: 2}
 
 
 def check_bottler(application: str, label: FieldReading) -> Check:
@@ -135,28 +324,27 @@ def check_bottler(application: str, label: FieldReading) -> Check:
             Status.REVIEW,
             f"Part of the {what} is hard to read on the label. Please check it by eye.",
         )
-    # The label may name several companies, such as a distiller and a bottler. One of
-    # them can match, but only in the role the application gives it, if it gives one.
+    # The label may name several companies, such as a distiller and a bottler, or a
+    # producer and an importer. One of them can match, but only in the role the
+    # application gives it, if it gives one.
     parts = statements(label.text or "")
-    if len(parts) > 1:
-        wanted = role(application)
-        for part in parts:
-            if not wanted <= role(part):
-                continue
-            part_result = compare_names(what, said, strip_lead_in(part))
-            if part_result.status == Status.PASS:
-                others = "; ".join(p for p in parts if p is not part)
-                return replace(
-                    part_result, reason=f'{part_result.reason} The label also says "{others}".'
-                )
-    result = compare_names(what, said, shown)
-    if result.status != Status.FAIL:
-        return result
-    said_name, shown_name = said.split(",")[0], shown.split(",")[0]
-    if loose_key(said_name) == loose_key(shown_name):
-        return Check(
-            Status.REVIEW,
-            f'Same company name, but the address is written differently. The label says "{shown}" '
-            f'and the application says "{said}".',
-        )
-    return result
+    if len(parts) <= 1:
+        return compare_bottler(what, application, label.text or "")
+    wanted = role(application)
+    results = []
+    for part in parts:
+        result = compare_bottler(what, application, part)
+        if result.status == Status.PASS and not wanted <= role(part):
+            result = Check(
+                Status.REVIEW,
+                f'The label names this company, but after "{lead_in(part)}", where the '
+                f'application says "{lead_in(application)}". Please check.',
+            )
+        results.append((part, result))
+    part, best = min(results, key=lambda pair: RANK[pair[1].status])
+    if best.status == Status.PASS:
+        others = "; ".join(p for p in parts if p is not part)
+        return replace(best, reason=f'{best.reason} The label also says "{others}".')
+    if best.status == Status.REVIEW:
+        return best
+    return same_name_or(compare_names(what, said, shown), said, shown)

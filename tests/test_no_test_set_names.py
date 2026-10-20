@@ -82,12 +82,13 @@ def names_in_private_sets() -> set[tuple[str, ...]]:
 def states_or_countries(phrase: tuple[str, ...]) -> bool:
     """US states and countries are in the app's general tables, not taken from labels."""
     from app.rules.countries import COUNTRY_NAMES
+    from app.rules.places import US_STATES
 
     places = {
         tuple(words(name))
         for country, others in COUNTRY_NAMES.items()
         for name in [country, *others]
-    }
+    } | {tuple(words(name)) for name in US_STATES.values()}
     return phrase in places or set(phrase) <= GENERIC | {w for p in places for w in p}
 
 

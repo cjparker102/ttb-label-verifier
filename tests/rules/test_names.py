@@ -85,7 +85,7 @@ def test_blank_application_needs_review():
         (
             "Old Tom Distillery, Bardstown, Kentucky",
             "Bottled by Old Tom Distillery, Bardstown, KY",
-            Status.REVIEW,
+            Status.PASS,
         ),
         (
             "Old Tom Distillery, Bardstown, Kentucky",
@@ -179,8 +179,9 @@ def test_a_lowercase_second_statement_keeps_the_whole_address_in_the_first():
 
 
 def test_by_or_for_inside_a_company_name_does_not_start_a_statement():
+    # Same city and state, so it may be a trade name, but never a match.
     label = "Brewed by Hops For Heroes Brewing, Austin, TX"
-    assert check_bottler("Heroes Brewing, Austin, TX", read(label)).status == Status.FAIL
+    assert check_bottler("Heroes Brewing, Austin, TX", read(label)).status == Status.REVIEW
 
 
 def test_a_match_on_one_statement_names_the_others():
@@ -213,3 +214,107 @@ def test_a_match_on_one_statement_names_the_others():
 )
 def test_statements(text, parts):
     assert statements(text) == parts
+
+
+# Real labels write the same company and address in many ways (found on approved labels
+# in TTB's Public COLA Registry). The company, city, and state are compared.
+
+
+@pytest.mark.parametrize(
+    ("application", "label"),
+    [
+        # "LLC" left out
+        ("Old Tom Distillery LLC, Bardstown, KY", "Bottled by Old Tom Distillery, Bardstown, KY"),
+        # "Company" written "Co.", and the state's name for its abbreviation
+        (
+            "Tidewick Brewing Company, Norfolk, VA",
+            "Brewed by TIDEWICK BREWING CO., NORFOLK, VIRGINIA",
+        ),
+        # "Inc." after a comma, and no comma between the company and the city
+        ("Harbor Bottling, Inc., Baltimore, MD", "Bottled by Harbor Bottling Baltimore, Maryland"),
+        # a street address and ZIP code
+        (
+            "Tidewick Brewing Co., Norfolk, VA",
+            "Brewed by Tidewick Brewing Company 120 Water St. Norfolk, VA 23510",
+        ),
+        # periods in abbreviations
+        ("R.J.S. Imports, Ltd., New York, NY", "Imported by RJS IMPORTS LTD. NEW YORK, N.Y."),
+        # "&" for "and"
+        ("Hill and Vale Winery, Napa, CA", "Produced and bottled by Hill & Vale Winery, Napa, CA"),
+        # a trade name after "DBA"
+        (
+            "Harbor Bottling Co., Baltimore, MD",
+            "Bottled by Harbor Bottling Co. DBA Bay Spirits, 12 Pier Rd, Baltimore, MD",
+        ),
+        # the place before "by"
+        (
+            "Old Tom Distillery, Bardstown, KY",
+            "Distilled in Bardstown, Kentucky by Old Tom Distillery",
+        ),
+        # St. for Saint
+        (
+            "Old Tom Distillery, Saint Louis, MO",
+            "Bottled by Old Tom Distillery, St. Louis, Missouri",
+        ),
+        # the producer abroad before the importer
+        (
+            "Landrevin Imports, New York, NY",
+            "Produced and bottled by Domaine Exemple, Beaune, France "
+            "Imported by Landrevin Imports Inc., New York, New York",
+        ),
+    ],
+)
+def test_the_same_company_and_place_written_differently_matches(application, label):
+    assert check_bottler(application, read(label)).status == Status.PASS
+
+
+def test_written_differently_is_noted():
+    result = check_bottler(
+        "Old Tom Distillery LLC, Bardstown, KY",
+        read("Bottled by Old Tom Distillery, Bardstown, KY"),
+    )
+    assert result.note == "Matches, written differently"
+    assert "Same company, city, and state" in result.reason
+
+
+def test_a_different_company_in_the_same_city_may_be_a_trade_name():
+    result = check_bottler(
+        "Harbor Bottling Co., Baltimore, MD", read("Bottled by Bay Spirits, Baltimore, Maryland")
+    )
+    assert result.status == Status.REVIEW
+    assert "trade name" in result.reason
+
+
+def test_a_longer_company_name_is_a_different_company():
+    label = read("Brewed by Tidewick Brewing Collective, Norfolk, VA")
+    assert check_bottler("Tidewick Brewing, Norfolk, VA", label).status == Status.REVIEW
+
+
+def test_the_same_company_in_another_city_of_the_same_state_fails():
+    label = read("Bottled by Old Tom Distillery, Louisville, Kentucky")
+    result = check_bottler("Old Tom Distillery, Bardstown, KY", label)
+    assert result.status == Status.FAIL
+    assert "different city" in result.reason
+
+
+def test_the_same_company_with_no_state_on_the_label_needs_review():
+    label = read("Bottled by Old Tom Distillery")
+    assert check_bottler("Old Tom Distillery, Bardstown, KY", label).status == Status.REVIEW
+
+
+def test_a_word_like_in_is_not_taken_for_a_state():
+    # "IN" is Indiana, but not in "Distilled in Bardstown".
+    label = read("Distilled in Bardstown by Old Tom Distillery")
+    assert check_bottler("Old Tom Distillery, Lafayette, IN", label).status == Status.REVIEW
+
+
+def test_another_company_in_another_place_still_fails():
+    label = read("Bottled by Ridgewick Spirits LLC, Lexington, KY")
+    assert check_bottler("Old Tom Distillery, Bardstown, KY", label).status == Status.FAIL
+
+
+def test_a_match_in_another_role_needs_review_and_says_which():
+    label = "Distilled by ABC Distillery, Bardstown, KY Bottled by XYZ Bottlers, Louisville, KY"
+    result = check_bottler("Bottled by ABC Distillery, Bardstown, KY", read(label))
+    assert result.status == Status.REVIEW
+    assert '"Distilled by"' in result.reason and '"Bottled by"' in result.reason

@@ -88,6 +88,15 @@ All rules are in `app/rules/`, and each has its own tests.
     into statements at words like "Bottled by" or "Imported by". One statement can match the
     application, but if the application says what its company did, only a statement saying
     the same can.
+  - For the bottler or importer, the company name, city, and state are compared, not the
+    exact words, because real labels write them in many ways. These match, with the note
+    "Matches, written differently": "LLC", "Inc.", or "Co." left out or written another way,
+    the state's name for its abbreviation (`app/rules/places.py`), "&" for "and", "St." for
+    "Saint", a street address and ZIP code added, a trade name after "DBA", and the place
+    written before "by" ("Distilled in Bardstown, Kentucky by ...").
+  - A different company name in the same city and state needs review: it may be a trade name
+    the company uses, which the app can't confirm. The same company in another city of the
+    same state fails. The same company with no state shown needs review.
 - **Alcohol content** is read from forms like `45% Alc./Vol.`, `13,5% vol`, or `90 Proof`. Label
   proof must be twice the ABV. Label and application must state the same number, allowing
   only for rounding (±0.05 points). TTB's own tolerances, such as ±0.3 points for spirits,
