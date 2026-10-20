@@ -39,8 +39,11 @@ bottled", is not this statement on its own.
 - country_of_origin: the country of origin statement, such as one starting \
 "Product of".
 - government_warning: the full health warning statement, from its heading to the \
-end. heading_bold: do the words "GOVERNMENT WARNING" look bold compared with the \
-rest of the statement? rest_bold: does the rest of the statement look bold? Answer \
-cant_tell if the image does not show it clearly.
+end. Its wording is set by law, but labels sometimes misprint it. Copy it letter by \
+letter as printed, with any misspelt, missing, or extra word, and any missing comma, \
+period, or parenthesis. Never write it from memory. heading_bold: do the words \
+"GOVERNMENT WARNING" look bold compared with the rest of the statement? rest_bold: \
+does the rest of the statement look bold? Answer cant_tell if the image does not show \
+it clearly.
 - image_problems: anything that makes an image hard to read.
 """

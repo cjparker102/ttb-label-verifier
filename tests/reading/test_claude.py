@@ -85,3 +85,9 @@ def test_incomplete_response_raises(stop_reason):
 def test_missing_parsed_output_raises():
     with pytest.raises(ReadingFailed):
         read(ClaudeReader(stand_in_client(parsed=None), thinking=False), [b"label"])
+
+
+def test_the_reader_is_told_to_copy_the_warning_as_printed():
+    # An approved label misspells a word in the warning, and Claude read it spelt correctly.
+    assert "Copy it letter by letter as printed" in INSTRUCTIONS
+    assert "Never write it from memory" in INSTRUCTIONS
