@@ -15,7 +15,10 @@ readers. The app aims at WCAG 2.2 AA, and at AAA for text contrast.
   caption under the picture lists them in words; screen readers skip the drawing itself.
 - **Plain HTML controls:** real buttons, links, file inputs, and `<details>` for the folded
   sections, so everything works by keyboard. Drag and drop is an extra; the file buttons do
-  the same job.
+  the same job. Touch screens, with nothing to drag from, don't show the drag hint.
+- **Plain words for chosen files:** each file box says "No pictures chosen yet" or "3
+  pictures chosen", in place of the browser's "No file chosen", which narrow screens cut
+  short. The file input itself is unchanged, so screen readers still hear its own state.
 - **A visible focus ring:** a thick yellow outline with a dark edge, visible on light and
   dark backgrounds.
 - **Announcements:** errors are a summary that takes focus. Chosen files, "Checking the
@@ -30,6 +33,7 @@ readers. The app aims at WCAG 2.2 AA, and at AAA for text contrast.
 | Labels on every form control, alt text on every picture, page language, one `h1`, results not by color alone | Automated tests on every kind of page (`tests/web/test_accessibility.py`) | Pass |
 | Text contrast, focus ring, control borders, every button and drop-zone state | Automated tests on the style sheet (`tests/web/test_style_sheet.py`) | Pass, after one fix: the busy Check button's gray was darkened from 4.8:1 to 7.6:1 |
 | 200% zoom (a 1280-pixel window seen at 640 pixels) | Screenshots of the home page, a result, and a batch in headless Chrome | Pass: tables turn into stacked cards, nothing is cut off |
+| A phone (390 pixels wide, touch), Oct 20 | Screenshots in headless Chrome with touch emulated, choosing files through its DevTools protocol | Pass: no drag hint on touch, "3 pictures chosen" in place of "No file chosen", and the links at the top jump to each section |
 | 400% zoom (320 pixels wide, WCAG 1.4.10) | The same pages at 320 pixels | Pass, after one fix: the picture box on the home page didn't shrink to fit, and cut off its hint text. Now tested. |
 | Every interaction reachable by keyboard | Read through the templates and script: no custom clickable elements, no positive `tabindex` | Pass |
 

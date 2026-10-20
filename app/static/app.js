@@ -52,6 +52,8 @@ function setUpDropZones() {
       placeFiles(zone, [...event.dataTransfer.files]);
     });
     input.addEventListener("change", () => showChosen(input));
+    showChosen(input);
+    zone.classList.add("counting");
   });
 }
 
@@ -81,6 +83,12 @@ function placeFiles(zone, files) {
 function showChosen(input) {
   const list = document.querySelector(`[data-chosen-for="${input.id}"]`);
   const files = [...input.files];
+  // Our own words for what is chosen, in place of the browser's "No file chosen".
+  const count = document.querySelector(`[data-count-for="${input.id}"]`);
+  if (files.length === 0) count.textContent = count.dataset.none;
+  else if (files.length === 1) count.textContent = count.dataset.one;
+  else count.textContent = count.dataset.many.replace("{n}", files.length);
+  count.hidden = false;
   const shown = files.slice(0, 8).map((file) => {
     const item = document.createElement("li");
     const size =

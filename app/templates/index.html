@@ -54,6 +54,7 @@
       <div class="drop-zone" data-drop-for="images">
         <p class="drop-text" aria-hidden="true">Drag the pictures here, or</p>
         <input type="file" id="images" name="images" accept="{{ accept }}" multiple required aria-describedby="images-hint">
+        <p class="chosen-count" data-count-for="images" data-none="No pictures chosen yet" data-one="1 picture chosen" data-many="{n} pictures chosen" hidden>No pictures chosen yet</p>
         <ul class="chosen-files" data-chosen-for="images" aria-live="polite"></ul>
       </div>
     </fieldset>
@@ -93,6 +94,7 @@
       <div class="drop-zone" data-drop-for="spreadsheet">
         <p class="drop-text" aria-hidden="true">Drag the spreadsheet here, or</p>
         <input type="file" id="spreadsheet" name="spreadsheet" accept=".csv,.xlsx,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" required aria-describedby="spreadsheet-hint">
+        <p class="chosen-count" data-count-for="spreadsheet" data-none="No spreadsheet chosen yet" data-one="1 spreadsheet chosen" data-many="{n} spreadsheets chosen" hidden>No spreadsheet chosen yet</p>
         <ul class="chosen-files" data-chosen-for="spreadsheet" aria-live="polite"></ul>
       </div>
     </fieldset>
@@ -104,6 +106,7 @@
       <div class="drop-zone" data-drop-for="pictures">
         <p class="drop-text" aria-hidden="true">Drag the pictures, ZIP, or 7z files here, or</p>
         <input type="file" id="pictures" name="pictures" accept="{{ accept }},.zip,application/zip,.7z,application/x-7z-compressed" multiple required aria-describedby="pictures-hint">
+        <p class="chosen-count" data-count-for="pictures" data-none="No pictures or ZIP files chosen yet" data-one="1 file chosen" data-many="{n} files chosen" hidden>No pictures or ZIP files chosen yet</p>
         <ul class="chosen-files" data-chosen-for="pictures" aria-live="polite"></ul>
       </div>
     </fieldset>

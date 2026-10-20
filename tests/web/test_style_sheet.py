@@ -104,3 +104,13 @@ def test_form_boxes_can_shrink_to_a_narrow_screen():
     # A fieldset is never narrower than its contents unless told otherwise, so a file
     # input's "No file chosen" pushed the form off a 320-pixel screen (400% zoom).
     assert "min-width: 0" in rule("fieldset")
+
+
+def test_touch_screens_are_not_asked_to_drag_files():
+    touch = re.search(r"@media \(hover: none\) and \(pointer: coarse\) \{(.*?)\n\}", CSS, re.S)
+    assert re.search(r"\.drop-text \{ display: none; \}", touch.group(1))
+
+
+def test_the_browsers_no_file_chosen_is_hidden_only_once_the_script_replaces_it():
+    assert "color: transparent" in rule('.drop-zone.counting input[type="file"]')
+    assert "transparent" not in rule('input[type="file"]')

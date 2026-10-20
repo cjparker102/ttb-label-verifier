@@ -1,5 +1,6 @@
 """The single-label page, end to end, with a stand-in for Claude."""
 
+import re
 import time
 
 import pytest
@@ -215,6 +216,27 @@ def test_every_file_box_has_a_drop_zone_and_a_chosen_files_list():
         zone = page[zone_start:zone_end]
         assert f'id="{box}"' in zone
         assert f'data-chosen-for="{box}"' in zone
+
+
+@pytest.mark.parametrize(
+    ("box", "none", "one", "many"),
+    [
+        ("images", "No pictures chosen yet", "1 picture chosen", "{n} pictures chosen"),
+        (
+            "spreadsheet",
+            "No spreadsheet chosen yet",
+            "1 spreadsheet chosen",
+            "{n} spreadsheets chosen",
+        ),
+        ("pictures", "No pictures or ZIP files chosen yet", "1 file chosen", "{n} files chosen"),
+    ],
+)
+def test_every_file_box_says_what_is_chosen_in_plain_words(box, none, one, many):
+    page = client.get("/").text
+    count = re.search(rf'<p class="chosen-count" data-count-for="{box}"[^>]*>', page).group(0)
+    # The script shows these words in place of the browser's "No file chosen". Without
+    # the script they stay hidden, and the browser's own words show.
+    assert f'data-none="{none}" data-one="{one}" data-many="{many}" hidden' in count
 
 
 def test_results_list_the_rules_checked_with_links(use_reader):
