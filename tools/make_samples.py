@@ -793,9 +793,8 @@ SAMPLES = [
     Sample(
         id="vesperly-wine-specialty",
         title="Fanciful name in front, class on the back",
-        planted="Nothing wrong. It copies three things a real bottle photo tripped over: a "
-        "fanciful name larger than the brand, with the class printed small on the back; the "
-        'warning\'s heading on a line of its own; and "ALC." before the alcohol figure.',
+        planted="Nothing wrong. Copies a real bottle photo: a fanciful name larger than the "
+        'brand, the class small on the back, the warning heading apart, and "ALC." before 5%.',
         beverage_type="Wine",
         application=application_data(
             "VESPERLY",

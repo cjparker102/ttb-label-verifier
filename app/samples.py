@@ -22,6 +22,7 @@ FEATURED = [
     "ridgewick-rye-wrong-abv",
     "copperfen-vodka-title-case-warning",
     "chateau-landrevin-wine",
+    "vesperly-wine-specialty",
     "heronmere-gin-warning-wording--blurry",
     "granitefall-bourbon-prompt-injection",
 ]

@@ -111,8 +111,10 @@ def test_results_page_shows_problems_first_and_the_counts(client):
     assert page.index("RIDGEWICK") < page.index("TIDEWICK")  # a problem comes before a pass
     # The batch's time, not each label's: that would include waiting for other labels.
     assert "Checked in " not in page
+    # A busy test machine can take over a minute: "1 minute 4 seconds".
+    took = r"(?:\d+ minutes? )?\d+ seconds?|\d+ minutes?"
     assert re.search(
-        rf"Checked {len(EXPECTED)} labels in \d+ seconds, about [\d.]+ seconds a label\.", page
+        rf"Checked {len(EXPECTED)} labels in (?:{took}), about [\d.]+ seconds a label\.", page
     )
     assert "labels.zip: readme.txt" in page
     assert "labels.zip: .DS_Store" in page
