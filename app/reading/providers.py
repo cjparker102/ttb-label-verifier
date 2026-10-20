@@ -2,6 +2,8 @@
 Claude in Microsoft Foundry (Azure). Basic text reading needs no reader object."""
 
 import asyncio
+import dataclasses
+import logging
 import os
 import time
 from collections import deque
@@ -12,6 +14,8 @@ from app.config import Settings
 from app.reading.claude import ClaudeReader, ReadResult
 
 FOUNDRY_SCOPE = "https://ai.azure.com/.default"
+
+log = logging.getLogger("ttb_label_verifier")
 
 
 def has_credentials(client) -> bool:
@@ -76,6 +80,55 @@ class PacedReader:
                 await self.sleep(60 - (now - self.starts[0]))
             self.starts.append(now)
         return await self.reader.read(images)
+
+
+class HedgedReader:
+    """Asks the wrapped reader again when its answer is slow, and uses whichever answer
+    comes first. Claude usually reads a label in 2 to 3 seconds, but now and then takes
+    8 or more; a second request may then answer sooner. The other request is cancelled.
+    Both are paid for, so the result counts the tokens twice."""
+
+    def __init__(self, reader, after: float):
+        self.reader = reader
+        self.after = after  # seconds
+
+    async def read(self, images: list[bytes]) -> ReadResult:
+        start = time.perf_counter()
+        tasks = [asyncio.create_task(self.reader.read(images))]
+        try:
+            done, _ = await asyncio.wait(tasks, timeout=self.after)
+            if not done:
+                tasks.append(asyncio.create_task(self.reader.read(images)))
+            waiting, failures = set(tasks), []
+            while waiting:
+                done, waiting = await asyncio.wait(waiting, return_when=asyncio.FIRST_COMPLETED)
+                for task in sorted(done, key=tasks.index):
+                    if task.exception() is not None:
+                        failures.append(task.exception())
+                        continue
+                    result = task.result()
+                    if len(tasks) == 1:
+                        return result
+                    seconds = time.perf_counter() - start
+                    log.warning(
+                        "No answer after %g s, so the label was read again. "
+                        "The %s request answered first, after %.1f s.",
+                        self.after,
+                        "first" if task is tasks[0] else "second",
+                        seconds,
+                    )
+                    # The other request, cancelled or failed, is counted as costing the same.
+                    return dataclasses.replace(
+                        result,
+                        seconds=seconds,
+                        input_tokens=result.input_tokens * 2,
+                        output_tokens=result.output_tokens * 2,
+                        requests=2,
+                    )
+            raise failures[0]
+        finally:
+            for task in tasks:
+                task.cancel()  # does nothing to a request that has finished
 
 
 def make_reader(settings: Settings, http_client=None, credential_factory=None):

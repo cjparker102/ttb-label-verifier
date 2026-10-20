@@ -62,6 +62,11 @@ marks the field unclear, which can only lead to "Check this".
   pages are counted.
 - **File types:** JPEG, PNG, WebP, GIF, HEIC (iPhone photos), TIFF, and PDF. Each page of a PDF
   or multi-page TIFF counts as a picture, up to 4 pages.
+- **A slow answer is asked for again.** Claude usually reads a label in 2 to 3 seconds, but
+  now and then takes 8 or more. If a single check has no answer after 4 seconds, the same
+  request is sent again, and whichever answer comes first is used; the other is cancelled.
+  Both count in the cost estimates, as if both had run to the end. Batches don't do this:
+  their labels are read eight at a time, and nobody is waiting on any one of them.
 
 ## The rules
 
@@ -215,7 +220,8 @@ in 13 seconds, and the batch finished (`docs/measurements/large-upload-2026-10-1
   whole office may share one, so the per-visitor limits are generous: a new visitor can try
   every sample and then the sample batch, with room to spare, and a test makes sure of it. The
   daily limit and the spend limit are the real protection. When a limit is reached, the message
-  says how long to wait, rounded up.
+  says how long to wait, rounded up. The daily limit counts labels, not requests: with slow
+  answers asked for again, 2,000 labels could mean up to 4,000 requests to Claude.
 - **Memory guard (denial of service):** batches run one at a time, and a batch's pictures wait
   in memory until their label is checked. Without a cap, queued uploads could fill the
   replica's 2 GiB and restart it, losing every batch in progress. So all batches together may

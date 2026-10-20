@@ -112,6 +112,7 @@ async def evaluate_here(entries: list[dict], reader_name: str) -> dict:
     from app.checking import NoReader, check_one
     from app.config import load_settings
     from app.reading.claude import ClaudeReader
+    from app.reading.providers import HedgedReader
     from tools.time_reading import compare
 
     settings = load_settings()
@@ -121,6 +122,8 @@ async def evaluate_here(entries: list[dict], reader_name: str) -> dict:
         reader = ClaudeReader(
             client, thinking=settings.thinking, effort=settings.effort, model=settings.model
         )
+        # As single checks in the app: a slow answer is asked for again.
+        reader = HedgedReader(reader, settings.hedge_after_seconds)
 
     records = []
     for entry in entries:

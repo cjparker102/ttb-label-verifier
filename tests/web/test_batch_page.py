@@ -15,7 +15,7 @@ from app.intake.spreadsheet import read_spreadsheet
 from app.limits import Limits
 from app.main import app, get_reader
 from tests.disk_watch import watch_disk_writes
-from tests.stand_ins import PerfectReader, ReplayReader, expected_word
+from tests.stand_ins import PerfectReader, ReplayReader, SlowReader, expected_word
 from tools.make_samples import LABELS_DIR, SAMPLES_DIR
 
 EXPECTED = json.loads((SAMPLES_DIR / "expected.json").read_text(encoding="utf-8"))
@@ -274,3 +274,12 @@ def test_a_batch_bigger_than_the_cap_is_turned_away_at_once(client, monkeypatch)
     assert response.status_code == 413
     assert "Please split it into smaller batches." in response.text
     assert app.state.limits.daily.used == 0
+
+
+def test_batch_labels_are_never_asked_for_twice(client, monkeypatch):
+    monkeypatch.setattr(app.state, "hedge_after", 0.01)
+    reader = SlowReader(0.05)  # every answer is slower than the wait before asking again
+    use_reader(reader)
+    response = start(client)
+    progress = wait_until_finished(client, response.headers["location"])
+    assert reader.requests == progress["total"] == len(EXPECTED)

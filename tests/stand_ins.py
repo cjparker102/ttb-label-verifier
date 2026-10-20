@@ -1,5 +1,6 @@
 """Readers that stand in for Claude in tests, so tests run offline and cost nothing."""
 
+import asyncio
 import json
 from pathlib import Path
 
@@ -26,6 +27,21 @@ class ReplayReader:
     async def read(self, images: list[bytes]) -> ReadResult:
         self.received.append(images)
         return ReadResult(self.reading, seconds=0.01, input_tokens=0, output_tokens=0)
+
+
+class SlowReader(ReplayReader):
+    """Like ReplayReader, but the first `slow` requests (all, if None) take `seconds` to
+    answer, the way Claude now and then takes far longer than usual."""
+
+    def __init__(self, seconds: float, slow: int | None = None):
+        super().__init__()
+        self.seconds, self.slow, self.requests = seconds, slow, 0
+
+    async def read(self, images: list[bytes]) -> ReadResult:
+        self.requests += 1
+        if self.slow is None or self.requests <= self.slow:
+            await asyncio.sleep(self.seconds)
+        return await super().read(images)
 
 
 class FailingReader:

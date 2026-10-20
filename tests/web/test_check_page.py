@@ -1,12 +1,14 @@
 """The single-label page, end to end, with a stand-in for Claude."""
 
+import time
+
 import pytest
 from fastapi.testclient import TestClient
 
 from app.limits import Limits
 from app.main import app, get_reader
 from app.reading.schema import FieldReading
-from tests.stand_ins import FailingReader, ReplayReader, recorded_reading
+from tests.stand_ins import FailingReader, ReplayReader, SlowReader, recorded_reading
 from tools.make_samples import LABELS_DIR
 
 OLD_TOM_FORM = {
@@ -112,6 +114,18 @@ def test_too_many_pictures(use_reader):
     response = client.post("/check", data=OLD_TOM_FORM, files=files)
     assert response.status_code == 422
     assert "no more than 6 pictures" in response.text
+
+
+def test_a_slow_answer_is_asked_for_again(use_reader, monkeypatch):
+    assert app.state.hedge_after == 4  # seconds, from the settings
+    monkeypatch.setattr(app.state, "hedge_after", 0.05)
+    reader = use_reader(SlowReader(30, slow=1))
+    start = time.perf_counter()
+    response = client.post("/check", data=OLD_TOM_FORM, files=label_files())
+    assert time.perf_counter() - start < 5  # the second answer was used
+    assert response.status_code == 200
+    assert "All good" in response.text
+    assert reader.requests == 2
 
 
 def test_reader_failure_falls_back_to_basic_text_reading(use_reader):

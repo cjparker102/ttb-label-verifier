@@ -22,6 +22,7 @@ class ReadResult:
     seconds: float
     input_tokens: int
     output_tokens: int
+    requests: int = 1  # 2 when a slow answer was asked for again (HedgedReader)
 
 
 class ClaudeReader:

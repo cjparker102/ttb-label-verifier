@@ -30,6 +30,9 @@ class Settings:
     max_request_bytes: int = 210 * MB  # a 200 MB batch upload plus the spreadsheet
     max_batch_files: int = 610  # pictures or ZIP files, plus the spreadsheet
     batch_concurrency: int = 8  # labels read at the same time within a batch
+    # A single check asks the AI reader again if it hasn't answered by then. Batches
+    # don't: their labels are read eight at a time, and nobody waits on one of them.
+    hedge_after_seconds: float = 4.0
     batch_keep_seconds: int = 1800  # finished batch results are deleted after this
     # Pictures of batch labels not yet checked, in all, are held in memory. Above this a
     # new batch is turned away until there is room, so queued uploads can't use up the

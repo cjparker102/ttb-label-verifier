@@ -34,7 +34,7 @@ from app.presenting import (
     results_view,
 )
 from app.reading.ocr import tesseract_available
-from app.reading.providers import make_reader
+from app.reading.providers import HedgedReader, make_reader
 from app.rules.application import Application, BeverageType
 from app.samples import SampleLabel, featured, pictures, sample_labels
 
@@ -59,6 +59,7 @@ app.mount("/static", StaticFiles(directory=HERE / "static"), name="static")
 app.state.limits = Limits.from_settings(settings)
 app.state.batches = BatchStore(settings.batch_keep_seconds)
 app.state.batch_concurrency = settings.batch_concurrency
+app.state.hedge_after = settings.hedge_after_seconds
 app.state.max_waiting_bytes = settings.max_waiting_bytes
 app.state.one_batch_at_a_time = asyncio.Semaphore(1)
 templates = Jinja2Templates(directory=HERE / "templates")
@@ -180,6 +181,8 @@ async def single_check(
     refusal = request.app.state.limits.take_check(visitor(request))
     if refusal:
         return page(request, 429, errors=[refusal], form=values)
+    if reader is not None:
+        reader = HedgedReader(reader, request.app.state.hedge_after)
     try:
         outcome = await check_one(
             application,
