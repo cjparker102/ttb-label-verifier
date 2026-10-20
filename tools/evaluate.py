@@ -125,18 +125,20 @@ async def evaluate_here(entries: list[dict], reader_name: str) -> dict:
     from app.checking import NoReader, check_one
     from app.config import load_settings
     from app.reading.claude import ClaudeReader
-    from app.reading.providers import HedgedReader
+    from app.reading.providers import DeadlineReader, HedgedReader, client_options
     from tools.time_reading import compare
 
     settings = load_settings()
     reader = None
     if reader_name == "anthropic":
-        client = anthropic.AsyncAnthropic(max_retries=1, timeout=60)
+        client = anthropic.AsyncAnthropic(**client_options(settings))
         reader = ClaudeReader(
             client, thinking=settings.thinking, effort=settings.effort, model=settings.model
         )
-        # As single checks in the app: a slow answer is asked for again.
-        reader = HedgedReader(reader, settings.hedge_after_seconds)
+        # As single checks in the app: a slow answer is asked for again, within a deadline.
+        reader = DeadlineReader(
+            HedgedReader(reader, settings.hedge_after_seconds), settings.reading_deadline_seconds
+        )
 
     records = []
     for entry in entries:

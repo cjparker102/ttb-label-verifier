@@ -11,7 +11,7 @@ from collections import deque
 import anthropic
 
 from app.config import Settings
-from app.reading.claude import ClaudeReader, ReadResult
+from app.reading.claude import ClaudeReader, ReadingFailed, ReadResult
 
 FOUNDRY_SCOPE = "https://ai.azure.com/.default"
 
@@ -44,8 +44,19 @@ def entra_token_provider(credential_factory=None):
     return token
 
 
+def client_options(settings: Settings) -> dict:
+    """A connection must open within settings.connect_seconds and a request answer within
+    the reading deadline. One retry, for a passing error; the deadline still holds."""
+    return {
+        "max_retries": 1,
+        "timeout": anthropic.Timeout(
+            settings.reading_deadline_seconds, connect=settings.connect_seconds
+        ),
+    }
+
+
 def foundry_client(settings: Settings, http_client=None, credential_factory=None):
-    options = {"resource": settings.foundry_resource, "max_retries": 1, "timeout": 30}
+    options = {"resource": settings.foundry_resource, **client_options(settings)}
     if http_client is not None:
         options["http_client"] = http_client
     api_key = os.environ.get("ANTHROPIC_FOUNDRY_API_KEY")
@@ -80,6 +91,21 @@ class PacedReader:
                 await self.sleep(60 - (now - self.starts[0]))
             self.starts.append(now)
         return await self.reader.read(images)
+
+
+class DeadlineReader:
+    """Gives up on the wrapped reader after `seconds`, so a check falls back to basic text
+    reading instead of waiting on a provider that can't be reached."""
+
+    def __init__(self, reader, seconds: float):
+        self.reader = reader
+        self.seconds = seconds
+
+    async def read(self, images: list[bytes]) -> ReadResult:
+        try:
+            return await asyncio.wait_for(self.reader.read(images), self.seconds)
+        except TimeoutError as error:
+            raise ReadingFailed(f"No answer within {self.seconds:g} s") from error
 
 
 class HedgedReader:
@@ -139,7 +165,7 @@ def make_reader(settings: Settings, http_client=None, credential_factory=None):
     if settings.reader == "foundry":
         client = foundry_client(settings, http_client, credential_factory)
     else:
-        options = {"max_retries": 1, "timeout": 30}
+        options = client_options(settings)
         if http_client is not None:
             options["http_client"] = http_client
         try:

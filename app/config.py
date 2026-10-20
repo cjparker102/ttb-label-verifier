@@ -33,6 +33,11 @@ class Settings:
     # A single check asks the AI reader again if it hasn't answered by then. Batches
     # don't: their labels are read eight at a time, and nobody waits on one of them.
     hedge_after_seconds: float = 4.0
+    # When the AI provider can't be reached, as behind a firewall that drops the traffic,
+    # a check falls back to basic text reading quickly: a connection must open within this
+    # many seconds, and a label's whole reading must finish within the deadline.
+    connect_seconds: float = 3.0
+    reading_deadline_seconds: float = 8.0
     batch_keep_seconds: int = 1800  # finished batch results are deleted after this
     # Pictures of batch labels not yet checked, in all, are held in memory. Above this a
     # new batch is turned away until there is room, so queued uploads can't use up the

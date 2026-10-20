@@ -240,10 +240,30 @@ works: with the framework's default 1 MB limit put back, it catches the temporar
 Logs hold error types, status codes, and request IDs, never label text or pictures. Batch
 results stay in memory for 30 minutes after a batch finishes, then are deleted.
 
+## The three connections
+
+1. **Browser to app.** An agent's browser talks to the app over HTTPS: the pages, the uploaded
+   pictures and spreadsheets, and the results. Nothing else.
+2. **App to AI provider.** The app sends each label's pictures to Claude and gets back what it
+   read: to the Anthropic API by default, or to Claude in Microsoft Foundry, which is
+   **optional and not yet validated** (it is built and tested offline only; see
+   [DEPLOY.md](DEPLOY.md)). This is the only connection that leaves the app, and the one an
+   agency firewall is most likely to block.
+3. **Offline OCR.** Tesseract runs inside the app's own container, with no connection at all.
+   It is the fallback when the AI provider can't be reached.
+
 ## When Claude can't be reached
 
 If the AI reader isn't set up, or fails for any reason, the label is read with Tesseract OCR
 instead. Tesseract runs on the server with no outside connection.
+
+A blocked provider is noticed quickly. A connection must open within 3 seconds, and a label's
+whole reading, a second request included, must finish within 8 seconds; then the check falls
+back to Tesseract. Measured on a laptop with the app's own client
+([blocked-provider-2026-10-20.md](measurements/blocked-provider-2026-10-20.md)): when the
+traffic is dropped, as a firewall does, a single check finishes in 8.5 seconds, read by
+Tesseract; when the connection is refused, in 0.9 seconds. Batch labels have the same
+deadline.
 
 OCR is much weaker: it gives plain text, misreads small print, drops accents, and can't see
 bold. So in this mode:

@@ -83,7 +83,7 @@ The key belongs to a dedicated Anthropic workspace with a monthly spend limit. T
 the hard stop on AI spending; the app also limits each visitor (each internet address) to 300
 checks per 10 minutes and 30 batches per hour, and the whole app to 2,000 labels a day.
 
-## Claude in Microsoft Foundry (optional)
+## Claude in Microsoft Foundry (optional, not yet validated)
 
 For an agency whose firewall blocks outside AI services, the app can read labels with
 Claude hosted in its own Azure subscription instead of the Anthropic API. The code is in

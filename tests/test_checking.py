@@ -107,3 +107,21 @@ def test_a_client_without_credentials_is_no_reader():
     assert not has_credentials(SimpleNamespace(api_key=None, auth_token=None, credentials=None))
     assert has_credentials(SimpleNamespace(api_key="key", auth_token=None, credentials=None))
     assert has_credentials(SimpleNamespace(api_key=None, auth_token=None, credentials=object()))
+
+
+def test_a_reader_past_its_deadline_falls_back_to_basic_text_reading():
+    from app.reading.ocr import tesseract_available
+    from app.reading.providers import DeadlineReader
+    from tests.stand_ins import SlowReader
+
+    if not tesseract_available():
+        pytest.skip("Tesseract is not installed")
+    reader = DeadlineReader(SlowReader(seconds=30), seconds=0.3)
+    outcome = asyncio.run(check_one(OLD_TOM, [("front.png", png())], reader, 1568))
+    assert outcome.read_by == "ocr"
+    assert outcome.seconds < 5  # not the reader's 30 seconds
+
+
+def test_the_reading_deadline_settings():
+    settings = Settings()
+    assert (settings.connect_seconds, settings.reading_deadline_seconds) == (3.0, 8.0)

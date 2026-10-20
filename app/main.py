@@ -41,7 +41,7 @@ from app.presenting import (
     results_view,
 )
 from app.reading.ocr import tesseract_available
-from app.reading.providers import HedgedReader, make_reader
+from app.reading.providers import DeadlineReader, HedgedReader, make_reader
 from app.rules.application import Application, BeverageType
 from app.samples import SampleLabel, featured, pictures, sample_files_zip, sample_labels
 
@@ -191,7 +191,9 @@ async def single_check(
     if refusal:
         return page(request, 429, errors=[refusal], form=values)
     if reader is not None:
-        reader = HedgedReader(reader, request.app.state.hedge_after)
+        reader = DeadlineReader(
+            HedgedReader(reader, request.app.state.hedge_after), settings.reading_deadline_seconds
+        )
     try:
         outcome = await check_one(
             application,
@@ -334,7 +336,7 @@ async def start_job(
     job.task = asyncio.create_task(
         run_job(
             job,
-            reader,
+            DeadlineReader(reader, settings.reading_deadline_seconds) if reader else None,
             settings.max_image_edge,
             request.app.state.batch_concurrency,
             request.app.state.one_batch_at_a_time,

@@ -14,8 +14,9 @@ import pytest
 from azure.core.credentials import AccessToken
 
 from app.config import Settings, load_settings
-from app.reading.providers import PacedReader, make_reader
-from tests.stand_ins import recorded_reading
+from app.reading.claude import ReadingFailed
+from app.reading.providers import DeadlineReader, PacedReader, make_reader
+from tests.stand_ins import SlowReader, recorded_reading
 
 READING = recorded_reading()
 
@@ -178,3 +179,29 @@ def test_foundry_settings_default_to_thinking_on():
         True,
         "ttb-test",
     )
+
+
+# A blocked provider (ChatGPT review, Oct 20, 2026): a check falls back to basic text
+# reading quickly instead of waiting on a provider that can't be reached.
+
+
+def test_a_connection_must_open_within_3_seconds(clean_env):
+    clean_env.setenv("ANTHROPIC_API_KEY", "test-key-not-real")
+    for settings in (Settings(), FOUNDRY):
+        clean_env.setenv("ANTHROPIC_FOUNDRY_API_KEY", "test-key-not-real")
+        client = make_reader(settings).client
+        assert (client.timeout.connect, client.timeout.read) == (3.0, 8.0)
+        assert client.max_retries == 1
+
+
+def test_a_reading_gives_up_at_the_deadline():
+    reader = DeadlineReader(SlowReader(seconds=5), seconds=0.2)
+    start = time.perf_counter()
+    with pytest.raises(ReadingFailed, match="No answer within 0.2 s"):
+        read_once(reader)
+    assert time.perf_counter() - start < 1
+
+
+def test_an_answer_within_the_deadline_is_used():
+    reader = DeadlineReader(SlowReader(seconds=0.05), seconds=2)
+    assert read_once(reader).reading == recorded_reading()
