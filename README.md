@@ -57,9 +57,9 @@ On 31 sample labels (23 clean, 8 made to look like poor photos), with Claude Hai
   seconds, the same request is sent again and the first answer is used. In those 93 checks
   that happened twice, and the first answer still came first both times, so its effect on a
   really slow answer is not measured yet.
-- **Batches are slower since the warning's second reading** (Oct 20, revision 21): 31 labels
-  in about 54 s, against 14 s before, because Tesseract's reading queues up on the app's one
-  CPU. A batch of 300 would take about 9 minutes.
+- **Batches are slower since the warning's second reading:** 31 labels took about 54 s on one
+  CPU, against 14 s before, because Tesseract's reading queues up. For review week the app has
+  2 CPUs, and 31 labels take about 31 s, so a batch of 300 takes about 5 minutes.
 - **The first check after a quiet spell** waits about 23 seconds more, while Azure starts the
   app. It scales to zero after 5 minutes without requests.
 - **The AI cost** was about 0.07 cents a label.

@@ -12,7 +12,7 @@ Live URL: https://ttb-label-verifier.kindmoss-39b6eae5.eastus2.azurecontainerapp
 | Resource group | `rg-ttb-label-verifier` | East US 2, a region where Claude in Microsoft Foundry is offered |
 | Container registry | `ttblabelverifier` | Basic tier, admin user off. Images are built in the cloud for linux/amd64. |
 | Container Apps environment | `cae-ttb-label-verifier` | Consumption plan. **No log storage** (`--logs-destination none`). Live log streaming still works. |
-| Container app | `ttb-label-verifier` | 1 vCPU, 2 GiB (for large batches held in memory), scales 0 to 1 replica, public HTTPS. System-assigned managed identity pulls images from the registry. |
+| Container app | `ttb-label-verifier` | 2 vCPU, 4 GiB since Oct 20, 2026, for review week (1 vCPU, 2 GiB before): batches read the warning a second time with Tesseract, which needs the CPU. Scales 0 to 1 replica, public HTTPS. System-assigned managed identity pulls images from the registry. |
 | Foundry resource | `ttb-foundry-cp` | Azure AI Foundry (AI Services), East US 2, for the optional Foundry reader. No Claude deployment yet (see below). |
 | Budget | `ttb-label-verifier-monthly` | $40 a month for the subscription, email alerts at 50%, 80%, and 100%. Azure budgets alert; they do not stop spending. |
 
@@ -54,7 +54,7 @@ az containerapp create -n ttb-label-verifier -g rg-ttb-label-verifier \
   --image ttblabelverifier.azurecr.io/ttb-label-verifier:$SHA \
   --registry-server ttblabelverifier.azurecr.io --registry-identity system --system-assigned \
   --ingress external --target-port 8000 \
-  --cpu 1.0 --memory 2.0Gi --min-replicas 0 --max-replicas 1 \
+  --cpu 2.0 --memory 4.0Gi --min-replicas 0 --max-replicas 1 \
   --tags project=ttb-label-verifier
 ```
 

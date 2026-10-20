@@ -187,7 +187,11 @@ Details: [evaluation-2026-10-20-deployed-2.md](measurements/evaluation-2026-10-2
 **Batches are about 4 times slower.** In a batch, Tesseract reads the picture with the warning
 after Claude answers, so that batches catch the same warning problems as single checks. With 8
 labels read at once and one CPU, that reading queues up: about 1.8 s a label, so a batch of 300
-would take about 9 minutes instead of about 2. More CPU would shorten it; that's a cost decision.
+would take about 9 minutes instead of about 2.
+
+So for review week the app was given 2 CPUs and 4 GiB (revision 22, the same image). Two
+batches of the 31 labels then took 32.7 s and 29.5 s: about 1.0 s a label, so about 5 minutes
+for 300. The "try again in N minutes" estimate now counts 1.2 s a label.
 
 ## Results with basic text reading (offline)
 

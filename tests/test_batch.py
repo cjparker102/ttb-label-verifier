@@ -268,3 +268,9 @@ def test_a_batch_reads_only_the_picture_with_the_warning(monkeypatch):
     run(job, ReplayReader(reading))
     assert read == [1]
     assert job.items[0].outcome.second_reading
+
+
+def test_wait_estimates_are_not_shorter_than_measured_batches():
+    """Measured on Azure with 2 CPUs on Oct 20, 2026: 31 labels in 32.7 s at the slowest,
+    with the warning's second reading. Telling a visitor to come back too soon wastes a trip."""
+    assert SECONDS_PER_LABEL >= 32.7 / 31

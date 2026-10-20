@@ -195,8 +195,8 @@ up to date as of Oct 15, 2026). The rules differ by beverage type:
   change and nothing extra is sent to it. If the words can't be found closely enough (as on
   a blurry photo, or a brand in Japanese), there is simply no outline. Outlines never change
   a result, and a finished check waits at most one second for them. They are drawn for
-  single checks only, because in a batch Tesseract would compete with the batch for the
-  app's one CPU.
+  single checks only. In a batch, Tesseract reads only the picture with the warning, for the
+  warning's second reading, to keep its share of the CPU down.
 - **Photo tips.** When a picture is hard to read, the result adds a plain tip, such as "Glare
   covers part of the label. Turn off the flash, or tilt the bottle so light doesn't reflect
   straight back at the camera." Claude reports glare,
@@ -286,12 +286,13 @@ in 13 seconds, and the batch finished (`docs/measurements/large-upload-2026-10-1
   answers asked for again, 2,000 labels could mean up to 4,000 requests to Claude.
 - **Memory guard (denial of service):** batches run one at a time, and a batch's pictures wait
   in memory until their label is checked. Without a cap, queued uploads could fill the
-  replica's 2 GiB and restart it, losing every batch in progress. So all batches together may
+  replica's memory (2 GiB until Oct 20, 4 GiB since) and restart it, losing every batch in
+  progress. So all batches together may
   hold at most 600 MB of pictures not yet checked. A batch that would go past that is turned
   away with "The app is busy with other batches. Please try again in N minutes." N counts the
-  labels that must be checked first to make room, at one label a second, rounded up. (Batches
-  checked about two labels a second with Claude, but since the warning's second reading on
-  Oct 20, about one every 1.8 seconds on the app's one CPU, so this wait is now too short.) A batch whose pictures alone come to more than 600 MB
+  labels that must be checked first to make room, at 1.2 seconds a label, rounded up. That
+  is the measured batch speed with the warning's second reading on the app's 2 CPUs (about
+  1.0 second a label), plus a margin. A batch whose pictures alone come to more than 600 MB
   once unpacked is turned away at once and asked to be split. A batch turned away doesn't count
   against the visitor's limits. A test fills the queue past the cap.
 - **The hard stop on AI spending** is the monthly spend limit on the Anthropic workspace the

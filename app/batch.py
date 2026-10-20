@@ -27,9 +27,12 @@ from app.intake.matching import MatchedRow
 from app.rules.application import Application
 
 PREVIEW_EDGE = 320
-# Batches check about two labels a second with Claude (31 labels in 16 seconds on Azure,
-# Oct 19, 2026). Wait estimates assume one a second, so they are rarely too short.
-SECONDS_PER_LABEL = 1.0
+# How long a batch takes for each label, for wait estimates. Measured on Azure on Oct 20,
+# 2026, with Tesseract's second reading of the warning: 31 labels in 29.5 s and 32.7 s with
+# 2 CPUs (about 1.0 s a label), and in 53.5 s and 55.7 s with 1 CPU (1.8 s). The app runs
+# with 2 CPUs; the slowest measured rate plus a margin keeps estimates rarely too short.
+# With 1 CPU, this would need to be about 2 seconds.
+SECONDS_PER_LABEL = 1.2
 log = logging.getLogger("ttb_label_verifier")
 
 
