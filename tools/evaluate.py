@@ -40,6 +40,7 @@ from pathlib import Path
 
 from app.rules.application import Application, BeverageType
 from tools.make_samples import LABELS_DIR, SAMPLES_DIR, sample_for
+from tools.private_set import load_cases, public_markdown, public_summary
 
 OUT_DIR = Path(__file__).resolve().parent.parent / "docs" / "measurements"
 PASS_WORDS = {"pass", "pass_with_note"}
@@ -64,8 +65,13 @@ def result_word(field) -> str:
     return str(field.status)
 
 
-def judge(expected: str, got: str) -> str:
-    """How one field's result compares with what was planted."""
+def judge(expected: str | list[str], got: str) -> str:
+    """How one field's result compares with what was planted. A list means more than one
+    result is right, and the first is the main one."""
+    if isinstance(expected, list):
+        if got in expected:
+            return "exact"
+        expected = expected[0]
     if got == expected:
         return "exact"
     if expected in ("fail", "review") and got in PASS_WORDS | {"not_needed"}:
@@ -94,8 +100,15 @@ def load_entries(only: list[str] | None) -> list[dict]:
 
 
 def application_for(entry: dict) -> Application:
+    if "application" in entry:  # a case from a private set (tools/private_set.py)
+        return Application(BeverageType(entry["beverage_type"]), **entry["application"])
     sample = sample_for(entry["id"])
     return Application(BeverageType.from_text(sample.beverage_type), **sample.application)
+
+
+def pictures_of(entry: dict) -> list[tuple[str, bytes]]:
+    folder = Path(entry["folder"]) if "folder" in entry else LABELS_DIR
+    return [(Path(name).name, (folder / name).read_bytes()) for name in entry["images"]]
 
 
 def score(entry: dict, got: dict[str, str]) -> dict:
@@ -127,7 +140,7 @@ async def evaluate_here(entries: list[dict], reader_name: str) -> dict:
 
     records = []
     for entry in entries:
-        images = [(name, (LABELS_DIR / name).read_bytes()) for name in entry["images"]]
+        images = pictures_of(entry)
         record = {"id": entry["id"], "photo": entry.get("photo")}
         try:
             outcome = await check_one(
@@ -140,16 +153,16 @@ async def evaluate_here(entries: list[dict], reader_name: str) -> dict:
             records.append(record)
             continue
         got = {field.field: result_word(field) for field in outcome.result.fields}
-        reading_problems = (
-            compare(outcome.reading, entry["truth"]) if outcome.read_by == "ai" else {}
-        )
+        if "truth" in entry:  # the sample labels' printed text, to score the reading
+            record["reading_problems"] = (
+                compare(outcome.reading, entry["truth"]) if outcome.read_by == "ai" else {}
+            )
         record.update(
             score(entry, got),
             seconds=round(outcome.seconds, 2),
             read_by=outcome.read_by,
             input_tokens=outcome.input_tokens,
             output_tokens=outcome.output_tokens,
-            reading_problems=reading_problems,
             reading=outcome.reading.model_dump(mode="json"),
             # Fields to look at that are printed on the label, and those outlined.
             flagged_on_label=[
@@ -500,14 +513,22 @@ def main() -> None:
     parser.add_argument(
         "--deployed-as", help="what the deployed app runs, for the report: its revision and image"
     )
+    parser.add_argument(
+        "--cases", help="a private set of real labels (see tools/private_set.py), in process only"
+    )
     args = parser.parse_args()
+    if args.cases and (args.url or args.only):
+        raise SystemExit("--cases runs every case, in this process")
 
     # Taken before the run, so it is the code that ran. "-dirty" marks a run made with
     # changes that weren't committed yet.
     commit = subprocess.run(
         ["git", "describe", "--always", "--dirty"], capture_output=True, text=True, check=False
     ).stdout.strip()
-    entries = load_entries(args.only.split(",") if args.only else None)
+    if args.cases:
+        entries = load_cases(Path(args.cases))
+    else:
+        entries = load_entries(args.only.split(",") if args.only else None)
     if args.url:
         results = evaluate_deployed(entries, args.url)
         results["deployed_as"] = args.deployed_as
@@ -517,6 +538,20 @@ def main() -> None:
     results["commit"] = commit
     summary = summarize(results)
     results["summary"] = summary
+
+    if args.cases:
+        # The results for each label stay in private/, next to the set. Only totals and
+        # the TTB IDs go to docs/measurements/.
+        day = results["measured_at"][:10]
+        stem = Path(args.cases).parent / f"results-{day}"
+        stem.with_suffix(".json").write_text(json.dumps(results, indent=2, ensure_ascii=False))
+        stem.with_suffix(".md").write_text(markdown(results, summary))
+        public = OUT_DIR / f"real-labels-{day}.md"
+        public.write_text(public_markdown(results, public_summary(entries, results, summary)))
+        print()
+        print(public.read_text())
+        print(f"Saved privately: {stem}.json and .md. Published: {public}")
+        return
 
     kind = "deployed" if args.url else args.reader
     stem = OUT_DIR / f"evaluation-{results['measured_at'][:10]}-{kind}"
