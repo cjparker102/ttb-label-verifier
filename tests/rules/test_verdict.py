@@ -70,3 +70,23 @@ def test_beverage_type_from_text(text, beverage_type):
 def test_unknown_beverage_type_is_refused():
     with pytest.raises(ValueError, match="Unknown beverage type"):
         BeverageType.from_text("cider")
+
+
+def test_disagreeing_statements_reach_the_fields():
+    """The reader lists every alcohol and net contents statement it saw. If they disagree,
+    the field needs review, even when the one it chose matches the application."""
+    entry = next(e for e in EXPECTED if e["id"] == "old-tom-bourbon")
+    reading = perfect_reading(entry["truth"]).model_copy(
+        update={
+            "alcohol_statements": ["45% Alc./Vol. (90 Proof)", "43% Alc./Vol."],
+            "net_contents_statements": ["750 mL", "75 mL"],
+        }
+    )
+    fields = {f.field: f for f in check_label(application_for(entry["id"]), reading).fields}
+    assert fields["alcohol_content"].status == Status.REVIEW
+    assert fields["net_contents"].status == Status.REVIEW
+    agreeing = reading.model_copy(
+        update={"alcohol_statements": ["45% Alc./Vol. (90 Proof)"], "net_contents_statements": []}
+    )
+    fields = {f.field: f for f in check_label(application_for(entry["id"]), agreeing).fields}
+    assert fields["alcohol_content"].status == Status.PASS

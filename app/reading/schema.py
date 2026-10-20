@@ -7,7 +7,7 @@ rules' job, not the reader's.
 
 from enum import StrEnum
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 
 class Readability(StrEnum):
@@ -86,3 +86,23 @@ class LabelReading(BaseModel):
     image_problems: list[ImageProblem] = Field(
         description="Problems that make any of the images hard to read. Empty if none."
     )
+    alcohol_statements: list[str] = Field(
+        description=(
+            "Every distinct alcohol content statement on any image, each copied exactly as "
+            "printed, including the one in alcohol_content. Empty if none."
+        )
+    )
+    net_contents_statements: list[str] = Field(
+        description=(
+            "Every distinct net contents statement on any image, each copied exactly as "
+            "printed, including the one in net_contents. Empty if none."
+        )
+    )
+
+    @model_validator(mode="before")
+    @classmethod
+    def older_readings(cls, data):
+        """Readings saved before these lists existed have none of them."""
+        if isinstance(data, dict):
+            data = {"alcohol_statements": [], "net_contents_statements": [], **data}
+        return data

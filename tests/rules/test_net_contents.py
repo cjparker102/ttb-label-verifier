@@ -2,7 +2,12 @@ from decimal import Decimal
 
 import pytest
 
-from app.rules.net_contents import CannotParse, check_net_contents, parse_volume
+from app.rules.net_contents import (
+    CannotParse,
+    check_net_contents,
+    check_net_contents_statements,
+    parse_volume,
+)
 from app.rules.results import Status
 from tests.rules.helpers import read
 
@@ -220,3 +225,30 @@ def test_an_application_matching_neither_amount_fails():
     result = check_net_contents("1 L", read("750 mL (12 fl oz)"))
     assert result.status == Status.FAIL
     assert "also disagree" in result.reason
+
+
+# Every net contents statement the reader saw (ChatGPT review, Oct 20, 2026).
+
+
+@pytest.mark.parametrize(
+    "statements", [["750ml", "75 ml"], ["12 FL OZ", "16 FL OZ"], ["1 L", "750 mL", "750 mL"]]
+)
+def test_net_contents_statements_that_differ_need_review(statements):
+    result = check_net_contents_statements(statements)
+    assert result.status == Status.REVIEW
+    assert "amounts differ" in result.reason
+
+
+@pytest.mark.parametrize(
+    "statements",
+    [
+        [],
+        ["750 mL"],
+        ["750 mL", "25.4 FL OZ"],  # the same amount in other units
+        ["1 PINT (16 FL OZ)", "16 fl oz"],
+        ["15.5 GALLONS 5.16 GALLONS", "15.5 gallons"],  # a list of sizes is left out
+        ["750 mL", "CONTAINS SULFITES"],
+    ],
+)
+def test_net_contents_statements_that_agree_pass(statements):
+    assert check_net_contents_statements(statements) is None

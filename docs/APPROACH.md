@@ -128,6 +128,12 @@ All rules are in `app/rules/`, and each has its own tests.
   tick for each do, needs review if the application's size is among them ("Please check which
   one the label marks"), and fails if it isn't. For wine and spirits, each listed size must
   be an authorized size. "US" before the unit and "GALS" are understood.
+- **Statements given more than once.** A label can state its alcohol content or net contents on
+  more than one picture, and the statements can disagree (a front saying 75 ml and a back
+  saying 750 ml). Claude lists every distinct alcohol and net contents statement it sees, and if
+  they disagree, the field needs review, even when the one compared matches the application.
+  The same amount in other units agrees ("750 mL" and "25.4 FL OZ"); a list of sizes to tick is
+  left out. Basic text reading, offline, doesn't make these lists.
 - **Country of origin** names in many languages map to one standard name (`Deutschland` is
   Germany). Scotland and the other UK nations count as part of the United Kingdom.
 

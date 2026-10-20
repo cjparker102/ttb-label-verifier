@@ -152,3 +152,33 @@ def check_alcohol(application: str, label: FieldReading, optional_on_label: bool
                 f"{show(on_application.proof)} proof.",
             )
     return Check(Status.PASS, "The alcohol content matches the application.")
+
+
+def check_alcohol_statements(statements: list[str]) -> Check | None:
+    """A label can state its alcohol content more than once, on different pictures. If
+    the statements disagree, as a front saying 13% and a back saying 11-14%, a person must
+    look. Statements without a figure are left out; None if nothing disagrees."""
+    found: dict[object, str] = {}
+    for statement in statements:
+        try:
+            value: object = parse_alcohol(tidy(statement)).effective_abv
+        except AlcoholRange as found_range:
+            value = (found_range.low, found_range.high)
+        except CannotParse:
+            continue
+        if not any(same_alcohol(value, other) for other in found):
+            found[value] = tidy(statement)
+    if len(found) < 2:
+        return None
+    listed = " and ".join(f'"{text}"' for text in found.values())
+    return Check(
+        Status.REVIEW,
+        f"The label states its alcohol content more than once, and the statements disagree: "
+        f"{listed}. Please check it by eye.",
+    )
+
+
+def same_alcohol(a: object, b: object) -> bool:
+    if isinstance(a, Decimal) and isinstance(b, Decimal):
+        return abs(a - b) <= ABV_TOLERANCE
+    return a == b

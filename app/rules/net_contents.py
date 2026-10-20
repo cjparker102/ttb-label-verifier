@@ -222,3 +222,29 @@ def check_net_contents(application: str, label: FieldReading) -> Check:
         "They are the same amount in different units.",
         note=f"Matches, different units ({shown} = {said})",
     )
+
+
+def check_net_contents_statements(statements: list[str]) -> Check | None:
+    """A label can state its net contents more than once, on different pictures. If the
+    statements give different amounts, as a front saying 75 ml and a back saying 750 ml, a
+    person must look. The same amount in other units ("750 mL" and "25.4 FL OZ") agrees.
+    Statements without an amount, or listing several sizes, are left out."""
+    found: list[tuple[Decimal, str]] = []
+    for statement in statements:
+        try:
+            volume = parse_volume(tidy(statement))
+        except CannotParse:
+            continue
+        if volume.metric_sizes or volume.us_sizes:
+            continue
+        ml = volume.ml
+        if not any(abs(ml - other) <= SYSTEMS_AGREE * max(ml, other) for other, _ in found):
+            found.append((ml, tidy(statement)))
+    if len(found) < 2:
+        return None
+    listed = " and ".join(f'"{text}"' for _, text in found)
+    return Check(
+        Status.REVIEW,
+        f"The label states its net contents more than once, and the amounts differ: {listed}. "
+        "Please check it by eye.",
+    )

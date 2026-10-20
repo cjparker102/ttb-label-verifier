@@ -13,6 +13,7 @@ import pytest
 from app.reading.claude import MODEL, ClaudeReader, ReadingFailed
 from app.reading.prompt import INSTRUCTIONS
 from app.reading.schema import LabelReading
+from tests.stand_ins import recorded_reading
 
 PARSED = object()  # the reader passes the parsed reading through untouched
 
@@ -91,3 +92,12 @@ def test_the_reader_is_told_to_copy_the_warning_as_printed():
     # An approved label misspells a word in the warning, and Claude read it spelt correctly.
     assert "Copy it letter by letter as printed" in INSTRUCTIONS
     assert "Never write it from memory" in INSTRUCTIONS
+
+
+def test_the_reader_reports_every_alcohol_and_net_contents_statement():
+    required = LabelReading.model_json_schema()["required"]
+    assert "alcohol_statements" in required and "net_contents_statements" in required
+    assert "report each one" in INSTRUCTIONS
+    # Readings saved before the lists existed still load, with empty lists.
+    old = recorded_reading()
+    assert (old.alcohol_statements, old.net_contents_statements) == ([], [])

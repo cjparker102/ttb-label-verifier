@@ -46,4 +46,9 @@ period, or parenthesis. Never write it from memory. heading_bold: do the words \
 does the rest of the statement look bold? Answer cant_tell if the image does not show \
 it clearly.
 - image_problems: anything that makes an image hard to read.
+- alcohol_statements and net_contents_statements: every distinct alcohol content \
+statement, and every distinct net contents statement, that appears anywhere on any \
+image, each copied exactly as printed. Include the one you chose for alcohol_content or \
+net_contents. A label can state them more than once, and the statements can disagree; \
+report each one. Leave a list empty if there is none.
 """

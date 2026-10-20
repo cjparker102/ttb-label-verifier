@@ -5,11 +5,11 @@ from dataclasses import dataclass
 
 from app.reading.schema import LabelReading
 from app.reading.words import Passes
-from app.rules.alcohol import check_alcohol
+from app.rules.alcohol import check_alcohol, check_alcohol_statements
 from app.rules.application import Application
 from app.rules.countries import check_country
 from app.rules.names import check_bottler, check_brand, check_class
-from app.rules.net_contents import check_net_contents
+from app.rules.net_contents import check_net_contents, check_net_contents_statements
 from app.rules.results import Check, Status, worst
 from app.rules.ttb import alcohol_may_be_left_out, ttb_checks
 from app.rules.warning import GOVERNMENT_WARNING, check_warning
@@ -46,6 +46,10 @@ class LabelResult:
         return Counter(field.status for field in self.fields)
 
 
+def also(check: Check | None) -> list[Check]:
+    return [check] if check else []
+
+
 def check_label(
     application: Application, reading: LabelReading, ocr: Passes | None = None
 ) -> LabelResult:
@@ -78,13 +82,15 @@ def check_label(
                 "alcohol_content",
                 "Alcohol content",
                 a.alcohol_content,
-                [check_alcohol(a.alcohol_content, r.alcohol_content, alcohol_optional)],
+                [check_alcohol(a.alcohol_content, r.alcohol_content, alcohol_optional)]
+                + also(check_alcohol_statements(r.alcohol_statements)),
             ),
             field(
                 "net_contents",
                 "Net contents",
                 a.net_contents,
-                [check_net_contents(a.net_contents, r.net_contents)],
+                [check_net_contents(a.net_contents, r.net_contents)]
+                + also(check_net_contents_statements(r.net_contents_statements)),
             ),
             field(
                 "bottler_name_address",

@@ -2,7 +2,7 @@ from decimal import Decimal
 
 import pytest
 
-from app.rules.alcohol import CannotParse, check_alcohol, parse_alcohol
+from app.rules.alcohol import CannotParse, check_alcohol, check_alcohol_statements, parse_alcohol
 from app.rules.results import Status
 from tests.rules.helpers import read
 
@@ -109,3 +109,33 @@ def test_an_alcohol_range_needs_review(label):
 )
 def test_a_year_or_size_before_a_percentage_is_not_a_range(label):
     assert "range" not in check_alcohol("13%", read(label)).reason
+
+
+# Every alcohol statement the reader saw (ChatGPT review, Oct 20, 2026).
+
+
+@pytest.mark.parametrize(
+    "statements",
+    [
+        ["13%/vol.", "ALC 11-14% BY VOL."],  # a front and a back that disagree
+        ["40% Alc./Vol.", "43% ALC/VOL"],
+        ["6% alc/vol", "6.1% ALC/VOL", "4.7% ALC/VOL"],
+    ],
+)
+def test_alcohol_statements_that_disagree_need_review(statements):
+    result = check_alcohol_statements(statements)
+    assert result.status == Status.REVIEW
+    assert all(f'"{s}"' in result.reason for s in statements[:2])
+
+
+@pytest.mark.parametrize(
+    "statements",
+    [
+        [],
+        ["45% Alc./Vol. (90 Proof)"],
+        ["45% Alc./Vol. (90 Proof)", "90 PROOF", "ALC. 45% BY VOL."],  # the same figure
+        ["13.5% alc/vol", "Bottled 2024"],  # no figure in the second
+    ],
+)
+def test_alcohol_statements_that_agree_pass(statements):
+    assert check_alcohol_statements(statements) is None
