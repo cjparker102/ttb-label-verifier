@@ -3,9 +3,11 @@ never on the labels they were tested on. So no brand, company, or place name fro
 private set of real labels (in private/, never committed) may appear in the app's code.
 
 The names come from each set's application data, its registry records, and what was read
-from its labels. A word or phrase that was already in the app before the first real-label
-set was fetched doesn't count, nor do the generic words below: those were not taken from
-the labels. Without a private set, as in CI, there is nothing to check against."""
+from its labels. A word or phrase that was already in the app when the set was fetched
+doesn't count: it can't have come from those labels. Each set records that commit in its
+fetched-after.txt (the first set has none, and was fetched after BEFORE_REAL_LABELS). The
+generic words below don't count either. Without a private set, as in CI, there is nothing
+to check against."""
 
 import json
 import re
@@ -59,24 +61,29 @@ def phrases(text: str) -> set[tuple[str, ...]]:
     return found
 
 
-def names_in_private_sets() -> set[tuple[str, ...]]:
+def private_sets() -> list[Path]:
+    return sorted(path.parent for path in PRIVATE.glob("*/cases.json"))
+
+
+def names_in(folder: Path) -> set[tuple[str, ...]]:
     texts = []
-    for path in PRIVATE.glob("**/cases.json"):
-        for case in json.loads(path.read_text(encoding="utf-8")):
-            texts += [
-                case["application"]["brand_name"],
-                case["application"]["bottler_name_address"],
-            ]
-    for path in PRIVATE.glob("**/labels/*/record.json"):
+    for case in json.loads((folder / "cases.json").read_text(encoding="utf-8")):
+        texts += [case["application"]["brand_name"], case["application"]["bottler_name_address"]]
+    for path in folder.glob("labels/*/record.json"):
         record = json.loads(path.read_text(encoding="utf-8"))
         keys = ("brand", "fanciful", "applicant", "wine_appellation")
         texts += [record.get(key) or "" for key in keys]
-    for path in PRIVATE.glob("**/results-*.json"):
+    for path in folder.glob("results-*.json"):
         for result in json.loads(path.read_text(encoding="utf-8"))["records"]:
             for field in ("brand_name", "class_type", "bottler_name_address"):
                 texts.append(((result.get("reading") or {}).get(field) or {}).get("text") or "")
     found = set().union(*(phrases(text) for text in texts)) if texts else set()
     return {p for p in found if not set(p) <= GENERIC and not states_or_countries(p)}
+
+
+def fetched_after(folder: Path) -> str:
+    marker = folder / "fetched-after.txt"
+    return marker.read_text(encoding="utf-8").strip() if marker.exists() else BEFORE_REAL_LABELS
 
 
 def states_or_countries(phrase: tuple[str, ...]) -> bool:
@@ -104,24 +111,26 @@ def app_now() -> dict[str, str]:
     }
 
 
-def app_before() -> dict[str, str]:
+def app_at(commit: str) -> dict[str, str]:
     def git(*args: str) -> str:
         return subprocess.run(
             ["git", *args], cwd=ROOT, capture_output=True, text=True, check=True
         ).stdout
 
-    names = git("ls-tree", "-r", "--name-only", BEFORE_REAL_LABELS, APP).split()
-    return {
-        name: git("show", f"{BEFORE_REAL_LABELS}:{name}") for name in names if CODE.search(name)
-    }
+    names = git("ls-tree", "-r", "--name-only", commit, APP).split()
+    return {name: git("show", f"{commit}:{name}") for name in names if CODE.search(name)}
 
 
 def test_no_name_from_a_real_label_set_is_in_the_app():
-    names = names_in_private_sets()
-    if not names:
+    sets = private_sets()
+    if not sets:
         pytest.skip("no private set of real labels here")
-    new = (names & code_phrases(app_now())) - code_phrases(app_before())
-    assert not new, f"Names from the test set in the app's code: {sorted(new)}"
+    now, new = code_phrases(app_now()), {}
+    for folder in sets:
+        added = (names_in(folder) & now) - code_phrases(app_at(fetched_after(folder)))
+        if added:
+            new[folder.name] = sorted(added)
+    assert not new, f"Names from a test set in the app's code, added after its fetch: {new}"
 
 
 def test_the_check_finds_a_name_added_to_the_code():
