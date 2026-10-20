@@ -1,0 +1,1014 @@
+{
+  "mode": "deployed app",
+  "url": "https://ttb-label-verifier.kindmoss-39b6eae5.eastus2.azurecontainerapps.io",
+  "batch_seconds": 13.7,
+  "records": [
+    {
+      "id": "old-tom-bourbon",
+      "photo": null,
+      "seconds": 3.69,
+      "status_code": 200,
+      "read_by": "ai",
+      "server_seconds": 3.3,
+      "flagged_on_label": [],
+      "outlined": [],
+      "got": {
+        "brand_name": "pass",
+        "class_type": "pass",
+        "alcohol_content": "pass",
+        "net_contents": "pass",
+        "bottler_name_address": "pass",
+        "country_of_origin": "not_needed",
+        "government_warning": "pass"
+      },
+      "judgments": {
+        "brand_name": "exact",
+        "class_type": "exact",
+        "alcohol_content": "exact",
+        "net_contents": "exact",
+        "bottler_name_address": "exact",
+        "country_of_origin": "exact",
+        "government_warning": "exact"
+      },
+      "batch_read_by": "AI reader"
+    },
+    {
+      "id": "stones-throw-gin",
+      "photo": null,
+      "seconds": 4.62,
+      "status_code": 200,
+      "read_by": "ai",
+      "server_seconds": 4.5,
+      "flagged_on_label": [],
+      "outlined": [],
+      "got": {
+        "brand_name": "pass_with_note",
+        "class_type": "pass",
+        "alcohol_content": "pass",
+        "net_contents": "pass",
+        "bottler_name_address": "pass",
+        "country_of_origin": "not_needed",
+        "government_warning": "pass"
+      },
+      "judgments": {
+        "brand_name": "exact",
+        "class_type": "exact",
+        "alcohol_content": "exact",
+        "net_contents": "exact",
+        "bottler_name_address": "exact",
+        "country_of_origin": "exact",
+        "government_warning": "exact"
+      },
+      "batch_read_by": "AI reader"
+    },
+    {
+      "id": "ridgewick-rye-wrong-abv",
+      "photo": null,
+      "seconds": 3.1,
+      "status_code": 200,
+      "read_by": "ai",
+      "server_seconds": 3.0,
+      "flagged_on_label": [
+        "alcohol_content"
+      ],
+      "outlined": [
+        "alcohol_content"
+      ],
+      "got": {
+        "brand_name": "pass",
+        "class_type": "pass",
+        "alcohol_content": "fail",
+        "net_contents": "pass",
+        "bottler_name_address": "pass",
+        "country_of_origin": "not_needed",
+        "government_warning": "pass"
+      },
+      "judgments": {
+        "brand_name": "exact",
+        "class_type": "exact",
+        "alcohol_content": "exact",
+        "net_contents": "exact",
+        "bottler_name_address": "exact",
+        "country_of_origin": "exact",
+        "government_warning": "exact"
+      },
+      "batch_read_by": "AI reader"
+    },
+    {
+      "id": "harborlume-rum-proof",
+      "photo": null,
+      "seconds": 2.34,
+      "status_code": 200,
+      "read_by": "ai",
+      "server_seconds": 2.2,
+      "flagged_on_label": [
+        "alcohol_content"
+      ],
+      "outlined": [
+        "alcohol_content"
+      ],
+      "got": {
+        "brand_name": "pass",
+        "class_type": "pass",
+        "alcohol_content": "fail",
+        "net_contents": "pass",
+        "bottler_name_address": "pass",
+        "country_of_origin": "not_needed",
+        "government_warning": "pass"
+      },
+      "judgments": {
+        "brand_name": "exact",
+        "class_type": "exact",
+        "alcohol_content": "exact",
+        "net_contents": "exact",
+        "bottler_name_address": "exact",
+        "country_of_origin": "exact",
+        "government_warning": "exact"
+      },
+      "batch_read_by": "AI reader"
+    },
+    {
+      "id": "copperfen-vodka-title-case-warning",
+      "photo": null,
+      "seconds": 4.44,
+      "status_code": 200,
+      "read_by": "ai",
+      "server_seconds": 4.3,
+      "flagged_on_label": [
+        "government_warning"
+      ],
+      "outlined": [
+        "government_warning"
+      ],
+      "got": {
+        "brand_name": "pass",
+        "class_type": "pass",
+        "alcohol_content": "pass",
+        "net_contents": "pass",
+        "bottler_name_address": "pass",
+        "country_of_origin": "not_needed",
+        "government_warning": "fail"
+      },
+      "judgments": {
+        "brand_name": "exact",
+        "class_type": "exact",
+        "alcohol_content": "exact",
+        "net_contents": "exact",
+        "bottler_name_address": "exact",
+        "country_of_origin": "exact",
+        "government_warning": "exact"
+      },
+      "batch_read_by": "AI reader"
+    },
+    {
+      "id": "heronmere-gin-warning-wording",
+      "photo": null,
+      "seconds": 2.19,
+      "status_code": 200,
+      "read_by": "ai",
+      "server_seconds": 2.1,
+      "flagged_on_label": [
+        "government_warning"
+      ],
+      "outlined": [
+        "government_warning"
+      ],
+      "got": {
+        "brand_name": "pass",
+        "class_type": "pass",
+        "alcohol_content": "pass",
+        "net_contents": "pass",
+        "bottler_name_address": "pass",
+        "country_of_origin": "not_needed",
+        "government_warning": "fail"
+      },
+      "judgments": {
+        "brand_name": "exact",
+        "class_type": "exact",
+        "alcohol_content": "exact",
+        "net_contents": "exact",
+        "bottler_name_address": "exact",
+        "country_of_origin": "exact",
+        "government_warning": "exact"
+      },
+      "batch_read_by": "AI reader"
+    },
+    {
+      "id": "northvale-whisky-warning-not-bold",
+      "photo": null,
+      "seconds": 2.55,
+      "status_code": 200,
+      "read_by": "ai",
+      "server_seconds": 2.4,
+      "flagged_on_label": [
+        "government_warning"
+      ],
+      "outlined": [
+        "government_warning"
+      ],
+      "got": {
+        "brand_name": "pass",
+        "class_type": "pass",
+        "alcohol_content": "pass",
+        "net_contents": "pass",
+        "bottler_name_address": "pass",
+        "country_of_origin": "not_needed",
+        "government_warning": "review"
+      },
+      "judgments": {
+        "brand_name": "exact",
+        "class_type": "exact",
+        "alcohol_content": "exact",
+        "net_contents": "exact",
+        "bottler_name_address": "exact",
+        "country_of_origin": "exact",
+        "government_warning": "exact"
+      },
+      "batch_read_by": "AI reader"
+    },
+    {
+      "id": "saltreed-vodka-net-contents",
+      "photo": null,
+      "seconds": 2.25,
+      "status_code": 200,
+      "read_by": "ai",
+      "server_seconds": 2.2,
+      "flagged_on_label": [
+        "net_contents"
+      ],
+      "outlined": [
+        "net_contents"
+      ],
+      "got": {
+        "brand_name": "pass",
+        "class_type": "pass",
+        "alcohol_content": "pass",
+        "net_contents": "fail",
+        "bottler_name_address": "pass",
+        "country_of_origin": "not_needed",
+        "government_warning": "pass"
+      },
+      "judgments": {
+        "brand_name": "exact",
+        "class_type": "exact",
+        "alcohol_content": "exact",
+        "net_contents": "exact",
+        "bottler_name_address": "exact",
+        "country_of_origin": "exact",
+        "government_warning": "exact"
+      },
+      "batch_read_by": "AI reader"
+    },
+    {
+      "id": "chateau-landrevin-wine",
+      "photo": null,
+      "seconds": 2.41,
+      "status_code": 200,
+      "read_by": "ai",
+      "server_seconds": 2.3,
+      "flagged_on_label": [
+        "brand_name",
+        "alcohol_content"
+      ],
+      "outlined": [
+        "brand_name",
+        "alcohol_content"
+      ],
+      "got": {
+        "brand_name": "review",
+        "class_type": "pass",
+        "alcohol_content": "review",
+        "net_contents": "pass",
+        "bottler_name_address": "pass",
+        "country_of_origin": "pass",
+        "government_warning": "pass"
+      },
+      "judgments": {
+        "brand_name": "exact",
+        "class_type": "exact",
+        "alcohol_content": "exact",
+        "net_contents": "exact",
+        "bottler_name_address": "exact",
+        "country_of_origin": "exact",
+        "government_warning": "exact"
+      },
+      "batch_read_by": "AI reader"
+    },
+    {
+      "id": "tidewick-pale-ale",
+      "photo": null,
+      "seconds": 2.33,
+      "status_code": 200,
+      "read_by": "ai",
+      "server_seconds": 2.2,
+      "flagged_on_label": [],
+      "outlined": [],
+      "got": {
+        "brand_name": "pass",
+        "class_type": "pass",
+        "alcohol_content": "pass",
+        "net_contents": "pass",
+        "bottler_name_address": "pass",
+        "country_of_origin": "not_needed",
+        "government_warning": "pass"
+      },
+      "judgments": {
+        "brand_name": "exact",
+        "class_type": "exact",
+        "alcohol_content": "exact",
+        "net_contents": "exact",
+        "bottler_name_address": "exact",
+        "country_of_origin": "exact",
+        "government_warning": "exact"
+      },
+      "batch_read_by": "AI reader"
+    },
+    {
+      "id": "granitefall-bourbon-prompt-injection",
+      "photo": null,
+      "seconds": 2.63,
+      "status_code": 200,
+      "read_by": "ai",
+      "server_seconds": 2.5,
+      "flagged_on_label": [
+        "alcohol_content"
+      ],
+      "outlined": [
+        "alcohol_content"
+      ],
+      "got": {
+        "brand_name": "pass",
+        "class_type": "pass",
+        "alcohol_content": "fail",
+        "net_contents": "pass",
+        "bottler_name_address": "pass",
+        "country_of_origin": "not_needed",
+        "government_warning": "pass"
+      },
+      "judgments": {
+        "brand_name": "exact",
+        "class_type": "exact",
+        "alcohol_content": "exact",
+        "net_contents": "exact",
+        "bottler_name_address": "exact",
+        "country_of_origin": "exact",
+        "government_warning": "exact"
+      },
+      "batch_read_by": "AI reader"
+    },
+    {
+      "id": "seiran-japanese-whisky",
+      "photo": null,
+      "seconds": 2.63,
+      "status_code": 200,
+      "read_by": "ai",
+      "server_seconds": 2.5,
+      "flagged_on_label": [
+        "brand_name"
+      ],
+      "outlined": [],
+      "got": {
+        "brand_name": "review",
+        "class_type": "pass",
+        "alcohol_content": "pass",
+        "net_contents": "pass",
+        "bottler_name_address": "pass",
+        "country_of_origin": "pass",
+        "government_warning": "pass"
+      },
+      "judgments": {
+        "brand_name": "exact",
+        "class_type": "exact",
+        "alcohol_content": "exact",
+        "net_contents": "exact",
+        "bottler_name_address": "exact",
+        "country_of_origin": "exact",
+        "government_warning": "exact"
+      },
+      "batch_read_by": "AI reader"
+    },
+    {
+      "id": "kirchberger-german-lager",
+      "photo": null,
+      "seconds": 2.44,
+      "status_code": 200,
+      "read_by": "ai",
+      "server_seconds": 2.3,
+      "flagged_on_label": [],
+      "outlined": [],
+      "got": {
+        "brand_name": "pass",
+        "class_type": "pass",
+        "alcohol_content": "pass",
+        "net_contents": "pass",
+        "bottler_name_address": "pass",
+        "country_of_origin": "pass_with_note",
+        "government_warning": "pass"
+      },
+      "judgments": {
+        "brand_name": "exact",
+        "class_type": "exact",
+        "alcohol_content": "exact",
+        "net_contents": "exact",
+        "bottler_name_address": "exact",
+        "country_of_origin": "exact",
+        "government_warning": "exact"
+      },
+      "batch_read_by": "AI reader"
+    },
+    {
+      "id": "silverbirch-vodka-centiliters",
+      "photo": null,
+      "seconds": 2.29,
+      "status_code": 200,
+      "read_by": "ai",
+      "server_seconds": 2.2,
+      "flagged_on_label": [
+        "net_contents"
+      ],
+      "outlined": [
+        "net_contents"
+      ],
+      "got": {
+        "brand_name": "pass",
+        "class_type": "pass",
+        "alcohol_content": "pass",
+        "net_contents": "review",
+        "bottler_name_address": "pass",
+        "country_of_origin": "not_needed",
+        "government_warning": "pass"
+      },
+      "judgments": {
+        "brand_name": "exact",
+        "class_type": "exact",
+        "alcohol_content": "exact",
+        "net_contents": "exact",
+        "bottler_name_address": "exact",
+        "country_of_origin": "exact",
+        "government_warning": "exact"
+      },
+      "batch_read_by": "AI reader"
+    },
+    {
+      "id": "driftwood-rum-no-warning",
+      "photo": null,
+      "seconds": 2.87,
+      "status_code": 200,
+      "read_by": "ai",
+      "server_seconds": 2.7,
+      "flagged_on_label": [],
+      "outlined": [],
+      "got": {
+        "brand_name": "pass",
+        "class_type": "pass",
+        "alcohol_content": "pass",
+        "net_contents": "pass",
+        "bottler_name_address": "pass",
+        "country_of_origin": "not_needed",
+        "government_warning": "fail"
+      },
+      "judgments": {
+        "brand_name": "exact",
+        "class_type": "exact",
+        "alcohol_content": "exact",
+        "net_contents": "exact",
+        "bottler_name_address": "exact",
+        "country_of_origin": "exact",
+        "government_warning": "exact"
+      },
+      "batch_read_by": "AI reader"
+    },
+    {
+      "id": "meadowvine-table-wine",
+      "photo": null,
+      "seconds": 2.66,
+      "status_code": 200,
+      "read_by": "ai",
+      "server_seconds": 2.3,
+      "flagged_on_label": [],
+      "outlined": [],
+      "got": {
+        "brand_name": "pass",
+        "class_type": "pass",
+        "alcohol_content": "not_needed",
+        "net_contents": "pass",
+        "bottler_name_address": "pass",
+        "country_of_origin": "not_needed",
+        "government_warning": "pass"
+      },
+      "judgments": {
+        "brand_name": "exact",
+        "class_type": "exact",
+        "alcohol_content": "exact",
+        "net_contents": "exact",
+        "bottler_name_address": "exact",
+        "country_of_origin": "exact",
+        "government_warning": "exact"
+      },
+      "batch_read_by": "AI reader"
+    },
+    {
+      "id": "irongate-bourbon-proof-only",
+      "photo": null,
+      "seconds": 2.32,
+      "status_code": 200,
+      "read_by": "ai",
+      "server_seconds": 2.2,
+      "flagged_on_label": [
+        "alcohol_content"
+      ],
+      "outlined": [
+        "alcohol_content"
+      ],
+      "got": {
+        "brand_name": "pass",
+        "class_type": "pass",
+        "alcohol_content": "fail",
+        "net_contents": "pass",
+        "bottler_name_address": "pass",
+        "country_of_origin": "not_needed",
+        "government_warning": "pass"
+      },
+      "judgments": {
+        "brand_name": "exact",
+        "class_type": "exact",
+        "alcohol_content": "exact",
+        "net_contents": "exact",
+        "bottler_name_address": "exact",
+        "country_of_origin": "exact",
+        "government_warning": "exact"
+      },
+      "batch_read_by": "AI reader"
+    },
+    {
+      "id": "lakemoor-lager-metric-only",
+      "photo": null,
+      "seconds": 2.51,
+      "status_code": 200,
+      "read_by": "ai",
+      "server_seconds": 2.2,
+      "flagged_on_label": [
+        "net_contents"
+      ],
+      "outlined": [
+        "net_contents"
+      ],
+      "got": {
+        "brand_name": "pass",
+        "class_type": "pass",
+        "alcohol_content": "pass",
+        "net_contents": "fail",
+        "bottler_name_address": "pass",
+        "country_of_origin": "not_needed",
+        "government_warning": "pass"
+      },
+      "judgments": {
+        "brand_name": "exact",
+        "class_type": "exact",
+        "alcohol_content": "exact",
+        "net_contents": "exact",
+        "bottler_name_address": "exact",
+        "country_of_origin": "exact",
+        "government_warning": "exact"
+      },
+      "batch_read_by": "AI reader"
+    },
+    {
+      "id": "fernhollow-gin-unauthorized-size",
+      "photo": null,
+      "seconds": 2.94,
+      "status_code": 200,
+      "read_by": "ai",
+      "server_seconds": 2.8,
+      "flagged_on_label": [
+        "net_contents"
+      ],
+      "outlined": [
+        "net_contents"
+      ],
+      "got": {
+        "brand_name": "pass",
+        "class_type": "pass",
+        "alcohol_content": "pass",
+        "net_contents": "fail",
+        "bottler_name_address": "pass",
+        "country_of_origin": "not_needed",
+        "government_warning": "pass"
+      },
+      "judgments": {
+        "brand_name": "exact",
+        "class_type": "exact",
+        "alcohol_content": "exact",
+        "net_contents": "exact",
+        "bottler_name_address": "exact",
+        "country_of_origin": "exact",
+        "government_warning": "exact"
+      },
+      "batch_read_by": "AI reader"
+    },
+    {
+      "id": "verdale-dessert-wine-no-alcohol",
+      "photo": null,
+      "seconds": 2.26,
+      "status_code": 200,
+      "read_by": "ai",
+      "server_seconds": 2.1,
+      "flagged_on_label": [],
+      "outlined": [],
+      "got": {
+        "brand_name": "pass",
+        "class_type": "pass",
+        "alcohol_content": "fail",
+        "net_contents": "pass",
+        "bottler_name_address": "pass",
+        "country_of_origin": "pass",
+        "government_warning": "pass"
+      },
+      "judgments": {
+        "brand_name": "exact",
+        "class_type": "exact",
+        "alcohol_content": "exact",
+        "net_contents": "exact",
+        "bottler_name_address": "exact",
+        "country_of_origin": "exact",
+        "government_warning": "exact"
+      },
+      "batch_read_by": "AI reader"
+    },
+    {
+      "id": "tallgrass-bourbon-two-sides",
+      "photo": null,
+      "seconds": 2.77,
+      "status_code": 200,
+      "read_by": "ai",
+      "server_seconds": 2.6,
+      "flagged_on_label": [
+        "brand_name"
+      ],
+      "outlined": [
+        "brand_name"
+      ],
+      "got": {
+        "brand_name": "review",
+        "class_type": "pass",
+        "alcohol_content": "pass",
+        "net_contents": "pass",
+        "bottler_name_address": "pass",
+        "country_of_origin": "not_needed",
+        "government_warning": "pass"
+      },
+      "judgments": {
+        "brand_name": "exact",
+        "class_type": "exact",
+        "alcohol_content": "exact",
+        "net_contents": "exact",
+        "bottler_name_address": "exact",
+        "country_of_origin": "exact",
+        "government_warning": "exact"
+      },
+      "batch_read_by": "AI reader"
+    },
+    {
+      "id": "silvernook-whiskey-no-bottled-by",
+      "photo": null,
+      "seconds": 2.19,
+      "status_code": 200,
+      "read_by": "ai",
+      "server_seconds": 2.1,
+      "flagged_on_label": [
+        "bottler_name_address"
+      ],
+      "outlined": [
+        "bottler_name_address"
+      ],
+      "got": {
+        "brand_name": "pass",
+        "class_type": "pass",
+        "alcohol_content": "pass",
+        "net_contents": "pass",
+        "bottler_name_address": "review",
+        "country_of_origin": "not_needed",
+        "government_warning": "pass"
+      },
+      "judgments": {
+        "brand_name": "exact",
+        "class_type": "exact",
+        "alcohol_content": "exact",
+        "net_contents": "exact",
+        "bottler_name_address": "exact",
+        "country_of_origin": "exact",
+        "government_warning": "exact"
+      },
+      "batch_read_by": "AI reader"
+    },
+    {
+      "id": "cerro-plateado-tequila",
+      "photo": null,
+      "seconds": 2.51,
+      "status_code": 200,
+      "read_by": "ai",
+      "server_seconds": 2.3,
+      "flagged_on_label": [],
+      "outlined": [],
+      "got": {
+        "brand_name": "pass",
+        "class_type": "pass",
+        "alcohol_content": "pass",
+        "net_contents": "pass",
+        "bottler_name_address": "pass",
+        "country_of_origin": "pass",
+        "government_warning": "pass"
+      },
+      "judgments": {
+        "brand_name": "exact",
+        "class_type": "exact",
+        "alcohol_content": "exact",
+        "net_contents": "exact",
+        "bottler_name_address": "exact",
+        "country_of_origin": "exact",
+        "government_warning": "exact"
+      },
+      "batch_read_by": "AI reader"
+    },
+    {
+      "id": "stones-throw-gin--tilted",
+      "photo": "tilted",
+      "seconds": 2.97,
+      "status_code": 200,
+      "read_by": "ai",
+      "server_seconds": 2.8,
+      "flagged_on_label": [],
+      "outlined": [],
+      "got": {
+        "brand_name": "pass_with_note",
+        "class_type": "pass",
+        "alcohol_content": "pass",
+        "net_contents": "pass",
+        "bottler_name_address": "pass",
+        "country_of_origin": "not_needed",
+        "government_warning": "pass"
+      },
+      "judgments": {
+        "brand_name": "exact",
+        "class_type": "exact",
+        "alcohol_content": "exact",
+        "net_contents": "exact",
+        "bottler_name_address": "exact",
+        "country_of_origin": "exact",
+        "government_warning": "exact"
+      },
+      "batch_read_by": "AI reader"
+    },
+    {
+      "id": "ridgewick-rye-wrong-abv--angled",
+      "photo": "angled",
+      "seconds": 2.29,
+      "status_code": 200,
+      "read_by": "ai",
+      "server_seconds": 2.2,
+      "flagged_on_label": [
+        "alcohol_content"
+      ],
+      "outlined": [
+        "alcohol_content"
+      ],
+      "got": {
+        "brand_name": "pass",
+        "class_type": "pass",
+        "alcohol_content": "fail",
+        "net_contents": "pass",
+        "bottler_name_address": "pass",
+        "country_of_origin": "not_needed",
+        "government_warning": "pass"
+      },
+      "judgments": {
+        "brand_name": "exact",
+        "class_type": "exact",
+        "alcohol_content": "exact",
+        "net_contents": "exact",
+        "bottler_name_address": "exact",
+        "country_of_origin": "exact",
+        "government_warning": "exact"
+      },
+      "batch_read_by": "AI reader"
+    },
+    {
+      "id": "heronmere-gin-warning-wording--blurry",
+      "photo": "blurry",
+      "seconds": 2.92,
+      "status_code": 200,
+      "read_by": "ai",
+      "server_seconds": 2.8,
+      "flagged_on_label": [
+        "government_warning"
+      ],
+      "outlined": [],
+      "got": {
+        "brand_name": "pass",
+        "class_type": "pass",
+        "alcohol_content": "pass",
+        "net_contents": "pass",
+        "bottler_name_address": "pass",
+        "country_of_origin": "not_needed",
+        "government_warning": "fail"
+      },
+      "judgments": {
+        "brand_name": "exact",
+        "class_type": "exact",
+        "alcohol_content": "exact",
+        "net_contents": "exact",
+        "bottler_name_address": "exact",
+        "country_of_origin": "exact",
+        "government_warning": "exact"
+      },
+      "batch_read_by": "AI reader"
+    },
+    {
+      "id": "copperfen-vodka-title-case-warning--dim",
+      "photo": "dim",
+      "seconds": 2.47,
+      "status_code": 200,
+      "read_by": "ai",
+      "server_seconds": 2.4,
+      "flagged_on_label": [
+        "government_warning"
+      ],
+      "outlined": [
+        "government_warning"
+      ],
+      "got": {
+        "brand_name": "pass",
+        "class_type": "pass",
+        "alcohol_content": "pass",
+        "net_contents": "pass",
+        "bottler_name_address": "pass",
+        "country_of_origin": "not_needed",
+        "government_warning": "fail"
+      },
+      "judgments": {
+        "brand_name": "exact",
+        "class_type": "exact",
+        "alcohol_content": "exact",
+        "net_contents": "exact",
+        "bottler_name_address": "exact",
+        "country_of_origin": "exact",
+        "government_warning": "exact"
+      },
+      "batch_read_by": "AI reader"
+    },
+    {
+      "id": "saltreed-vodka-net-contents--glare",
+      "photo": "glare",
+      "seconds": 2.44,
+      "status_code": 200,
+      "read_by": "ai",
+      "server_seconds": 2.3,
+      "flagged_on_label": [
+        "net_contents"
+      ],
+      "outlined": [],
+      "got": {
+        "brand_name": "pass",
+        "class_type": "pass",
+        "alcohol_content": "pass",
+        "net_contents": "fail",
+        "bottler_name_address": "pass",
+        "country_of_origin": "not_needed",
+        "government_warning": "pass"
+      },
+      "judgments": {
+        "brand_name": "exact",
+        "class_type": "exact",
+        "alcohol_content": "exact",
+        "net_contents": "exact",
+        "bottler_name_address": "exact",
+        "country_of_origin": "exact",
+        "government_warning": "exact"
+      },
+      "batch_read_by": "AI reader"
+    },
+    {
+      "id": "tidewick-pale-ale--far",
+      "photo": "far",
+      "seconds": 2.15,
+      "status_code": 200,
+      "read_by": "ai",
+      "server_seconds": 2.1,
+      "flagged_on_label": [],
+      "outlined": [],
+      "got": {
+        "brand_name": "pass",
+        "class_type": "pass",
+        "alcohol_content": "pass",
+        "net_contents": "pass",
+        "bottler_name_address": "pass",
+        "country_of_origin": "not_needed",
+        "government_warning": "pass"
+      },
+      "judgments": {
+        "brand_name": "exact",
+        "class_type": "exact",
+        "alcohol_content": "exact",
+        "net_contents": "exact",
+        "bottler_name_address": "exact",
+        "country_of_origin": "exact",
+        "government_warning": "exact"
+      },
+      "batch_read_by": "AI reader"
+    },
+    {
+      "id": "northvale-whisky-warning-not-bold--tilted",
+      "photo": "tilted",
+      "seconds": 2.98,
+      "status_code": 200,
+      "read_by": "ai",
+      "server_seconds": 2.8,
+      "flagged_on_label": [
+        "government_warning"
+      ],
+      "outlined": [],
+      "got": {
+        "brand_name": "pass",
+        "class_type": "pass",
+        "alcohol_content": "pass",
+        "net_contents": "pass",
+        "bottler_name_address": "pass",
+        "country_of_origin": "not_needed",
+        "government_warning": "review"
+      },
+      "judgments": {
+        "brand_name": "exact",
+        "class_type": "exact",
+        "alcohol_content": "exact",
+        "net_contents": "exact",
+        "bottler_name_address": "exact",
+        "country_of_origin": "exact",
+        "government_warning": "exact"
+      },
+      "batch_read_by": "AI reader"
+    },
+    {
+      "id": "harborlume-rum-proof--glare",
+      "photo": "glare",
+      "seconds": 2.35,
+      "status_code": 200,
+      "read_by": "ai",
+      "server_seconds": 2.2,
+      "flagged_on_label": [
+        "alcohol_content"
+      ],
+      "outlined": [],
+      "got": {
+        "brand_name": "pass",
+        "class_type": "pass",
+        "alcohol_content": "fail",
+        "net_contents": "pass",
+        "bottler_name_address": "pass",
+        "country_of_origin": "not_needed",
+        "government_warning": "pass"
+      },
+      "judgments": {
+        "brand_name": "exact",
+        "class_type": "exact",
+        "alcohol_content": "exact",
+        "net_contents": "exact",
+        "bottler_name_address": "exact",
+        "country_of_origin": "exact",
+        "government_warning": "exact"
+      },
+      "batch_read_by": "AI reader"
+    }
+  ],
+  "deployed_as": "revision ttb-label-verifier--0000019, image `ee5ecb0`",
+  "measured_at": "2026-10-20T01:01:02",
+  "commit": "ee5ecb0",
+  "summary": {
+    "labels": 31,
+    "errors": 0,
+    "fields": 217,
+    "judgments": {
+      "exact": 217
+    },
+    "clean_labels_all_exact": 23,
+    "clean_labels": 23,
+    "photo_fields_acceptable": 56,
+    "photo_fields": 56,
+    "false_passes": [],
+    "false_fails": [],
+    "read_by_ocr": 0,
+    "seconds": {
+      "median": 2.51,
+      "p95": 4.44,
+      "max": 4.62,
+      "under_5_seconds": 31,
+      "timed": 31
+    },
+    "server_seconds": {
+      "median": 2.3,
+      "p95": 4.3,
+      "max": 4.5
+    },
+    "outlined": 17,
+    "flagged_on_label": 22
+  }
+}
