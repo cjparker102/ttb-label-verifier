@@ -199,6 +199,27 @@ fresh set, below), on 2 CPUs: every sample as expected, no false passes or false
 31, and the batch in 28.6 s. Details:
 [evaluation-2026-10-20-deployed-3.md](measurements/evaluation-2026-10-20-deployed-3.md).
 
+### Oct 20, night: revision 25, and a batch of 300
+
+After the changes from ChatGPT's review (revision 25, image `77dd73a`, 2 CPUs), the evaluation
+was run on the live app again
+([evaluation-2026-10-20-deployed-4.md](measurements/evaluation-2026-10-20-deployed-4.md)), and
+then a batch of 300 rows, the 31 samples repeated, twice with `tools/batch_live.py`
+([first](measurements/batch-300-2026-10-20.md),
+[second](measurements/batch-300-2026-10-20-0911.md)).
+
+| Measure | Result |
+|---|---|
+| Single checks, end to end (median / p95 / max) | 2.89 s / 3.85 s / 4.83 s, 31 of 31 under 5 s |
+| Batch of 31 | 30.3 s, every label read by Claude |
+| Field results, batch of 31 | as expected, but for 1 false pass (a warning heading that isn't bold, read as bold) |
+| **Batch of 300** | **4.5 and 4.1 minutes**, 0.90 and 0.82 s a label; all 300 read by Claude both times |
+| Rows of 300 with every field as expected | 294 and 297 |
+| What the rest were | First run: 5 false passes and 1 false Problem, not recorded by sample. Second: the not-bold heading read as bold on 2 of its 10 rows, and a French importer statement read differently once |
+
+The 8-second reading deadline never sent a batch label to basic text reading: Claude answered
+every one in time, with 8 read at once.
+
 ## Results with basic text reading (offline)
 
 The same 31 labels, read with Tesseract OCR only, as when Claude can't be reached. Full

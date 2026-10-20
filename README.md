@@ -39,7 +39,7 @@ some fields to look at are also outlined on the picture. See [APPROACH](docs/APP
 |---|---|---|
 | Sarah Chen | Results in about 5 seconds | Met: live single checks, median 2.9 s, 31 of 31 under 5 s |
 | Sarah Chen | Simple enough for anyone | Built for it: large type, plain words, one main button. A manual screen-reader test is still to do ([ACCESSIBILITY](docs/ACCESSIBILITY.md)) |
-| Sarah Chen, Janet | Batches of 200 to 300 labels | Met: a spreadsheet plus pictures, loose or zipped; see the 300-label time below |
+| Sarah Chen, Janet | Batches of 200 to 300 labels | Met: a spreadsheet plus pictures, loose or zipped; 300 labels in about 4.5 minutes |
 | Marcus Williams | Standalone, on Azure, nothing sensitive stored | Met: one container. This app keeps pictures in memory only, and deletes batch results after 30 minutes |
 | Marcus Williams | Firewall blocks outside AI services | Partly: if the AI provider is blocked, a check falls back to offline OCR within about 8.5 s, giving Check this at most. Claude in Microsoft Foundry is optional, not yet validated |
 | Dave Morrison | Judgment ("STONE'S THROW" is "Stone's Throw") | Met for capitals, punctuation, company forms, and state names |
@@ -50,12 +50,15 @@ some fields to look at are also outlined on the picture. See [APPROACH](docs/APP
 ## Latest results
 
 - **31 sample labels**, code-drawn, in process (commit `2ebfda9`): no false Problems; 1 false
-  pass, a warning heading that isn't bold read as bold; 31 of 31 under 5 seconds.
+  pass, a warning heading that isn't bold read as bold (about 1 time in 5); 31 of 31 under 5
+  seconds.
 - **24 real approved labels** from TTB's Public COLA Registry, the honest measure (commit
   `e54a509`): 256 of 280 strict field results and 50 of 56 judgment calls as expected; no false
   passes; 22 of 24 planted problems detected; 9 false Problems. The fixes made since were tested
   on labels already seen, so they are not yet measured honestly.
-- **Live app**: _to be filled in after the redeploy._
+- **Live app** (commit `77dd73a`, 2 CPUs): single checks median 2.9 s, 31 of 31 under 5 s;
+  a batch of 300 labels in 4.1 to 4.5 minutes, 294 and 297 of 300 rows as expected, the misses
+  mostly that bold heading.
 - **Cost**: about 0.08 cents a label.
 
 History, method, and limits: [EVALUATION](docs/EVALUATION.md).
