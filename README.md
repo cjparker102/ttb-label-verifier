@@ -57,8 +57,8 @@ some fields to look at are also outlined on the picture. See [APPROACH](docs/APP
   passes; 22 of 24 planted problems detected; 9 false Problems. The fixes made since were tested
   on labels already seen, so they are not yet measured honestly.
 - **Live app** (commit `77dd73a`, 2 CPUs): single checks median 2.9 s, 31 of 31 under 5 s;
-  a batch of 300 labels in 4.1 to 4.5 minutes, 294 and 297 of 300 rows as expected, the misses
-  mostly that bold heading.
+  a batch of 300 labels in 4.1 to 4.5 minutes, 294 and 297 of 300 rows as expected (the second
+  run's misses: that bold heading twice, a bottler once; the first run didn't record which).
 - **Cost**: about 0.08 cents a label.
 
 History, method, and limits: [EVALUATION](docs/EVALUATION.md).
