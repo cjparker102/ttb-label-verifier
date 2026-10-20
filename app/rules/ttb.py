@@ -168,30 +168,32 @@ def net_contents_checks(beverage: BeverageType, reading: LabelReading) -> list[C
 
     if beverage == SPIRITS:
         sizes, sizes_rule = SPIRITS_SIZES_ML, cfr.SPIRITS_SIZES
-        authorized = any(abs(volume.ml - size) <= SIZE_TOLERANCE_ML for size in sizes)
     else:
         sizes, sizes_rule = WINE_SIZES_ML, cfr.WINE_SIZES
-        even_liters = volume.ml >= 4000 and volume.ml % 1000 == 0
-        authorized = even_liters or any(
-            abs(volume.ml - size) <= SIZE_TOLERANCE_ML for size in sizes
-        )
-    if authorized:
-        checks.append(
-            Check(
-                Status.PASS,
-                f"{show_ml(volume.ml)} is an authorized container size.",
-                citation=sizes_rule,
+
+    def authorized(ml: Decimal) -> bool:
+        even_liters = beverage != SPIRITS and ml >= 4000 and ml % 1000 == 0
+        return even_liters or any(abs(ml - size) <= SIZE_TOLERANCE_ML for size in sizes)
+
+    # A label may list several sizes to choose from; each must be authorized.
+    for ml in volume.sizes:
+        if not authorized(ml):
+            checks.append(
+                Check(
+                    Status.FAIL,
+                    f"{show_ml(ml)} is not an authorized container size for "
+                    f"{NAMES[beverage].lower()}.",
+                    citation=sizes_rule,
+                )
             )
-        )
-    else:
-        checks.append(
-            Check(
-                Status.FAIL,
-                f"{show_ml(volume.ml)} is not an authorized container size for "
-                f"{NAMES[beverage].lower()}.",
-                citation=sizes_rule,
-            )
-        )
+            return checks
+    shown = " and ".join(show_ml(ml) for ml in volume.sizes)
+    are = (
+        "are authorized container sizes"
+        if len(volume.sizes) > 1
+        else "is an authorized container size"
+    )
+    checks.append(Check(Status.PASS, f"{shown} {are}.", citation=sizes_rule))
     return checks
 
 

@@ -128,6 +128,11 @@ def test_hard_to_read_alcohol_is_left_to_the_match_check():
         (MALT, "1 PINT 8 FL OZ", [Status.PASS]),
         (MALT, "355 mL (12 FL OZ)", [Status.PASS]),
         (MALT, "355 mL", [Status.FAIL]),
+        # several sizes to choose from: each must be authorized
+        (WINE, "750 mL 1.5 L", [Status.PASS, Status.PASS]),
+        (WINE, "750 mL 740 mL", [Status.PASS, Status.FAIL]),
+        # the same size given twice
+        (SPIRITS, "1L 40% vol, 1 liter", [Status.PASS, Status.PASS]),
     ],
 )
 def test_net_contents_units_and_sizes(beverage, text, expected):

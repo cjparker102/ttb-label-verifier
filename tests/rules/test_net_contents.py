@@ -103,3 +103,38 @@ def test_a_label_with_both_systems_is_compared_in_the_applications_units(applica
 def test_both_systems_still_catch_a_real_difference():
     result = check_net_contents("12 fl oz", read("16.9 FL. OZ. (500 mL)"))
     assert result.status == Status.FAIL
+
+
+# Found on approved labels in TTB's Public COLA Registry.
+
+
+@pytest.mark.parametrize(
+    ("text", "ml"),
+    [
+        ("5.16 US GALS", "19532.7"),  # "US" before the unit, and "GALS"
+        ("12 U.S. FL. OZ.", "354.9"),
+        ("1L 40% vol, 1 liter", "1000"),  # the same size twice counts once
+        ("750 mL ... 750 ML", "750"),
+        ("1 PINT 9 FL OZ", "739.3"),  # falling units still add up
+    ],
+)
+def test_one_amount(text, ml):
+    assert parse_volume(text).ml.quantize(Decimal("0.1")) == Decimal(ml)
+
+
+def test_several_sizes_are_a_list_to_choose_from():
+    volume = parse_volume("15.5 Gallons 7.75 Gallons 5.16 Gallons")
+    assert [round(ml) for ml in volume.sizes] == [58674, 29337, 19533]
+
+
+def test_one_of_several_sizes_needs_review():
+    label = read("15.5 GALLONS (HALF BARREL) 5.16 GALLONS (SIXTH BARREL)")
+    result = check_net_contents("5.16 gallons", label)
+    assert result.status == Status.REVIEW
+    assert "which one the label marks" in result.reason
+
+
+def test_none_of_several_sizes_fails():
+    result = check_net_contents("13.2 gallons", read("15.5 Gallons 7.75 Gallons 5.16 Gallons"))
+    assert result.status == Status.FAIL
+    assert "none of them" in result.reason

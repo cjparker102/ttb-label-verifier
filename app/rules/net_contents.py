@@ -16,10 +16,10 @@ UNITS = [
     ("fl oz", r"fl(?:uid)?\.?\s*(?:ounces?|oz)\.?|ounces?|oz\.?", Decimal("29.5735295625"), False),
     ("pint", r"pints?|pt\.?", Decimal("473.176473"), False),
     ("quart", r"quarts?|qt\.?", Decimal("946.352946"), False),
-    ("gallon", r"gallons?|gal\.?", Decimal("3785.411784"), False),
+    ("gallon", r"gallons?|gals?\.?", Decimal("3785.411784"), False),
 ]
 AMOUNT = re.compile(
-    r"(\d+(?:[.,]\d+)?)\s*(?:"
+    r"(\d+(?:[.,]\d+)?)\s*(?:U\.?S\.?\s+)?(?:"  # "5.16 US GALS"
     + "|".join(f"(?P<u{i}>{pattern})" for i, (_, pattern, _, _) in enumerate(UNITS))
     + r")(?![a-z])",
     re.IGNORECASE,
@@ -41,6 +41,10 @@ Amounts = tuple[tuple[str, Decimal], ...]  # (unit name, milliliters) for each a
 class Volume:
     metric: Amounts
     us: Amounts
+    # When a label lists different sizes, as keg labels with a box to tick for each do,
+    # the sizes in each system, in mL. Empty for one amount.
+    metric_sizes: tuple[Decimal, ...] = ()
+    us_sizes: tuple[Decimal, ...] = ()
 
     def counted(self, prefer_us: bool = False) -> Amounts:
         """The amounts that count. When a label gives both systems, metric counts,
@@ -61,6 +65,20 @@ class Volume:
     def all_units(self) -> tuple[str, ...]:
         return tuple(name for name, _ in self.metric + self.us)
 
+    @property
+    def sizes(self) -> tuple[Decimal, ...]:
+        """Every size the label lists, in the system that counts."""
+        listed = self.us_sizes if self.counted() is self.us else self.metric_sizes
+        return listed or (self.ml,)
+
+    def sizes_like(self, other: "Volume") -> tuple[Decimal, ...]:
+        """The different sizes listed, in the system `like` uses. Empty for one amount."""
+        return (
+            self.us_sizes
+            if self.counted(prefer_us=not other.metric) is self.us
+            else (self.metric_sizes)
+        )
+
     def like(self, other: "Volume") -> tuple[Decimal, tuple[str, ...]]:
         """This volume measured the way `other` was written: in US units if `other`
         used only US units and this volume has them, otherwise as usual."""
@@ -74,17 +92,40 @@ def to_number(text: str) -> Decimal:
     return Decimal(text.replace(",", "."))
 
 
+def close(a: Decimal, b: Decimal) -> bool:
+    return abs(a - b) <= TOLERANCE * max(a, b)
+
+
+def one_amount(amounts: list[tuple[str, Decimal, Decimal]]) -> tuple[Amounts, tuple[Decimal, ...]]:
+    """Amounts in one system, as (unit name, mL, mL per unit), read as one statement.
+    Falling units, as in "1 pint 9 fl oz", add up. The same amount given twice, as in
+    "1L ... 1 liter", counts once. Different sizes are a list to choose from: the first
+    is returned as the amount, and all of them as the sizes."""
+    falling = all(a[2] > b[2] for a, b in zip(amounts, amounts[1:], strict=False))
+    if len(amounts) <= 1 or falling:
+        return tuple((name, ml) for name, ml, _ in amounts), ()
+    sizes: list[Decimal] = []
+    for _, ml, _ in amounts:
+        if not any(close(ml, size) for size in sizes):
+            sizes.append(ml)
+    name, ml, _ = amounts[0]
+    return ((name, ml),), tuple(sizes) if len(sizes) > 1 else ()
+
+
 def parse_volume(text: str) -> Volume:
     """The metric and US amounts in a net contents statement, in mL."""
-    metric: list[tuple[str, Decimal]] = []
-    us: list[tuple[str, Decimal]] = []
+    metric: list[tuple[str, Decimal, Decimal]] = []
+    us: list[tuple[str, Decimal, Decimal]] = []
     for match in AMOUNT.finditer(text.replace("℮", " ")):
         index = next(i for i in range(len(UNITS)) if match.group(f"u{i}"))
         name, _, per_unit, is_metric = UNITS[index]
-        (metric if is_metric else us).append((name, to_number(match.group(1)) * per_unit))
+        amount = (name, to_number(match.group(1)) * per_unit, per_unit)
+        (metric if is_metric else us).append(amount)
     if not metric and not us:
         raise CannotParse("no amount with a unit")
-    return Volume(metric=tuple(metric), us=tuple(us))
+    metric_amounts, metric_sizes = one_amount(metric)
+    us_amounts, us_sizes = one_amount(us)
+    return Volume(metric_amounts, us_amounts, metric_sizes, us_sizes)
 
 
 def show_ml(ml: Decimal) -> str:
@@ -121,6 +162,20 @@ def check_net_contents(application: str, label: FieldReading) -> Check:
             Status.REVIEW,
             f"Couldn't find an amount with a unit in the application's \"{said}\". "
             "Please check it by eye.",
+        )
+
+    sizes = on_label.sizes_like(on_application)
+    if sizes:
+        if any(close(size, on_application.ml) for size in sizes):
+            return Check(
+                Status.REVIEW,
+                f'The label lists several sizes, "{shown}", and one of them is the '
+                f'application\'s "{said}". Please check which one the label marks.',
+            )
+        return Check(
+            Status.FAIL,
+            f'The label lists several sizes, "{shown}", and none of them is the '
+            f'application\'s "{said}".',
         )
 
     # "16.9 FL. OZ. (500 mL)" is compared in fluid ounces with an application that says
