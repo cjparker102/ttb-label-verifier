@@ -7,7 +7,7 @@ from app.reading.schema import LabelReading
 from app.rules.alcohol import check_alcohol
 from app.rules.application import Application
 from app.rules.countries import check_country
-from app.rules.names import check_bottler, check_name
+from app.rules.names import check_bottler, check_class, check_name
 from app.rules.net_contents import check_net_contents
 from app.rules.results import Check, Status, worst
 from app.rules.ttb import alcohol_may_be_left_out, ttb_checks
@@ -68,7 +68,7 @@ def check_label(application: Application, reading: LabelReading) -> LabelResult:
                 "class_type",
                 "Class / type",
                 a.class_type,
-                [check_name("class or type", a.class_type, r.class_type)],
+                [check_class(a.class_type, r.class_type)],
             ),
             field(
                 "alcohol_content",

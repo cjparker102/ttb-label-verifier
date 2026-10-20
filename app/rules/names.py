@@ -15,6 +15,7 @@ from app.rules.text import (
     non_latin_script,
     tidy,
     without_accents,
+    without_punctuation,
 )
 
 # Words such as "Bottled by", "Distilled and bottled by", "Imported by", or
@@ -63,6 +64,61 @@ def compare_names(what: str, said: str, shown: str) -> Check:
             f'application uses a romanized spelling ("{said}"). Please check by eye.',
         )
     return Check(Status.FAIL, f'The label says "{shown}" but the application says "{said}".')
+
+
+# Words that make a different class or type when added to one, from TTB's standards of
+# identity (checked in the eCFR, Title 27 up to date as of Oct 16, 2026): 4.21 for wine
+# ("sparkling", "dessert", "table", "fruit", ...), 5.142, 5.143, and 5.150 for spirits
+# ("flavored vodka", "straight", "blended", "light", "spirit" whisky, cordials and
+# liqueurs), and 7.65 for malt beverages ("low alcohol", "non-alcoholic", "alcohol free").
+CLASS_CHANGING = {
+    "straight", "blended", "light", "spirit", "flavored", "flavoured", "cordial", "liqueur",
+    "sparkling", "carbonated", "crackling", "petillant", "pétillant", "frizzante", "dessert",
+    "table", "aperitif", "imitation", "substandard", "citrus", "fruit", "berry", "retsina",
+    "sake", "alcohol", "alcoholic", "nonalcoholic",
+}  # fmt: skip
+
+
+def name_words(text: str) -> list[str]:
+    return without_punctuation(tidy(text)).casefold().split()
+
+
+def find_words(wanted: list[str], words: list[str]) -> int | None:
+    """Where the wanted words start among the words, as a whole phrase, or None."""
+    size = len(wanted)
+    for i in range(len(words) - size + 1):
+        if words[i : i + size] == wanted:
+            return i
+    return None
+
+
+def check_class(application: str, label: FieldReading) -> Check:
+    """Labels often print other words with the class or type: an appellation, a fanciful
+    name, "Premium". If the application's whole class or type is among them, it matches,
+    unless the other words can make it a different class, as in "Flavored Vodka"."""
+    what = "class or type"
+    result = check_name(what, application, label)
+    if result.status != Status.FAIL or is_missing(label):
+        return result
+    said, shown = tidy(application), tidy(label.text or "")
+    wanted, words = name_words(said), name_words(shown)
+    start = find_words(wanted, words) if wanted else None
+    if start is None:
+        return result
+    added = words[:start] + words[start + len(wanted) :]
+    changing = [word for word in added if word in CLASS_CHANGING]
+    if changing:
+        return Check(
+            Status.REVIEW,
+            f'The label\'s class or type, "{shown}", includes the application\'s "{said}", but '
+            f'adds "{" ".join(changing)}", which can make it a different class or type. '
+            "Please check.",
+        )
+    return Check(
+        Status.PASS,
+        f'The label says "{shown}", which includes the application\'s "{said}" with other words.',
+        note="Matches, with other words",
+    )
 
 
 def strip_lead_in(text: str) -> str:

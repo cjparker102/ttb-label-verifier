@@ -88,6 +88,12 @@ All rules are in `app/rules/`, and each has its own tests.
     into statements at words like "Bottled by" or "Imported by". One statement can match the
     application, but if the application says what its company did, only a statement saying
     the same can.
+  - For the class or type, labels often print other words with it: an appellation, a
+    fanciful name, "Premium". If the application's whole class or type is on the label as a
+    phrase, it matches, with the note "Matches, with other words". But if the other words
+    include one that makes a different class or type in TTB's standards of identity, such as
+    "Flavored" (Vodka and Flavored Vodka), "Straight", "Sparkling", or "Non-Alcoholic", it
+    needs review. The words come from 27 CFR 4.21, 5.142, 5.143, 5.150, and 7.65.
   - For the bottler or importer, the company name, city, and state are compared, not the
     exact words, because real labels write them in many ways. These match, with the note
     "Matches, written differently": "LLC", "Inc.", or "Co." left out or written another way,

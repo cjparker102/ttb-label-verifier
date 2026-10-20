@@ -1,6 +1,6 @@
 import pytest
 
-from app.rules.names import check_bottler, check_name, statements
+from app.rules.names import check_bottler, check_class, check_name, statements
 from app.rules.results import Status
 from tests.rules.helpers import read
 
@@ -318,3 +318,57 @@ def test_a_match_in_another_role_needs_review_and_says_which():
     result = check_bottler("Bottled by ABC Distillery, Bardstown, KY", read(label))
     assert result.status == Status.REVIEW
     assert '"Distilled by"' in result.reason and '"Bottled by"' in result.reason
+
+
+# Labels print other words with the class or type (found on approved labels in TTB's
+# Public COLA Registry): an appellation, a fanciful name, "Premium".
+
+
+@pytest.mark.parametrize(
+    ("application", "label"),
+    [
+        ("Vodka", "Premium Vodka"),
+        ("Straight Bourbon Whiskey", "Wheated Straight Bourbon Whiskey"),
+        ("Cabernet Sauvignon", "Napa Valley Cabernet Sauvignon"),
+        ("India Pale Ale", "Hillside India Pale Ale"),
+        ("Tequila", "Tequila 100% Agave"),
+    ],
+)
+def test_a_class_with_other_words_matches_with_a_note(application, label):
+    result = check_class(application, read(label))
+    assert result.status == Status.PASS
+    assert result.note == "Matches, with other words"
+
+
+@pytest.mark.parametrize(
+    ("application", "label", "added"),
+    [
+        ("Vodka", "Raspberry Flavored Vodka", "flavored"),
+        ("Bourbon Whiskey", "Straight Bourbon Whiskey", "straight"),
+        ("Red Wine", "Sparkling Red Wine", "sparkling"),
+        ("Lager", "Non-Alcoholic Lager", "alcoholic"),
+        ("Whisky", "Light Whisky", "light"),
+    ],
+)
+def test_words_that_make_another_class_need_review(application, label, added):
+    result = check_class(application, read(label))
+    assert result.status == Status.REVIEW
+    assert f'adds "{added}"' in result.reason
+
+
+@pytest.mark.parametrize(
+    ("application", "label"),
+    [
+        ("India Pale Ale", "Pale Ale"),  # the label leaves words out
+        ("Rum", "Rumble Ale"),  # whole words only
+        ("Gin", "Ginger Beer"),
+        ("Bourbon Whiskey", "Whiskey Bourbon"),  # in another order
+    ],
+)
+def test_a_class_not_on_the_label_as_a_whole_phrase_fails(application, label):
+    assert check_class(application, read(label)).status == Status.FAIL
+
+
+def test_the_class_rules_still_apply_first():
+    assert check_class("Vodka", read("VODKA")).note == "Matches, different capitals"
+    assert check_class("Vodka", read(None)).status == Status.FAIL
