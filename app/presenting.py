@@ -229,7 +229,6 @@ def item_view(item: BatchItem) -> dict:
     return {
         **view,
         "read_by_ocr": item.outcome.read_by == "ocr",
-        "seconds": f"{item.outcome.seconds:.1f}",
         "photo_tips": photo_tips(list(item.outcome.photo_problems)),
         "kind": lines[0]["css"],
         "icon": lines[0]["icon"],
@@ -271,6 +270,14 @@ def batch_view(job: BatchJob) -> dict:
     if count["pass"]:
         lines.append({"css": "pass", "icon": "✅", "text": f"{labels(count['pass'])} all good"})
     finished = job.state == "finished"
+    timing = None
+    checked = sum(1 for item in job.items if item.state == ItemState.DONE)
+    if finished and checked and job.started_at is not None and job.finished_at is not None:
+        total = job.finished_at - job.started_at
+        timing = (
+            f"Checked {labels(checked)} in {total:.0f} seconds, about {total / checked:.1f} "
+            "seconds a label."
+        )
     return {
         "job_id": job.id,
         "state": job.state,
@@ -283,6 +290,8 @@ def batch_view(job: BatchJob) -> dict:
         "passed_so_far": count["pass"],
         "read_by_ocr": sum(1 for view in items if view["read_by_ocr"]),
         "notes": job.notes,
+        # The batch as a whole: a label's own time would include waiting for other labels.
+        "timing": timing,
         "skipped": job.skipped_files,
         "unused": job.unused_pictures,
     }

@@ -65,9 +65,8 @@ def results_workbook(job: BatchJob) -> bytes:
             "Overall result",
             "What to look at",
             "Read by",
-            "Seconds",
         ],
-        [7, 28, 34, 22, 80, 22, 10],
+        [7, 28, 34, 22, 80, 22],
     )
     details = Sheet(
         workbook,
@@ -80,9 +79,7 @@ def results_workbook(job: BatchJob) -> bytes:
     for item in sorted(job.items, key=lambda i: i.row_number):
         first = [item.row_number, item.brand, "; ".join(item.file_names)]
         if item.state != ItemState.DONE or item.outcome is None:
-            overview.add(
-                [*first, "Not checked", item.problem or "", "", ""], {3: NOT_CHECKED_COLOR}
-            )
+            overview.add([*first, "Not checked", item.problem or "", ""], {3: NOT_CHECKED_COLOR})
             continue
         result = item.outcome.result
         to_look_at = [
@@ -94,7 +91,8 @@ def results_workbook(job: BatchJob) -> bytes:
         overall = " / ".join(line["text"] for line in summary(result.counts))
         read_by = "Basic text reading" if item.outcome.read_by == "ocr" else "AI reader"
         overview.add(
-            [*first, overall, "\n".join(to_look_at), read_by, round(item.outcome.seconds, 1)],
+            # No time per label: in a batch it includes waiting for other labels.
+            [*first, overall, "\n".join(to_look_at), read_by],
             {3: FILL_COLORS.get(result.status, NOT_CHECKED_COLOR)},
         )
 

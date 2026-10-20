@@ -16,6 +16,8 @@
 </div>
 {% endif %}
 
+{% if timing %}<p class="meta">{{ timing }}</p>{% endif %}
+
 {% if finished %}
 <p><a class="button-primary button-link" href="/batches/{{ job_id }}/results.xlsx">Download results (Excel)</a></p>
 {% elif passed_so_far %}
@@ -43,7 +45,7 @@
     </tr>
     <tr class="detail-row row-{{ item.kind }}">
       <td colspan="3">
-        <p class="where">Row {{ item.row_number }}: {{ item.files }}{% if item.seconds %}. Checked in {{ item.seconds }} seconds{% endif %}{% if item.read_by_ocr %}. Read with basic text reading{% endif %}</p>
+        <p class="where">Row {{ item.row_number }}: {{ item.files }}{% if item.read_by_ocr %}. Read with basic text reading{% endif %}</p>
         {% if item.reasons %}
         <ul class="reasons">
           {% for reason in item.reasons %}<li>{{ reason }}</li>{% endfor %}

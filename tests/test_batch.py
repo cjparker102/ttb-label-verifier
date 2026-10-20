@@ -291,3 +291,25 @@ def test_every_picture_of_a_label_is_kept_smaller_for_review():
     assert len(previews) == 2
     for preview in previews:
         assert max(Image.open(BytesIO(preview)).size) == PREVIEW_EDGE == 900
+
+
+def test_a_finished_batch_gives_its_total_time_and_the_average_per_label():
+    from app.presenting import batch_view
+
+    times = iter([100.0, 131.0])
+    job = new_job([good_row(2), good_row(3)], [], [])
+
+    async def go():
+        await run_job(job, ReplayReader(), 1568, 4, asyncio.Semaphore(1), clock=lambda: next(times))
+
+    asyncio.run(go())
+    view = batch_view(job)
+    assert view["timing"] == "Checked 2 labels in 31 seconds, about 15.5 seconds a label."
+    assert all("seconds" not in item for item in view["items"])
+
+
+def test_a_running_batch_gives_no_time_yet():
+    from app.presenting import batch_view
+
+    job = new_job([good_row(2)], [], [])
+    assert batch_view(job)["timing"] is None

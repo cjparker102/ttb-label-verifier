@@ -42,8 +42,9 @@ GENERIC = {
     "in", "at", "product", "premium", "reserve", "beer", "ale", "lager", "stout",
     "porter", "pale", "india", "red", "white", "blend", "rose", "sparkling", "whiskey",
     "whisky", "bourbon", "rye", "straight", "vodka", "gin", "rum", "tequila", "agave",
-    # ordinary words used in the app's own text (Oct 20: "stop" in the batch page script)
-    "stop",
+    # ordinary words used in the app's own text, which also turn up in label prose read
+    # into a field (Oct 20: "stop" in the batch page script, "began" in a comment)
+    "stop", "began",
 }  # fmt: skip
 
 

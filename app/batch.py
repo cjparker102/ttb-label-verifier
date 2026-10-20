@@ -72,6 +72,7 @@ class BatchJob:
     skipped_files: list[Skipped]
     unused_pictures: list[str]
     state: str = "queued"  # queued, running, finished
+    started_at: float | None = None  # when its first label began to be checked
     finished_at: float | None = None
     notes: list[str] = field(default_factory=list)  # about the upload, such as which spreadsheet
     work: list[Work] = field(default_factory=list, repr=False)
@@ -156,6 +157,7 @@ async def run_job(
     """Check every waiting label. Only one batch runs at a time across the app."""
     async with one_at_a_time:
         job.state = "running"
+        job.started_at = clock()
         slots = asyncio.Semaphore(concurrency)
 
         async def one(work: Work) -> None:

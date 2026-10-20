@@ -57,12 +57,11 @@ def test_summary_has_one_row_per_label_in_spreadsheet_order():
         "Overall result",
         "What to look at",
         "Read by",
-        "Seconds",
     )
     assert [r[0] for r in rows[1:]] == [2, 3, 4]
     assert rows[1][3] == "All good"
     assert rows[1][5] == "AI reader"
-    assert isinstance(rows[1][6], float)
+    assert len(rows[1]) == 6  # no time per label: in a batch it includes waiting
     assert rows[2][3] == "Problems found (1)"
     assert "Alcohol content: The label says 45% but the application says 40%." in rows[2][4]
     assert rows[3][3] == "Not checked"
