@@ -392,6 +392,31 @@ private sets, with each label's saved reading by Claude, and no AI request
 So it is missing on 57% of real labels, and gives a clear answer on about a third. It still
 caught 2 misspellings Claude read as spelt correctly. The rule is unchanged.
 
+## A code-side bold check, tried and not kept
+
+Claude sometimes calls a heading that isn't bold "bold" (about one reading in five on the
+sample made for it). As a second opinion, code measured the stroke thickness of "GOVERNMENT
+WARNING" against the warning's words after it, where Tesseract found both, and would have
+added Check this when the heading wasn't clearly heavier. It could never make a result a pass.
+It was measured, with no AI request, on the samples and on all 96 real labels, using each
+label's saved reading by Claude
+([heading-weight-2026-10-20.md](measurements/heading-weight-2026-10-20.md)).
+
+At the setting that catches the sample's false pass (heavier by less than 1.1 times, on print
+at least 14 pixels tall):
+
+| | Result |
+|---|---|
+| Samples: the heading that isn't bold, where Claude said bold | caught |
+| Samples: 28 bold headings | no false alarms |
+| Real labels: 6 headings the answer keys say aren't bold | nothing to catch: Claude said "can't tell" on all 6, so they were Check this already |
+| Real labels: 71 bold headings Claude called bold | 6 false alarms, 2 of them making a right result wrong |
+
+On the real labels it only added false alarms. Where it fails, the heading is set in a
+different typeface from the rest (a condensed bold beside a heavy serif), or the print is so
+small that strokes are 1 or 2 pixels wide. Measuring upright strokes alone did worse. So the
+app still relies on Claude for bold, and sends every "not bold" or "can't tell" to review.
+
 ## Limits of this evaluation
 
 - **The sample labels are drawn by code,** by the same project that wrote the rules. Real
@@ -418,8 +443,9 @@ evaluation; a production version would remove them.
 `tools/evaluate.py` checks every sample and records accuracy, speed, and cost in
 `docs/measurements/`, in process or against the deployed app. `tools/time_live.py` times
 single checks on the deployed app, with phone-sized photos if asked.
-`tools/blocked_provider.py` times a check when the AI provider can't be reached, and
-`tools/second_reading.py` measures the warning's second reading on the private real labels.
+`tools/blocked_provider.py` times a check when the AI provider can't be reached,
+`tools/second_reading.py` measures the warning's second reading on the private real labels,
+and `tools/heading_weight.py` measures the code-side bold check that wasn't kept.
 
 ## Run it again
 

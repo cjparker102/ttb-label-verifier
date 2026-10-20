@@ -365,7 +365,10 @@ in 13 seconds, and the batch finished (`docs/measurements/large-upload-2026-10-1
   whose heading is in capitals but not bold, an earlier prompt said "bold" 2 times in 6 readings.
   The prompt now asks about the thickness of the strokes and says capitals alone aren't bold:
   4 times in 19 readings, while two bold samples were read as bold 10 times in 10. So a
-  heading that isn't bold can still pass, about one time in five on that sample.
+  heading that isn't bold can still pass, about one time in five on that sample. A second
+  opinion from code, measuring stroke thickness on the picture, was tried and not kept: on 96
+  real labels it caught nothing Claude hadn't already sent to review, and raised 6 false
+  alarms (see [EVALUATION.md](EVALUATION.md)).
 - **The app runs as one instance,** because batch jobs and usage counts live in memory. A
   production version would need shared storage for them, which is a policy decision.
 - **Accuracy was measured on 31 code-drawn labels,** 8 of them made to look like poor photos
