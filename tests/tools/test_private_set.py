@@ -26,6 +26,7 @@ CASES = [
         },
         "images": ["labels/26002001000021/images/1.png"],
         "expected": {"brand_name": "pass", "net_contents": ["pass", "review"]},
+        "ttb_noted": ["net_contents"],
     },
     {
         "id": "26002001000021-planted",
@@ -129,8 +130,8 @@ def test_strict_and_judgment_calls_are_counted_apart(private_set):
     planted = {"brand_name": "false_pass", "net_contents": "exact"}
     results = {
         "records": [
-            {"id": "26002001000021", "photo": None, "judgments": approved},
-            {"id": "26002001000021-planted", "photo": None, "judgments": planted},
+            {"id": "26002001000021", "photo": None, "got": {}, "judgments": approved},
+            {"id": "26002001000021-planted", "photo": None, "got": {}, "judgments": planted},
         ]
     }
     totals = public_summary(cases, results, summarize(results))
@@ -138,3 +139,34 @@ def test_strict_and_judgment_calls_are_counted_apart(private_set):
     assert totals["strict"] == {"false_fail": 1, "false_pass": 1, "exact": 1}
     assert totals["judgment"] == {"extra_review": 1}
     assert totals["planted_missed"] == 1
+
+
+def test_issues_flagged_on_approved_labels_are_matched_with_the_fields_ttb_noted(private_set):
+    cases = load_cases(private_set)
+    cases[0]["ttb_noted"] = ["net_contents", "alcohol_content"]
+    results = {
+        "records": [
+            {
+                "id": "26002001000021",
+                "photo": None,
+                "got": {"brand_name": "fail", "net_contents": "review", "alcohol_content": "pass"},
+                "judgments": {"brand_name": "false_fail", "net_contents": "exact"},
+            },
+            {  # the planted problem is not an issue on the label as approved
+                "id": "26002001000021-planted",
+                "photo": None,
+                "got": {"brand_name": "fail", "net_contents": "pass"},
+                "judgments": {"brand_name": "exact", "net_contents": "exact"},
+            },
+        ]
+    }
+    totals = public_summary(cases, results, summarize(results))
+    assert (totals["flagged_as_problem"], totals["flagged_as_check_this"]) == (1, 1)
+    assert totals["flagged_and_ttb_noted"] == 1
+    assert totals["ttb_noted"] == 2
+    page = public_markdown(
+        {**results, "measured_at": "2026-10-20T09:00:00", "commit": "abc", "settings": {}}, totals
+    )
+    assert "| Issues flagged on the labels as approved | 2: 1 Problem, 1 Check this |" in page
+    assert "| Of those, on a field TTB's qualifications name | 1 of 2 |" in page
+    assert "| Fields TTB's qualifications name, flagged by the tool | 1 of 2 |" in page

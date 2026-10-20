@@ -13,6 +13,8 @@ one problem planted in its application data. A case has:
   application     the application data, field by field
   images          picture files, relative to the JSON file
   expected        the right result for each field; a list where more than one is right
+  ttb_noted       the fields named by a condition in TTB's qualifications on the approval,
+                  such as a statement to correct when new labels are printed
 """
 
 import json
@@ -26,6 +28,7 @@ KINDS = {
     "malt_beverage": "malt beverages",
 }
 FINE = {"exact", "note_difference"}
+FLAGGED = {"fail", "review"}
 
 
 class NotPrivate(Exception):
@@ -56,6 +59,17 @@ def public_summary(cases: list[dict], results: dict, summary: dict) -> dict:
             (judgment if isinstance(expected[field], list) else strict)[verdict] += 1
     planted = [r for r in scored if by_id[r["id"]]["kind"] == "planted"]
     caught = Counter(r["judgments"][by_id[r["id"]]["planted_field"]] for r in planted)
+    # Issues flagged on the labels as approved, and the fields TTB's qualifications name.
+    approved = [r for r in scored if by_id[r["id"]]["kind"] == "as approved"]
+    flagged = Counter()
+    noted, both = 0, 0
+    for record in approved:
+        named = set(by_id[record["id"]].get("ttb_noted", []))
+        noted += len(named)
+        for field, word in record["got"].items():
+            if word in FLAGGED:
+                flagged[word] += 1
+                both += field in named
     labels = {case["ttb_id"]: case["beverage_type"] for case in cases}
     return {
         "labels": len(labels),
@@ -69,6 +83,10 @@ def public_summary(cases: list[dict], results: dict, summary: dict) -> dict:
         "planted_caught_as_problem": caught["exact"],
         "planted_caught_as_check_this": caught["review_instead_of_fail"],
         "planted_missed": caught["false_pass"],
+        "flagged_as_problem": flagged["fail"],
+        "flagged_as_check_this": flagged["review"],
+        "ttb_noted": noted,
+        "flagged_and_ttb_noted": both,
         "seconds": summary.get("seconds"),
         "cost_usd": summary.get("cost_usd"),
         "ttb_ids": sorted(labels),
@@ -89,6 +107,7 @@ def the_rest(verdicts: dict) -> str:
 def public_markdown(results: dict, totals: dict) -> str:
     kinds = ", ".join(f"{n} {kind}" for kind, n in sorted(totals["by_type"].items()))
     strict, judgment = totals["strict"], totals["judgment"]
+    flagged = totals["flagged_as_problem"] + totals["flagged_as_check_this"]
     rows = [
         ("Labels", f"{totals['labels']} ({kinds})"),
         ("Checks", f"{totals['checks']}: each label as approved, and with one planted problem"),
@@ -107,6 +126,19 @@ def public_markdown(results: dict, totals: dict) -> str:
         ),
         ("Planted problems shown as Check this", totals["planted_caught_as_check_this"]),
         ("Planted problems missed (shown as Matches)", totals["planted_missed"]),
+        (
+            "Issues flagged on the labels as approved",
+            f"{flagged}: {totals['flagged_as_problem']} Problem, "
+            f"{totals['flagged_as_check_this']} Check this",
+        ),
+        (
+            "Of those, on a field TTB's qualifications name",
+            f"{totals['flagged_and_ttb_noted']} of {flagged}",
+        ),
+        (
+            "Fields TTB's qualifications name, flagged by the tool",
+            f"{totals['flagged_and_ttb_noted']} of {totals['ttb_noted']}",
+        ),
     ]
     if totals["seconds"]:
         s = totals["seconds"]
@@ -131,6 +163,11 @@ def public_markdown(results: dict, totals: dict) -> str:
         "answer, including every planted problem. **Judgment calls** count the fields where the "
         "answer key accepts two answers, such as Matches or Check this for a warning whose body "
         "text looks bold.",
+        "",
+        "Some approvals carry qualifications: TTB approved the label and noted a condition, such "
+        "as a statement to correct when new labels are printed. The fields each condition names "
+        "were written down before the run. Conditions about things the tool doesn't check, and "
+        "TTB's standard note that it didn't review type size or contrast, aren't counted.",
         "",
         "| Measure | Result |",
         "|---|---|",
