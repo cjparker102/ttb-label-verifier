@@ -149,6 +149,9 @@ up to date as of Oct 15, 2026). The rules differ by beverage type:
     for "TO"), is taken for Tesseract misreading small print. Capitals, punctuation, and
     spacing don't count. If a pass can't read the warning at all, as happens with small print
     on real labels, or Tesseract isn't done 1 second after Claude, there is no second reading.
+    In a batch, Tesseract reads only the picture with the warning, after Claude, so the warning
+    gets the same second reading at less cost; the brand is then looked for on that picture
+    only.
 - **Alcohol content:**
   - Distilled spirits must state it (5.63(a)(3)).
   - Wine must state it unless it is "table" or "light" wine at 14% or less (4.36(a)).
@@ -315,4 +318,4 @@ in 13 seconds, and the batch finished (`docs/measurements/large-upload-2026-10-1
 - **Claude may read the warning as it should be,** not as printed: a misspelt word read as spelt
   correctly, or a missing comma put in. The second reading by Tesseract catches a misspelt word
   only when Tesseract can read the warning, and doesn't compare punctuation. So the warning
-  check can miss small errors. Batches don't have the second reading yet.
+  check can miss small errors.

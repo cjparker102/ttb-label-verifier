@@ -128,6 +128,18 @@ async def second_reading(words: asyncio.Task | None) -> Passes | None:
         return None
 
 
+async def warning_picture(pictures: list[bytes], reading: LabelReading) -> Passes | None:
+    """Tesseract's words on the picture the AI reader found the warning on, and no words
+    for the others. None if there is no warning or Tesseract fails."""
+    number = reading.government_warning.image_number
+    if number is None or not 0 < number <= len(pictures):
+        return None
+    found = await find_words([pictures[number - 1]])
+    if found is None:
+        return None
+    return [found[0] if i == number - 1 else [] for i in range(len(pictures))]
+
+
 def outlines(passes: Passes | None, result: LabelResult) -> tuple[Highlight, ...]:
     if passes is None:
         return ()
@@ -145,12 +157,15 @@ async def check_one(
     max_edge: int,
     ocr_fallback: bool = True,
     outline: bool = False,
+    warning_only: bool = False,
 ) -> CheckOutcome:
     """Check one product's label images, given as (file name, bytes), against its
     application. Uses the AI reader, or basic text reading when there is no AI reader
     or it fails, if `ocr_fallback` allows. With `outline`, Tesseract also reads the
     pictures while the AI reader works: a second reading, used by some rules and to find
-    where each field to look at is on the pictures."""
+    where each field to look at is on the pictures. With `warning_only`, as in batches,
+    Tesseract reads only the picture with the warning, after the AI reader, so the
+    warning gets its second reading at less cost."""
     start = time.perf_counter()
     pictures = []
     for name, data in images:
@@ -175,7 +190,7 @@ async def check_one(
     words = asyncio.create_task(find_words(prepared)) if outline and tesseract_available() else None
     try:
         return await read_and_decide(
-            application, prepared, reader, ocr_fallback, small, words, start
+            application, prepared, reader, ocr_fallback, small, words, start, warning_only
         )
     finally:
         if words is not None:
@@ -190,6 +205,7 @@ async def read_and_decide(
     small: bool,
     words: asyncio.Task | None,
     start: float,
+    warning_only: bool = False,
 ) -> CheckOutcome:
     """The rest of check_one: read the pictures, apply the rules, add the outlines."""
     if reader is not None:
@@ -214,6 +230,8 @@ async def read_and_decide(
             if small:
                 problems.append("low_resolution")
             passes = await second_reading(words)
+            if passes is None and warning_only and tesseract_available():
+                passes = await warning_picture(prepared, read.reading)
             result = check_label(application, read.reading, passes)
             return CheckOutcome(
                 result=result,

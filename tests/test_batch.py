@@ -1,12 +1,20 @@
 import asyncio
+import json
+
+import pytest
 
 from app.batch import SECONDS_PER_LABEL, BatchStore, ItemState, new_job, picture_sizes, run_job
 from app.intake.matching import MatchedRow
 from app.intake.spreadsheet import ApplicationRow
+from app.reading.ocr import tesseract_available
 from app.rules.application import Application, BeverageType
 from app.rules.results import Status
-from tests.stand_ins import FailingReader, ReplayReader
-from tools.make_samples import LABELS_DIR
+from app.rules.warning import GOVERNMENT_WARNING
+from tests.stand_ins import FailingReader, ReplayReader, perfect_reading, recorded_reading
+from tools.evaluate import application_for
+from tools.make_samples import LABELS_DIR, SAMPLES_DIR
+
+EXPECTED = json.loads((SAMPLES_DIR / "expected.json").read_text(encoding="utf-8"))
 
 OLD_TOM = Application(
     BeverageType.DISTILLED_SPIRITS,
@@ -218,3 +226,45 @@ def test_checked_labels_make_room():
     run(job)
     assert store.waiting_sizes() == []
     assert store.seconds_until_room(held, cap=held) == 0
+
+
+# In a batch, Tesseract reads only the picture with the warning, for its second reading.
+
+
+@pytest.mark.skipif(not tesseract_available(), reason="Tesseract is not installed")
+def test_a_batch_catches_a_warning_the_ai_reader_read_as_it_should_be():
+    """The sample's warning is printed with wrong wording. If the AI reader returns the
+    required text instead, as Claude did with a misspelt word on a real label, Tesseract's
+    reading of the picture still disagrees."""
+    entry = next(e for e in EXPECTED if e["id"] == "heronmere-gin-warning-wording")
+    corrected = perfect_reading(entry["truth"]).model_copy(deep=True)
+    corrected.government_warning.text = GOVERNMENT_WARNING
+    application = application_for(entry)
+    name = entry["images"][0]
+    row = ApplicationRow(2, (name,), application, (), application.brand_name)
+    job = new_job([MatchedRow(row, ((name, (LABELS_DIR / name).read_bytes()),), ())], [], [])
+    run(job, ReplayReader(corrected))
+    outcome = job.items[0].outcome
+    assert outcome.second_reading
+    warning = next(f for f in outcome.result.fields if f.field == "government_warning")
+    assert warning.status == Status.REVIEW
+    assert any(c.reason.startswith("Two readings of the warning disagree") for c in warning.checks)
+
+
+def test_a_batch_reads_only_the_picture_with_the_warning(monkeypatch):
+    read = []
+
+    def passes(pictures):
+        read.append(len(pictures))
+        return [[[], []] for _ in pictures]
+
+    monkeypatch.setattr("app.checking.ocr_passes", passes)
+    monkeypatch.setattr("app.checking.tesseract_available", lambda: True)
+    reading = recorded_reading().model_copy(deep=True)
+    reading.government_warning.image_number = 2
+    row = ApplicationRow(2, ("front.png", "back.png"), OLD_TOM, (), OLD_TOM.brand_name)
+    pictures = (("front.png", FRONT.read_bytes()), ("back.png", FRONT.read_bytes()))
+    job = new_job([MatchedRow(row, pictures, ())], [], [])
+    run(job, ReplayReader(reading))
+    assert read == [1]
+    assert job.items[0].outcome.second_reading

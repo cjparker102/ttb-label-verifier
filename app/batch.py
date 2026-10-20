@@ -118,7 +118,10 @@ async def check_item(
 ) -> None:
     item = work.item
     try:
-        outcome = await check_one(work.application, work.pictures, reader, max_edge, ocr_fallback)
+        # Only the picture with the warning is read a second time, for the warning's check.
+        outcome = await check_one(
+            work.application, work.pictures, reader, max_edge, ocr_fallback, warning_only=True
+        )
     except (NotAnImage, TooManyPictures) as error:
         item.state, item.problem = ItemState.NOT_CHECKED, str(error)
     except NoReader:
