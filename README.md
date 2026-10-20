@@ -20,10 +20,14 @@ In development (October 2026). These work and are deployed:
 - each field to look at outlined on the label picture
 - tips for taking a better photo
 - the offline fallback
+- a second request to Claude when a single check's answer is slow
+
+The evaluation has been run on the deployed app as well as in process: every sample label
+was read by Claude on the live app, and every field result was as expected (see
+[Accuracy and speed](#accuracy-and-speed)).
 
 Claude in Microsoft Foundry is built and tested offline. On Azure, the Foundry resource and
-keyless sign-in work, but the model deployment waits on quota. Still to come: the
-evaluation on the deployed app.
+keyless sign-in work, but the model deployment waits on quota.
 
 ## How it decides
 
@@ -57,7 +61,9 @@ and checked again. The labels are drawn by code, so this is a first measure, not
 
 Requires Python 3.12, [uv](https://docs.astral.sh/uv/), and Tesseract, for the outlines and
 the offline fallback (`brew install tesseract` on macOS, `apt-get install tesseract-ocr` on
-Debian or Ubuntu). Without Tesseract the app still runs, with neither.
+Debian or Ubuntu). Without Tesseract the app still runs and Claude still reads the labels,
+but no fields are outlined on the pictures, and if Claude can't be reached, labels can't be
+checked at all.
 
 ```sh
 cp .env.example .env      # then put your Anthropic API key in .env
@@ -109,7 +115,8 @@ Tesseract are skipped if it isn't installed. CI installs it, so they run there.
 and writes `samples/applications.csv` and `samples/expected.json`. There are 23 labels, each
 with known planted errors and the expected result for every field, plus 8 photo-like
 versions (tilted, blurry, dim, glare, and so on). One label carries a prompt-injection
-attempt. Regenerate with `uv run python -m tools.make_samples`.
+attempt. Regenerate with `uv run python -m tools.make_samples`. Sample labels are for
+evaluation; a production version would remove them.
 
 `tools/evaluate.py` checks every sample and records accuracy, speed, and cost in
 `docs/measurements/`, in process or against the deployed app. `tools/time_live.py` times
