@@ -44,10 +44,16 @@ def load_cases(path: Path) -> list[dict]:
 
 
 def public_summary(cases: list[dict], results: dict, summary: dict) -> dict:
-    """Totals only. Nothing in here can be traced to one label."""
+    """Totals only. Nothing in here can be traced to one label. Accuracy is given twice,
+    never combined: strict, on fields with one right answer, and judgment calls, on
+    fields where the answer key accepts two."""
     by_id = {case["id"]: case for case in cases}
     scored = [r for r in results["records"] if "judgments" in r]
-    approved = [r for r in scored if by_id[r["id"]]["kind"] == "as approved"]
+    strict, judgment = Counter(), Counter()
+    for record in scored:
+        expected = by_id[record["id"]]["expected"]
+        for field, verdict in record["judgments"].items():
+            (judgment if isinstance(expected[field], list) else strict)[verdict] += 1
     planted = [r for r in scored if by_id[r["id"]]["kind"] == "planted"]
     caught = Counter(r["judgments"][by_id[r["id"]]["planted_field"]] for r in planted)
     labels = {case["ttb_id"]: case["beverage_type"] for case in cases}
@@ -57,16 +63,8 @@ def public_summary(cases: list[dict], results: dict, summary: dict) -> dict:
         "checks": len(results["records"]),
         "errors": summary["errors"],
         "read_by_ocr": summary["read_by_ocr"],
-        "fields": summary["fields"],
-        "judgments": summary["judgments"],
-        "approved_all_fine": sum(1 for r in approved if set(r["judgments"].values()) <= FINE),
-        "approved": len(approved),
-        "approved_false_fails": sum(
-            1 for r in approved for j in r["judgments"].values() if j == "false_fail"
-        ),
-        "approved_extra_reviews": sum(
-            1 for r in approved for j in r["judgments"].values() if j == "extra_review"
-        ),
+        "strict": dict(strict),
+        "judgment": dict(judgment),
         "planted": len(planted),
         "planted_caught_as_problem": caught["exact"],
         "planted_caught_as_check_this": caught["review_instead_of_fail"],
@@ -77,19 +75,32 @@ def public_summary(cases: list[dict], results: dict, summary: dict) -> dict:
     }
 
 
+def as_expected(verdicts: dict) -> str:
+    """How many fields came out right, of how many. "Matches, with a note" counts as Matches."""
+    right = sum(n for verdict, n in verdicts.items() if verdict in FINE)
+    return f"{right} of {sum(verdicts.values())}"
+
+
+def the_rest(verdicts: dict) -> str:
+    wrong = {v: n for v, n in sorted(verdicts.items()) if v not in FINE}
+    return ", ".join(f"{v.replace('_', ' ')} {n}" for v, n in wrong.items()) or "none"
+
+
 def public_markdown(results: dict, totals: dict) -> str:
     kinds = ", ".join(f"{n} {kind}" for kind, n in sorted(totals["by_type"].items()))
+    strict, judgment = totals["strict"], totals["judgment"]
     rows = [
         ("Labels", f"{totals['labels']} ({kinds})"),
         ("Checks", f"{totals['checks']}: each label as approved, and with one planted problem"),
         ("Errors", totals["errors"]),
         ("Labels read with basic text reading", totals["read_by_ocr"]),
+        ("**Strict:** fields with one right answer, as expected", as_expected(strict)),
+        ("Strict: the others", the_rest(strict)),
         (
-            "As approved: labels with every field as expected",
-            f"{totals['approved_all_fine']} of {totals['approved']}",
+            "**Judgment calls:** fields where two answers are right, either given",
+            as_expected(judgment),
         ),
-        ("As approved: false Problems (fields)", totals["approved_false_fails"]),
-        ("As approved: extra Check this (fields)", totals["approved_extra_reviews"]),
+        ("Judgment calls: the others", the_rest(judgment)),
         (
             "Planted problems shown as Problem",
             f"{totals['planted_caught_as_problem']} of {totals['planted']}",
@@ -107,9 +118,6 @@ def public_markdown(results: dict, totals: dict) -> str:
         )
     if totals["cost_usd"] is not None:
         rows.append(("AI cost for this run (estimate from tokens)", f"${totals['cost_usd']}"))
-    kinds_of_result = ", ".join(
-        f"{kind.replace('_', ' ')} {n}" for kind, n in sorted(totals["judgments"].items())
-    )
     lines = [
         f"# Real labels from the COLA Registry, {results['measured_at'][:10]}",
         "",
@@ -119,11 +127,14 @@ def public_markdown(results: dict, totals: dict) -> str:
         "The pictures, the application data, the answer key, and the result for each label are "
         "kept private. Only these totals and the TTB IDs are published.",
         "",
+        "Accuracy is given twice, never combined. **Strict** counts the fields with one right "
+        "answer, including every planted problem. **Judgment calls** count the fields where the "
+        "answer key accepts two answers, such as Matches or Check this for a warning whose body "
+        "text looks bold.",
+        "",
         "| Measure | Result |",
         "|---|---|",
         *[f"| {measure} | {result} |" for measure, result in rows],
-        "",
-        f"All {totals['fields']} field results by kind: {kinds_of_result}.",
         "",
         "## TTB IDs",
         "",

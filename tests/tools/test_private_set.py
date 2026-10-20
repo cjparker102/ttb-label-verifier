@@ -107,14 +107,34 @@ def test_the_public_report_has_totals_and_ids_but_nothing_about_any_one_label(pr
         ],
     }
     totals = public_summary(cases, results, summarize(results))
-    assert totals["approved_all_fine"] == 1
     assert totals["planted_caught_as_problem"] == 1
     assert totals["by_type"] == {"distilled spirits": 1}
     page = public_markdown(results, totals)
     assert "- 26002001000021" in page
     assert "| Planted problems shown as Problem | 1 of 1 |" in page
+    assert "| **Strict:** fields with one right answer, as expected | 3 of 3 |" in page
+    assert (
+        "| **Judgment calls:** fields where two answers are right, either given | 1 of 1 |" in page
+    )
     for private in ("SECRET", "Secret Distilling", "Nashville", "750 mL", "OTHER BRAND"):
         assert private not in page
     for line in page.splitlines():  # an ID never shares a line with a result
         if "26002001000021" in line:
             assert line == "- 26002001000021"
+
+
+def test_strict_and_judgment_calls_are_counted_apart(private_set):
+    cases = load_cases(private_set)
+    approved = {"brand_name": "false_fail", "net_contents": "extra_review"}
+    planted = {"brand_name": "false_pass", "net_contents": "exact"}
+    results = {
+        "records": [
+            {"id": "26002001000021", "photo": None, "judgments": approved},
+            {"id": "26002001000021-planted", "photo": None, "judgments": planted},
+        ]
+    }
+    totals = public_summary(cases, results, summarize(results))
+    # net_contents accepts two answers on the label as approved, one when planted.
+    assert totals["strict"] == {"false_fail": 1, "false_pass": 1, "exact": 1}
+    assert totals["judgment"] == {"extra_review": 1}
+    assert totals["planted_missed"] == 1
