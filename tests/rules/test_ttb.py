@@ -7,6 +7,7 @@ from app.rules import citations as cfr
 from app.rules.application import Application, BeverageType
 from app.rules.results import Citation, Status
 from app.rules.ttb import (
+    ALCOHOL_FORM,
     alcohol_checks,
     bottler_checks,
     english_checks,
@@ -114,6 +115,29 @@ def test_allowed_alcohol_forms_pass(beverage, text):
 def test_other_alcohol_forms_need_review(beverage, text):
     checks = alcohol_checks(beverage, label(alcohol_content=read(text)))
     assert statuses(checks) == [Status.REVIEW]
+
+
+# Found on the fourth set of real labels: "Alc. 5,8 % by Vol." was compared as 5.8% and
+# matched, but TTB's approval asked for that statement to be changed to an allowed form.
+
+
+@pytest.mark.parametrize("beverage", [SPIRITS, WINE, MALT])
+@pytest.mark.parametrize(
+    ("text", "shown"), [("Alc. 5,8 % by Vol.", "5.8%"), ("12,50% alc/vol", "12.50%")]
+)
+def test_a_decimal_comma_needs_review(beverage, text, shown):
+    checks = alcohol_checks(beverage, label(alcohol_content=read(text)))
+    assert statuses(checks) == [Status.REVIEW]
+    assert checks[0].reason == (
+        f'"{text}" writes the alcohol figure with a decimal comma. The forms TTB allows use a '
+        f'decimal point, as in "{shown}". Please check.'
+    )
+    assert checks[0].citation == ALCOHOL_FORM[beverage]
+
+
+def test_a_comma_between_parts_of_the_statement_is_not_a_decimal_comma():
+    for text in ("40% alc/vol, 80 proof", "45% Alc./Vol. (90 Proof)"):
+        assert statuses(alcohol_checks(SPIRITS, label(alcohol_content=read(text)))) == [Status.PASS]
 
 
 def test_proof_alone_fails():

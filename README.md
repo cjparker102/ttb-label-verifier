@@ -56,8 +56,8 @@ some fields to look at are also outlined on the picture. See [APPROACH](docs/APP
   last rule changes, the honest measure (commit `6530f56`): 252 of 274 strict field results and
   50 of 62 judgment calls as expected; 24 of 24 planted problems detected; 1 false pass (an
   alcohol statement with a decimal comma, "5,8 %"); 11 false Problems; 44 of 48 checks under 5
-  seconds. Replayed after the fixes for a real bottle photo: 8 false Problems (not an honest
-  measure, as these labels had been seen).
+  seconds. Replayed after the fixes that followed (a real bottle photo, the decimal comma): no
+  false passes and 8 false Problems (not an honest measure, as these labels had been seen).
 - **Live app** (commit `71177c1`, 2 CPUs): single checks median 2.85 s, 31 of 32 under 5 s
   (the slowest 5.8 s); no false passes or false Problems. On the earlier revision (`77dd73a`),
   a batch of 300 labels took 4.1 to 4.5 minutes, 294 and 297 of 300 rows as expected (the

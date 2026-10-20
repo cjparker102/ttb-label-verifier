@@ -28,6 +28,7 @@ MALT = BeverageType.MALT_BEVERAGE
 ALCOHOL_WORD = re.compile(r"\balc(?:ohol)?\b", re.IGNORECASE)
 VOLUME_WORD = re.compile(r"\bvol(?:ume)?\b", re.IGNORECASE)
 PERCENT_SIGN = re.compile(r"%|\bpercent\b", re.IGNORECASE)
+DECIMAL_COMMA = re.compile(r"\d,\d")  # "5,8 %": a European decimal comma, not "5.8%"
 # 27 CFR 5.65(b)(2)-(3), checked in the eCFR (Title 27 up to date as of Oct 16, 2026). A
 # distilled spirits label states its alcohol content in one of three formats: (A) "Alcohol
 # __ percent by volume", (B) "__ percent alcohol by volume", or (C) "Alcohol by volume __
@@ -136,6 +137,16 @@ def alcohol_checks(beverage: BeverageType, reading: LabelReading) -> list[Check]
                 Status.FAIL,
                 "The alcohol content must be stated as a percentage of alcohol by volume. "
                 "Proof alone is not enough.",
+                citation=rule,
+            )
+        ]
+    if DECIMAL_COMMA.search(text):
+        # Read as 5.8, so it can be compared, but the forms TTB allows write a decimal point.
+        return [
+            Check(
+                Status.REVIEW,
+                f'"{text}" writes the alcohol figure with a decimal comma. The forms TTB allows '
+                f'use a decimal point, as in "{statement.abv:f}%". Please check.',
                 citation=rule,
             )
         ]

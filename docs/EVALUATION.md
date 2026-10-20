@@ -416,6 +416,13 @@ becomes Check this. Strict goes from 252 to 254 of 274, judgment calls from 50 t
 nothing else changes, and the decimal-comma false pass remains. Two of those false Problems
 had the same causes as the photo, so this replay is not an honest measure of the changes.
 
+**Then, the decimal comma (Christopher's decision, Oct 20).** An alcohol figure written with a
+decimal comma now needs review. Among the saved readings of all four sets, only this set's
+"5,8 %" statement has one, so its 2 false passes become Check this, as the key accepts; among
+the samples, the French wine's "13,5% vol" already needed review for its form. With both
+changes, the replayed fourth set has no false passes and 8 false Problems. Again, these labels
+had been seen.
+
 ## The warning's second reading on real labels
 
 Tesseract's second reading of the warning was replayed on all 72 real labels from the three

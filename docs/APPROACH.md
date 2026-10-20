@@ -206,6 +206,9 @@ up to date as of Oct 15, 2026). The rules differ by beverage type:
     between alcohol and volume, and parentheses. So "Alc. 43% by/vol." and "40% Alc. Vol."
     need review; TTB asked for such a statement to be changed on an approved label. For wine
     and beer, the words for alcohol and volume and a percentage are enough, for now.
+  - A decimal comma ("Alc. 5,8 % by Vol.") is read as 5.8, so the figure can be compared, but
+    it needs review: the forms TTB allows use a decimal point, and on an approved label in the
+    fourth real set TTB asked for such a statement to be changed.
   - The form can only be judged on the whole statement. On a real bottle photo printed "ALC.
     5% BY VOL", Claude read "5% BY VOL", which then needed review. So Claude is told to copy
     every word printed before and after the number, such as "ALC." or "BY VOL".
@@ -393,10 +396,10 @@ in 13 seconds, and the batch finished (`docs/measurements/large-upload-2026-10-1
 - **Accuracy was measured on 32 code-drawn labels,** 8 of them made to look like poor photos
   (tilted, blurry, dim, glare), and on four sets of 24 real approved labels from TTB's Public
   COLA Registry: three the rules were changed with, and a fourth, the honest measure. On the
-  fourth set there was 1 false pass (an alcohol statement with a decimal comma) and 11 false
-  Problems; their causes are listed. Three were later fixed by changes made for a real bottle
-  photo, the only camera photo tried so far; real camera photos are not yet in the test set.
-  See [EVALUATION.md](EVALUATION.md).
+  fourth set there was 1 false pass (an alcohol statement with a decimal comma, now Check
+  this) and 11 false Problems; their causes are listed. Three were later fixed by changes made
+  for a real bottle photo, the only camera photo tried so far; real camera photos are not yet
+  in the test set. See [EVALUATION.md](EVALUATION.md).
 - **Claude may read the warning as it should be,** not as printed: a misspelt word read as spelt
   correctly, or a missing comma put in. The second reading by Tesseract catches a misspelt word
   only when both of Tesseract's passes can read the warning, and doesn't compare punctuation.
