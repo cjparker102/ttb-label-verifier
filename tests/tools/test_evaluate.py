@@ -216,3 +216,14 @@ def test_how_often_the_second_reading_was_ready_is_reported():
     assert (summary["second_reading"], summary["read_by_ai"]) == (2, 3)
     report = markdown(results, summary)
     assert "| Checks where Tesseract's second reading was ready in time | 2 of 3 |" in report
+
+
+def test_a_run_never_overwrites_an_earlier_one(tmp_path):
+    from tools.evaluate import unused
+
+    stem = tmp_path / "real-labels-2026-10-20"
+    assert unused(stem, ".md") == stem
+    (tmp_path / "real-labels-2026-10-20.md").write_text("first run")
+    assert unused(stem, ".md") == tmp_path / "real-labels-2026-10-20-2"
+    (tmp_path / "real-labels-2026-10-20-2.json").write_text("second run")
+    assert unused(stem, ".json", ".md") == tmp_path / "real-labels-2026-10-20-3"

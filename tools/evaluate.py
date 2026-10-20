@@ -516,6 +516,15 @@ def markdown(results: dict, summary: dict) -> str:
     return "\n".join(lines) + "\n"
 
 
+def unused(stem: Path, *suffixes: str) -> Path:
+    """`stem`, or `stem-2`, `stem-3`, ... so a run never overwrites an earlier one's files."""
+    candidate, number = stem, 1
+    while any(candidate.parent.joinpath(candidate.name + suffix).exists() for suffix in suffixes):
+        number += 1
+        candidate = stem.with_name(f"{stem.name}-{number}")
+    return candidate
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--url", help="evaluate a deployed app instead of running in this process")
@@ -554,10 +563,10 @@ def main() -> None:
         # The results for each label stay in private/, next to the set. Only totals and
         # the TTB IDs go to docs/measurements/.
         day = results["measured_at"][:10]
-        stem = Path(args.cases).parent / f"results-{day}"
+        stem = unused(Path(args.cases).parent / f"results-{day}", ".json", ".md")
         stem.with_suffix(".json").write_text(json.dumps(results, indent=2, ensure_ascii=False))
         stem.with_suffix(".md").write_text(markdown(results, summary))
-        public = OUT_DIR / f"real-labels-{day}.md"
+        public = unused(OUT_DIR / f"real-labels-{day}", ".md").with_suffix(".md")
         public.write_text(public_markdown(results, public_summary(entries, results, summary)))
         print()
         print(public.read_text())
@@ -565,7 +574,7 @@ def main() -> None:
         return
 
     kind = "deployed" if args.url else args.reader
-    stem = OUT_DIR / f"evaluation-{results['measured_at'][:10]}-{kind}"
+    stem = unused(OUT_DIR / f"evaluation-{results['measured_at'][:10]}-{kind}", ".json", ".md")
     OUT_DIR.mkdir(parents=True, exist_ok=True)
     stem.with_suffix(".json").write_text(json.dumps(results, indent=2, ensure_ascii=False) + "\n")
     stem.with_suffix(".md").write_text(markdown(results, summary))
