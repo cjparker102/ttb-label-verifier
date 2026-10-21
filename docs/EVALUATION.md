@@ -284,31 +284,35 @@ Revision 27 (image `1f7ef3c`) adds the decimal-comma check and the new sample on
 single checks 2.88 s / 4.31 s / 4.70 s (median / p95 / max), 32 of 32 under 5 seconds; a batch
 of 32 in 30.1 s; no false passes or false Problems.
 
-### Oct 20, late: a batch the size of 300 photos (revision 30)
+### Oct 20, late: a batch the size of 300 photos (revisions 30 and 31)
 
 Revision 30 (image `66364f8`) raises the batch upload limit to 400 MB. The 300-row batches
-above shared the sample pictures, so this one gave each row its own: the 32 samples repeated,
+above shared the sample pictures, so these gave each row its own: the 32 samples repeated,
 328 picture files, every one different (the sample's picture with light grain, saved as a
-JPEG of about 0.9 MB a label), sent with `tools/batch_live.py --picture-mb 0.9`
-([batch-300-2026-10-20-2324.md](measurements/batch-300-2026-10-20-2324.md)).
+JPEG of about 0.9 MB a label), sent with `tools/batch_live.py --picture-mb 0.9`. Revision 31
+(image `00181ce`) differs only in the bold check's setting
+([revision 30](measurements/batch-300-2026-10-20-2324.md),
+[revision 31](measurements/batch-300-2026-10-20-2339.md)).
 
-| Measure | Result |
-|---|---|
-| Upload size | 262.7 MB |
-| Upload and unpacking, until the batch page opened | 16.2 s |
-| Whole batch, upload to finished | 285 s (4.8 minutes); the page says 4 minutes 29 seconds |
-| Read by Claude | 300 of 300 |
-| Rows with every field as expected | 299 of 300; the miss was a false pass on the sample whose heading isn't bold, at the bold check's first setting (see "A code-side bold check" below) |
-| Replica memory, Azure's largest per-minute value | 273 MB before the batch; at most 1,155 MB of 4 GiB during it |
+| Measure | Revision 30 | Revision 31 |
+|---|---|---|
+| Upload size | 262.7 MB | 262.7 MB |
+| Upload and unpacking, until the batch page opened | 16.2 s | 16.4 s |
+| Whole batch, upload to finished | 285 s (4.8 minutes) | 284 s (4.7 minutes) |
+| Read by Claude | 300 of 300 | 300 of 300 |
+| Rows with every field as expected | 299 of 300: 1 false pass on the sample whose heading isn't bold, at the bold check's first setting (see "A code-side bold check" below) | 300 of 300 |
+| Replica memory before / largest per-minute value during / after | 273 MB / 1,155 MB / 842 MB | 366 MB / 1,377 MB / 1,157 MB |
 
-Azure samples the working set, so a peak lasting a few seconds can fall between samples. On a
-laptop, the same kind of upload (262.7 MB, all 300 rows checked, as the downloaded results
-showed row by row) was measured by sampling the server's memory every 0.05 s, with a script
-not kept: 119 MB before, 663 MB at most while the upload arrived and was unpacked (about twice
-its size), and 1.63 GB at most during the batch. That run had no API key, so Tesseract read
-all 300 labels, 8 at a time, in 14 seconds on 18 cores; that path holds more pictures in
-work than Claude's. The caps on pictures waiting (600 MB) and on uploads arriving at once
-(600 MB) keep the worst case under the 4 GiB.
+The replica has 4 GiB. Azure samples the working set, so a peak lasting a few seconds can fall
+between samples. After a batch, the replica keeps holding memory: what Python keeps for reuse,
+and the batch's results, kept for 30 minutes. A second large batch on the same replica was not
+measured. On a laptop, the same kind of upload (262.7 MB, all 300 rows checked, as the
+downloaded results showed row by row) was measured by sampling the server's memory every 0.05
+s, with a script not kept: 119 MB before, 663 MB at most while the upload arrived and was
+unpacked (about twice its size), and 1.63 GB at most during the batch. That run had no API
+key, so Tesseract read all 300 labels, 8 at a time, in 14 seconds on 18 cores; that path holds
+more pictures in work than Claude's. The caps on pictures waiting (600 MB) and on uploads
+arriving at once (600 MB) bound the rest.
 
 ## Photos of a real bottle
 
@@ -574,7 +578,9 @@ photos" above), 1 of that sample's rows was a false pass. Its grainy copies meas
 1.101 times, against 1.09 for the drawn picture, so 1.1 was too close. Bold sample headings
 measure about 1.7, on drawn pictures and grainy copies alike. So the setting is now 1.15:
 in the sweep above, it adds 1 Check this on the real labels over 1.1, on a label whose key
-accepts Check this already, and no wrong one.
+accepts Check this already, and no wrong one. At 1.15 (revision 31), the sample got Check this
+on 5 more single checks in a row (Claude called it bold in 2), and the same kind of 300-row
+batch had all 300 rows as expected.
 
 Replayed at 1.15 on the saved readings, with no AI request and Tesseract given all the time
 it needs, comparing the code before the check (commit `f294a31`) and after, on every field:

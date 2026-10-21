@@ -38,7 +38,7 @@ some fields to look at are also outlined on the picture. See [APPROACH](docs/APP
 |---|---|---|
 | Sarah Chen | Results in about 5 seconds | Met: live single checks, median 2.88 s, 32 of 32 under 5 s |
 | Sarah Chen | Simple enough for anyone | Built for it: large type, plain words, one main button. Checked by hand by keyboard alone and with VoiceOver ([ACCESSIBILITY](docs/ACCESSIBILITY.md)) |
-| Sarah Chen, Janet | Batches of 200 to 300 labels | Met: a spreadsheet plus pictures, loose or zipped, up to 400 MB; 300 labels, each with its own camera-sized pictures (263 MB), in 4.8 minutes, all read by Claude; memory peaked at about 1.2 GB of the app's 4 GiB (Azure's per-minute samples) |
+| Sarah Chen, Janet | Batches of 200 to 300 labels | Met: a spreadsheet plus pictures, loose or zipped, up to 400 MB; 300 labels, each with its own camera-sized pictures (263 MB), in 4.7 to 4.8 minutes, all read by Claude; memory peaked at about 1.4 GB of the app's 4 GiB (Azure's per-minute samples) |
 | Marcus Williams | Standalone, on Azure, nothing sensitive stored | Met: one container. This app keeps pictures in memory only, and deletes batch results after 30 minutes |
 | Marcus Williams | Firewall blocks outside AI services | Partly: if the AI provider is blocked, a check falls back to offline OCR within about 8.5 s, giving Check this at most. Claude in Microsoft Foundry is optional, not yet validated |
 | Dave Morrison | Judgment ("STONE'S THROW" is "Stone's Throw") | Met for capitals, punctuation, company forms, and state names |
@@ -68,10 +68,11 @@ some fields to look at are also outlined on the picture. See [APPROACH](docs/APP
   a batch of 300 labels took 4.1 to 4.5 minutes, 294 and 297 of 300 rows as expected (the
   second run's misses: that bold heading twice, a bottler once; the first didn't record which).
   Every row was read by Claude on its own, and no result was reused, but the rows shared the
-  31 sample pictures: the upload was 5 MB, not the size of 300 photos. On revision 30, 300
-  rows with their own camera-sized pictures (262.7 MB) uploaded and unpacked in 16 s and
-  finished in 4.8 minutes, all read by Claude; the replica's memory peaked at about 1.2 GB
-  in Azure's per-minute samples.
+  31 sample pictures: the upload was 5 MB, not the size of 300 photos. On revisions 30 and
+  31, 300 rows with their own camera-sized pictures (262.7 MB) uploaded and unpacked in 16 s
+  and finished in 4.7 to 4.8 minutes, all read by Claude; 299 and 300 of 300 rows as
+  expected (the miss: the not-bold heading, before the bold setting was raised to 1.15); the
+  replica's memory peaked at 1.2 and 1.4 GB in Azure's per-minute samples.
 - **One real bottle, photographed** (a wine specialty, front and back, on the live app at
   commit `1f7ef3c`, checked by Christopher): with the right application, all 7 fields matched
   (3.8 s); with the alcohol changed to 6%, alcohol was a Problem, as it should be; with a
