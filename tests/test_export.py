@@ -3,11 +3,13 @@ from io import BytesIO
 
 from openpyxl import load_workbook
 
+import app.checking
 from app.batch import new_job, run_job
 from app.export import results_workbook
 from app.intake.matching import MatchedRow
 from app.intake.spreadsheet import ApplicationRow
 from app.rules.application import Application, BeverageType
+from app.rules.warning import NOT_CONFIRMED
 from tests.disk_watch import watch_disk_writes
 from tests.stand_ins import ReplayReader
 from tools.make_samples import LABELS_DIR
@@ -77,6 +79,16 @@ def test_details_have_one_row_per_field():
     warning = next(r for r in rows if r[0] == 2 and r[2] == "Government warning")
     assert warning[3] == "The required warning text"
     assert "27 CFR 16.21" in warning[7]
+
+
+def test_a_bold_heading_not_confirmed_says_so_in_the_details(monkeypatch):
+    # Without Tesseract nothing measures the heading, so the AI reader's "bold" stands alone.
+    monkeypatch.setattr(app.checking, "tesseract_available", lambda: False)
+    sheet = open_workbook(results_workbook(finished_job()))["Details"]
+    warning = next(r for r in sheet.iter_rows(values_only=True) if r[2] == "Government warning")
+    assert warning[5] == "Matches, bold not confirmed"
+    assert NOT_CONFIRMED in warning[6]
+    assert "27 CFR 16.22(a)(2)" in warning[7]
 
 
 def test_text_that_looks_like_a_formula_stays_text():

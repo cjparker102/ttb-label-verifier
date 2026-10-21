@@ -4,6 +4,7 @@ from collections import Counter
 from dataclasses import dataclass
 
 from app.reading.schema import LabelReading
+from app.reading.strokes import HeadingWeight
 from app.reading.words import Passes
 from app.rules.alcohol import check_alcohol, check_alcohol_statements
 from app.rules.application import Application
@@ -51,10 +52,14 @@ def also(check: Check | None) -> list[Check]:
 
 
 def check_label(
-    application: Application, reading: LabelReading, ocr: Passes | None = None
+    application: Application,
+    reading: LabelReading,
+    ocr: Passes | None = None,
+    heading: HeadingWeight | None = None,
 ) -> LabelResult:
     """Match checks first, then the TTB rule checks for the same field. `ocr` is a
-    second reading of the label by Tesseract, if there is one."""
+    second reading of the label by Tesseract, if there is one, and `heading` the warning
+    heading's strokes measured from it, if they could be."""
     class_check = check_class(application.class_type, reading.class_type)
     if class_check.status == Status.FAIL:
         # The application's class found elsewhere on the label is preferred over what the
@@ -116,7 +121,7 @@ def check_label(
                 "government_warning",
                 "Government warning",
                 GOVERNMENT_WARNING,
-                check_warning(r.government_warning, ocr, heading_elsewhere(r, ocr)),
+                check_warning(r.government_warning, ocr, heading_elsewhere(r, ocr), heading),
             ),
         )
     )

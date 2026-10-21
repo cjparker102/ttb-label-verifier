@@ -1,11 +1,14 @@
 import pytest
 
+from app.reading.strokes import HeadingWeight
 from app.reading.words import Word
 from app.rules.results import Status, WordChange, worst
 from app.rules.warning import (
     GOVERNMENT_WARNING,
+    NOT_CONFIRMED,
     WARNING_FORMAT_RULE,
     WARNING_TEXT_RULE,
+    check_bold,
     check_second_reading,
     check_warning,
     heading_elsewhere,
@@ -137,6 +140,55 @@ def test_bold_problems_need_review(heading_bold, rest_bold):
     checks = check_warning(read_warning(GOVERNMENT_WARNING, heading_bold, rest_bold))
     assert worst(statuses(checks)) == Status.REVIEW
     assert all(c.citation == WARNING_FORMAT_RULE for c in checks[2:])
+
+
+BOLD = HeadingWeight(ratio=1.6, height=20)  # measured clearly heavier than the words after it
+
+
+def heading_check(heading_bold, weight=None):
+    return check_bold(read_warning(GOVERNMENT_WARNING, heading_bold), weight)[0]
+
+
+@pytest.mark.parametrize("heading_bold", ["no", "cant_tell"])
+@pytest.mark.parametrize("weight", [None, BOLD, HeadingWeight(ratio=1.0, height=20)])
+def test_a_heading_the_ai_reader_doesnt_call_bold_needs_review_whatever_is_measured(
+    heading_bold, weight
+):
+    assert heading_check(heading_bold, weight).status == Status.REVIEW
+
+
+def test_bold_is_met_when_the_ai_reader_and_the_measurement_agree():
+    check = heading_check("yes", BOLD)
+    assert (check.status, check.confirmed, check.note) == (Status.PASS, True, None)
+    assert check.citation == WARNING_FORMAT_RULE
+
+
+@pytest.mark.parametrize("ratio", [0.9, 1.0, 1.09])
+def test_a_heading_measured_no_heavier_than_the_text_needs_review_though_the_ai_says_bold(ratio):
+    check = heading_check("yes", HeadingWeight(ratio=ratio, height=20))
+    assert check.status == Status.REVIEW
+    assert "looks bold to the AI" in check.reason and "Please check it by eye" in check.reason
+
+
+@pytest.mark.parametrize(
+    "weight",
+    [None, HeadingWeight(ratio=1.6, height=13), HeadingWeight(ratio=1.0, height=10)],
+    ids=["not measured", "print too small, heavier", "print too small, not heavier"],
+)
+def test_the_ai_readers_bold_alone_keeps_the_result_but_is_never_met(weight):
+    check = heading_check("yes", weight)
+    assert (check.status, check.confirmed) == (Status.PASS, False)
+    assert check.reason == NOT_CONFIRMED
+    assert NOT_CONFIRMED == "Looks bold to the AI; not confirmed. Glance at the heading."
+    assert check.note == "Matches, bold not confirmed"
+
+
+def test_the_measurement_reaches_the_bold_check_through_the_warning_check():
+    label = read_warning(GOVERNMENT_WARNING)
+    light = HeadingWeight(ratio=1.0, height=20)
+    assert worst(statuses(check_warning(label, weight=light))) == Status.REVIEW
+    assert all(c.confirmed for c in check_warning(label, weight=BOLD))
+    assert not all(c.confirmed for c in check_warning(label))
 
 
 def test_hard_to_read_warning_needs_review_not_fail():

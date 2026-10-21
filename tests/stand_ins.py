@@ -6,6 +6,7 @@ from pathlib import Path
 
 from app.reading.claude import ReadingFailed, ReadResult
 from app.reading.schema import LabelReading
+from app.reading.strokes import HeadingWeight
 from tools.evaluate import result_word
 
 RECORDED = Path(__file__).resolve().parent / "fixtures" / "recorded"
@@ -65,6 +66,13 @@ def perfect_reading(truth: dict) -> LabelReading:
     fields["government_warning"]["heading_bold"] = "yes" if warning.get("heading_bold") else "no"
     fields["government_warning"]["rest_bold"] = "no"
     return LabelReading.model_validate({**fields, "image_problems": []})
+
+
+def perfect_weight(truth: dict) -> HeadingWeight:
+    """What measuring a sample's warning heading would find, measured without fault: a
+    bold heading clearly heavier than the words after it, one that isn't bold no heavier."""
+    bold = (truth.get("government_warning") or {}).get("heading_bold")
+    return HeadingWeight(ratio=1.5 if bold else 1.0, height=20)
 
 
 class PerfectReader:

@@ -11,7 +11,7 @@ from app.batch import BatchItem, BatchJob, ItemState
 from app.checking import CheckOutcome
 from app.photo_coach import photo_tips
 from app.rules.application import BeverageType
-from app.rules.results import Status, worst
+from app.rules.results import Check, Status, worst
 from app.rules.text import tidy
 from app.rules.verdict import FieldResult
 from app.rules.warning import GOVERNMENT_WARNING, track_changes
@@ -88,6 +88,14 @@ RULE_RESULT = {
 }
 
 
+def rule_result(checks: list[Check]) -> str:
+    """A section's worst result. A pass on the AI reader's word alone is never "met"."""
+    status = worst(check.status for check in checks)
+    if status == Status.PASS and not all(check.confirmed for check in checks):
+        return "not confirmed"
+    return RULE_RESULT[status]
+
+
 def rules_checked(field: FieldResult) -> list[dict]:
     """Each eCFR section behind this field's checks, once, with its worst result."""
     by_section: dict[str, dict] = {}
@@ -96,19 +104,26 @@ def rules_checked(field: FieldResult) -> list[dict]:
             continue
         section = check.citation.section
         if section in by_section:
-            by_section[section]["statuses"].append(check.status)
+            by_section[section]["checks"].append(check)
         else:
-            by_section[section] = {"url": check.citation.url, "statuses": [check.status]}
+            by_section[section] = {"url": check.citation.url, "checks": [check]}
     return [
-        {"section": section, "url": rule["url"], "result": RULE_RESULT[worst(rule["statuses"])]}
+        {"section": section, "url": rule["url"], "result": rule_result(rule["checks"])}
         for section, rule in by_section.items()
     ]
 
 
-def field_row(field: FieldResult) -> dict:
-    status = field.status
+def shown_checks(field: FieldResult) -> list[Check]:
+    """The checks whose reasons are shown: those to look at, or else the first, and
+    always a pass that isn't confirmed."""
     problems = [c for c in field.checks if c.status in (Status.FAIL, Status.REVIEW)]
     shown = problems or [field.checks[0]]
+    return shown + [c for c in field.checks if not c.confirmed and c not in shown]
+
+
+def field_row(field: FieldResult) -> dict:
+    status = field.status
+    shown = shown_checks(field)
     word = STATUS_VIEW[status]["word"]
     if status == Status.PASS and field.notes:
         word = field.notes[0]

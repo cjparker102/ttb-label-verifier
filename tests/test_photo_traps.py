@@ -47,8 +47,10 @@ def test_the_sample_shows_all_three_patterns():
     assert set(ENTRY["expected"].values()) <= {"pass", "pass_with_note", "not_needed"}  # no flaw
 
 
-def test_read_correctly_every_field_matches():
-    got = fields(perfect_reading(ENTRY["truth"]))
+@pytest.mark.skipif(not tesseract_available(), reason="Tesseract is not installed")
+def test_read_correctly_every_field_matches(monkeypatch):
+    monkeypatch.setattr(app.checking, "OUTLINE_WAIT", 60)  # so the heading's bold is measured
+    got = fields(perfect_reading(ENTRY["truth"]), outline=True)
     assert {name: expected_word(field) for name, field in got.items()} == ENTRY["expected"]
 
 

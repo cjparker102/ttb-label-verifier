@@ -175,8 +175,17 @@ up to date as of Oct 15, 2026). The rules differ by beverage type:
     Tesseract read in other letters needs review, not a Problem, since Tesseract can misread
     a letter's case. If the heading wasn't seen, the warning needs review: a missing heading
     alone is never a Problem. The rest of the warning is still checked word for word.
-  - It must look bold, and the rest must not. Bold can't be confirmed from a photo, so
-    anything short of a clear yes needs review.
+  - It must be bold, and the rest must not. Claude says whether each looks bold, and
+    anything short of a clear yes for the heading needs review. Claude's yes alone never
+    makes the rule met. Code measures the stroke thickness of the heading's letters against
+    the warning's words after it, on the picture where Tesseract found both: each word is
+    enlarged 4 times, split into ink and background, and its strokes measured as twice the
+    ink's area over its edge. Bold strokes are thicker. If the heading measures at least 1.1
+    times as heavy, the rule is met; if not, the warning needs review. If it can't be
+    measured (Tesseract didn't find the heading and the words after it, or wasn't done in
+    time, or the heading is under 14 pixels tall), the result is kept, but it says "Looks
+    bold to the AI; not confirmed. Glance at the heading.", and the rule is listed as "not
+    confirmed", never "met".
   - **A second reading.** Claude can read a warning as it should be rather than as printed:
     on an approved label in the COLA Registry it read a misspelt word as spelt correctly.
     So Claude is told to copy the warning letter by letter, and Tesseract, which doesn't know
@@ -387,10 +396,12 @@ in 13 seconds, and the batch finished (`docs/measurements/large-upload-2026-10-1
   whose heading is in capitals but not bold, an earlier prompt said "bold" 2 times in 6 readings.
   The prompt now asks about the thickness of the strokes and says capitals alone aren't bold:
   4 times in 19 readings, while two bold samples were read as bold 10 times in 10. So a
-  heading that isn't bold can still pass, about one time in five on that sample. A second
-  opinion from code, measuring stroke thickness on the picture, was tried and not kept: on 96
-  real labels it caught nothing Claude hadn't already sent to review, and raised 6 false
-  alarms (see [EVALUATION.md](EVALUATION.md)).
+  heading that isn't bold would pass, about one time in five on that sample, without the
+  second opinion from code. Measuring the strokes catches it, but has its own limits: on 96
+  real labels it confirmed 41 of the 71 headings Claude called bold, couldn't measure 24
+  ("not confirmed"), and sent 6 to review, 2 of them wrongly (a bold heading in a different
+  typeface from the text, or print a pixel or two thick). A heading printed larger but not
+  bold would measure heavier and pass. See [EVALUATION.md](EVALUATION.md).
 - **The app runs as one instance,** because batch jobs and usage counts live in memory. A
   production version would need shared storage for them, which is a policy decision.
 - **Accuracy was measured on 32 code-drawn labels,** 8 of them made to look like poor photos
@@ -420,7 +431,7 @@ app/
   photo_coach.py   tips for a better photo
   samples.py       the sample labels behind "Try a sample"
   intake/          pictures, ZIP and 7z files, spreadsheets, matching rows to pictures
-  reading/         the JSON contract, the Claude reader, and the OCR fallback
+  reading/         the JSON contract, the Claude reader, the OCR fallback, and the bold measure
   rules/           every matching and TTB rule, with eCFR citations
   templates/, static/
 tools/             sample label generator, evaluation, and timing scripts

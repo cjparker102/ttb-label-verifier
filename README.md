@@ -43,14 +43,18 @@ some fields to look at are also outlined on the picture. See [APPROACH](docs/APP
 | Marcus Williams | Firewall blocks outside AI services | Partly: if the AI provider is blocked, a check falls back to offline OCR within about 8.5 s, giving Check this at most. Claude in Microsoft Foundry is optional, not yet validated |
 | Dave Morrison | Judgment ("STONE'S THROW" is "Stone's Throw") | Met for capitals, punctuation, company forms, and state names |
 | Dave Morrison | Don't make my life harder | Partly: 11 false Problems on 24 real labels (fourth set), 5 of them where the registry's brand isn't the label's |
-| Jenny Park | Warning word for word; heading in capitals and bold | Wording and capitals checked; bold is judged by the AI, can be wrong, and can change between runs on the same photo |
+| Jenny Park | Warning word for word; heading in capitals and bold | Wording and capitals checked. Bold: the AI's "bold" counts only when code measures the heading's strokes heavier than the text's; otherwise Check this, or "not confirmed" where it can't be measured |
 | Jenny Park | Imperfect photos | Partly: simulated poor photos give acceptable results, with photo tips. One real bottle, photographed: a first test found three reading problems, now fixed; 3 runs on the live app (one with a tilted photo) gave no false Problems and caught a wrong alcohol. More real photos are needed |
 
 ## Latest results
 
 - **32 sample labels**, code-drawn, in process, three runs (commit `8b1d574`): no false
   Problems; 1 false pass in one run, a warning heading that isn't bold read as bold (about 1
-  time in 5); 32 of 32 under 5 seconds.
+  time in 5; code now measures the heading's strokes, which sends it to Check this); 32 of 32
+  under 5 seconds.
+- **The bold check, replayed** on 96 real labels' saved readings: of 71 headings the AI
+  called bold, 41 measured bold, 24 couldn't be measured ("bold not confirmed"), and 6 got
+  Check this (2 of them wrongly). No other result changed.
 - **24 real approved labels** from TTB's Public COLA Registry, a fourth set chosen after the
   last rule changes, the honest measure (commit `6530f56`): 252 of 274 strict field results and
   50 of 62 judgment calls as expected; 24 of 24 planted problems detected; 1 false pass (an
@@ -85,7 +89,11 @@ is lost, and about 600 then fit), or split the batch.
 
 - Bold type is judged by the AI from the picture, and can be wrong. Its judgment can change
   between runs on the same photo. "Not bold" and "can't tell" are both Check this, never
-  Problem, so on a bold heading the change is always toward review.
+  Problem, so on a bold heading the change is always toward review. The AI's "bold" is met
+  only when code measures the heading's strokes heavier than the text's. That measure can't
+  run on about 1 real label in 4 ("bold not confirmed"), wrongly asks for review on about 1
+  in 50 (a bold heading in another typeface), and would pass a heading set larger but not
+  bold.
 - The warning's second reading, by Tesseract, is missing on more than half of real labels.
 - Real labels were tested as the artwork sent to TTB. Only one real bottle has been tested
   from camera photos (3 runs, one with a tilted photo).

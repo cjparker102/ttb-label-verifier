@@ -5,6 +5,7 @@ from dataclasses import dataclass
 from difflib import SequenceMatcher
 
 from app.reading.schema import BoldLook, LabelReading, WarningReading
+from app.reading.strokes import HeadingWeight
 from app.reading.words import Passes
 from app.rules.citations import WARNING_FORMAT as WARNING_FORMAT_RULE
 from app.rules.citations import WARNING_TEXT as WARNING_TEXT_RULE
@@ -142,12 +143,46 @@ def check_capitals(text: str) -> Check | None:
     )
 
 
-def check_bold(label: WarningReading) -> list[Check]:
+# The AI reader can call a heading bold that isn't, so its "bold" is met only when code
+# measures the heading's strokes clearly thicker than the warning's words after it. Set on
+# Oct 20, 2026 from tools/heading_weight.py: the lowest setting that catches the sample
+# heading that isn't bold, with no false alarm on the bold samples.
+CLEARLY_HEAVIER = 1.1  # times as thick
+MIN_HEADING_HEIGHT = 14  # pixels: strokes in smaller print are too thin to measure
+NOT_CONFIRMED = "Looks bold to the AI; not confirmed. Glance at the heading."
+
+
+def check_bold_heading(weight: HeadingWeight | None) -> Check:
+    """The AI reader says the heading looks bold. `weight` is the heading measured by code,
+    if it could be: on the picture with the warning, where Tesseract found the heading and
+    the words after it."""
+    if weight is None or weight.height < MIN_HEADING_HEIGHT:
+        return Check(
+            Status.PASS,
+            NOT_CONFIRMED,
+            note="Matches, bold not confirmed",
+            citation=WARNING_FORMAT_RULE,
+            confirmed=False,
+        )
+    if weight.ratio < CLEARLY_HEAVIER:
+        return Check(
+            Status.REVIEW,
+            '"GOVERNMENT WARNING" looks bold to the AI, but measured, its letters are no '
+            "thicker than the rest of the warning. It must be bold. Please check it by eye.",
+            citation=WARNING_FORMAT_RULE,
+        )
+    return Check(
+        Status.PASS,
+        '"GOVERNMENT WARNING" looks bold, and measured, its letters are thicker than the rest '
+        "of the warning.",
+        citation=WARNING_FORMAT_RULE,
+    )
+
+
+def check_bold(label: WarningReading, weight: HeadingWeight | None = None) -> list[Check]:
     checks = []
     if label.heading_bold == BoldLook.YES:
-        checks.append(
-            Check(Status.PASS, '"GOVERNMENT WARNING" looks bold.', citation=WARNING_FORMAT_RULE)
-        )
+        checks.append(check_bold_heading(weight))
     elif label.heading_bold == BoldLook.NO:
         checks.append(
             Check(
@@ -360,10 +395,14 @@ def check_seen_capitals(seen: SeenHeading) -> Check | None:
 
 
 def check_warning(
-    label: WarningReading, ocr: Passes | None = None, seen: SeenHeading | None = None
+    label: WarningReading,
+    ocr: Passes | None = None,
+    seen: SeenHeading | None = None,
+    weight: HeadingWeight | None = None,
 ) -> list[Check]:
     """`seen` is the heading, if the AI reader left it out of the warning but it was seen
-    elsewhere on the label (see heading_elsewhere)."""
+    elsewhere on the label (see heading_elsewhere). `weight` is the heading's strokes
+    measured by code, if they could be."""
     if is_missing(label):
         return [
             Check(
@@ -386,5 +425,5 @@ def check_warning(
     second = check_second_reading(label, ocr)
     if second:
         checks.append(second)
-    checks += check_bold(label)
+    checks += check_bold(label, weight)
     return checks

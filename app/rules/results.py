@@ -38,6 +38,7 @@ class Check:
     note: str | None = None  # short tag on a pass, such as "Matches, different capitals"
     citation: Citation | None = None
     changes: tuple[WordChange, ...] = ()
+    confirmed: bool = True  # False for a pass on the AI reader's word alone, never shown as met
 
 
 def worst(statuses: Iterable[Status]) -> Status:

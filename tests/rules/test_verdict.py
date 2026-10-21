@@ -10,7 +10,7 @@ from app.reading.words import Word
 from app.rules.application import Application, BeverageType
 from app.rules.results import Status
 from app.rules.verdict import check_label
-from tests.stand_ins import expected_word, perfect_reading
+from tests.stand_ins import expected_word, perfect_reading, perfect_weight
 from tools.make_samples import SAMPLES_DIR, sample_for
 
 RECORDED = Path(__file__).resolve().parent.parent / "fixtures" / "recorded"
@@ -26,7 +26,10 @@ EXPECTED = json.loads((SAMPLES_DIR / "expected.json").read_text(encoding="utf-8"
 
 @pytest.mark.parametrize("entry", EXPECTED, ids=[e["id"] for e in EXPECTED])
 def test_each_sample_gets_its_expected_results(entry):
-    result = check_label(application_for(entry["id"]), perfect_reading(entry["truth"]))
+    truth = entry["truth"]
+    result = check_label(
+        application_for(entry["id"]), perfect_reading(truth), heading=perfect_weight(truth)
+    )
     got = {field.field: expected_word(field) for field in result.fields}
     assert got == entry["expected"]
 

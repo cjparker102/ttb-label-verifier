@@ -11,7 +11,7 @@ from io import BytesIO
 import xlsxwriter
 
 from app.batch import BatchJob, ItemState
-from app.presenting import STATUS_VIEW, summary
+from app.presenting import STATUS_VIEW, shown_checks, summary
 from app.rules.results import Status
 
 FILL_COLORS = {Status.FAIL: "#FDE8EA", Status.REVIEW: "#FFF3D6", Status.PASS: "#E7F4EC"}
@@ -97,8 +97,7 @@ def results_workbook(job: BatchJob) -> bytes:
         )
 
         for field in result.fields:
-            problems = [c for c in field.checks if c.status in (Status.FAIL, Status.REVIEW)]
-            shown = problems or [field.checks[0]]
+            shown = shown_checks(field)
             word = STATUS_VIEW[field.status]["word"]
             if field.status == Status.PASS and field.notes:
                 word = field.notes[0]

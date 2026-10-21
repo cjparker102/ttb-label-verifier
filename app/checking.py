@@ -17,6 +17,7 @@ from app.photo_coach import low_resolution
 from app.reading.claude import ReadingFailed, ReadResult
 from app.reading.ocr import OcrFailed, ocr_reading, tesseract_available
 from app.reading.schema import LabelReading
+from app.reading.strokes import HeadingWeight, heading_weight
 from app.reading.words import Passes
 from app.rules.application import Application
 from app.rules.results import Status
@@ -140,6 +141,22 @@ async def warning_picture(pictures: list[bytes], reading: LabelReading) -> Passe
     return [found[0] if i == number - 1 else [] for i in range(len(pictures))]
 
 
+async def measure_heading(
+    pictures: list[bytes], reading: LabelReading, passes: Passes | None
+) -> HeadingWeight | None:
+    """The warning heading's strokes against the words after it, on the picture the AI
+    reader found the warning on, from Tesseract's words. None if they can't be measured,
+    and no failure here ever stops a check."""
+    number = reading.government_warning.image_number
+    if passes is None or number is None or not 0 < number <= len(pictures):
+        return None
+    try:
+        return await asyncio.to_thread(heading_weight, pictures[number - 1], passes[number - 1])
+    except Exception as error:
+        log.warning("Measuring the warning heading failed: %s", type(error).__name__)
+        return None
+
+
 def outlines(passes: Passes | None, result: LabelResult) -> tuple[Highlight, ...]:
     if passes is None:
         return ()
@@ -232,7 +249,8 @@ async def read_and_decide(
             passes = await second_reading(words)
             if passes is None and warning_only and tesseract_available():
                 passes = await warning_picture(prepared, read.reading)
-            result = check_label(application, read.reading, passes)
+            heading = await measure_heading(prepared, read.reading, passes)
+            result = check_label(application, read.reading, passes, heading)
             return CheckOutcome(
                 result=result,
                 reading=read.reading,
