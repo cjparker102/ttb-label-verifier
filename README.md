@@ -44,8 +44,8 @@ some fields to look at are also outlined on the picture. See [APPROACH](docs/APP
 | Marcus Williams | Firewall blocks outside AI services | Partly: if the AI provider is blocked, a check falls back to offline OCR within about 8.5 s, giving Check this at most. Claude in Microsoft Foundry is optional, not yet validated |
 | Dave Morrison | Judgment ("STONE'S THROW" is "Stone's Throw") | Met for capitals, punctuation, company forms, and state names |
 | Dave Morrison | Don't make my life harder | Partly: 11 false Problems on 24 real labels (fourth set), 5 of them where the registry's brand isn't the label's |
-| Jenny Park | Warning word for word; heading in capitals and bold | Wording and capitals checked; bold is judged by the AI and can be wrong |
-| Jenny Park | Imperfect photos | Partly: simulated poor photos give acceptable results, with photo tips. One real bottle photo found three reading problems, fixed and tested on a drawn sample that copies them; more real photos are needed |
+| Jenny Park | Warning word for word; heading in capitals and bold | Wording and capitals checked; bold is judged by the AI, can be wrong, and can change between runs on the same photo |
+| Jenny Park | Imperfect photos | Partly: simulated poor photos give acceptable results, with photo tips. One real bottle, photographed: a first test found three reading problems, now fixed; 3 runs on the live app (one with a tilted photo) gave no false Problems and caught a wrong alcohol. More real photos are needed |
 
 ## Latest results
 
@@ -64,6 +64,13 @@ some fields to look at are also outlined on the picture. See [APPROACH](docs/APP
   (the slowest 4.7 s); no false passes or false Problems. On the earlier revision (`77dd73a`),
   a batch of 300 labels took 4.1 to 4.5 minutes, 294 and 297 of 300 rows as expected (the
   second run's misses: that bold heading twice, a bottler once; the first didn't record which).
+- **One real bottle, photographed** (a wine specialty, front and back, on the live app at
+  commit `1f7ef3c`, checked by Christopher): with the right application, all 7 fields matched
+  (3.8 s); with the alcohol changed to 6%, alcohol was a Problem, as it should be; with a
+  tilted front photo, 6 fields matched. The back photo was the same in all three, but the
+  warning was Check this in the second and third: in the second, the AI's bold judgment went
+  from "bold" to "can't tell". It is the same bottle the photo fixes were made for, so not an
+  independent measure.
 - **Cost**: about 0.08 cents a label.
 
 History, method, and limits: [EVALUATION](docs/EVALUATION.md).
@@ -77,13 +84,16 @@ is lost, and about 600 then fit), or split the batch.
 
 ## Limitations
 
-- Bold type is judged by the AI from the picture, and can be wrong.
+- Bold type is judged by the AI from the picture, and can be wrong. Its judgment can change
+  between runs on the same photo. "Not bold" and "can't tell" are both Check this, never
+  Problem, so on a bold heading the change is always toward review.
 - The warning's second reading, by Tesseract, is missing on more than half of real labels.
-- Real labels were tested as the artwork sent to TTB, not as photos of bottles.
+- Real labels were tested as the artwork sent to TTB. Only one real bottle has been tested
+  from camera photos (3 runs, one with a tilted photo).
 - Not checked: type size, contrast, standards of identity, required disclosures.
 - One instance: batch jobs and usage limits live in memory and are lost if the app restarts.
-- The sets are small: 32 code-drawn labels, four sets of 24 real ones, and one real bottle
-  photo.
+- The sets are small: 32 code-drawn labels, four sets of 24 real ones, and one real bottle,
+  photographed.
 
 Settings and deployment: [DEPLOY](docs/DEPLOY.md).
 

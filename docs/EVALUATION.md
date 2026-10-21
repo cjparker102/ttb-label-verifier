@@ -279,6 +279,29 @@ Revision 27 (image `1f7ef3c`) adds the decimal-comma check and the new sample on
 single checks 2.88 s / 4.31 s / 4.70 s (median / p95 / max), 32 of 32 under 5 seconds; a batch
 of 32 in 30.1 s; no false passes or false Problems.
 
+## Photos of a real bottle
+
+One real bottle, a wine specialty, was photographed front and back with a camera and checked
+on the live app, revision 27 (image `1f7ef3c`), by Christopher on Oct 20. The photos are kept
+private. The back photo was the same in all three runs.
+
+| Run | Photos and application | Result |
+|---|---|---|
+| 1 | Front and back, the application as approved | all 7 fields Matches, 3.8 s |
+| 2 | The same photos, the application's alcohol changed from 5% to 6% | alcohol content a Problem, as it should be; the warning Check this: "can't tell" whether its heading is bold |
+| 3 | A tilted front photo and the same back, the application as approved | 6 fields Matches; the warning Check this |
+
+No false passes and no false Problems. Run 1 found the heading bold and run 2 couldn't tell, on
+the same back photo: the AI's bold judgment can change between runs. "Not bold" and "can't
+tell" are both Check this, never Problem, so on a bold heading the change is always toward
+review. (The opposite slip, a heading that isn't bold read as bold, is the samples' one false
+pass, about 1 reading in 5.)
+
+This is the same bottle whose first test found the three reading problems fixed on Oct 20 (see
+"Changed afterwards, for a real bottle photo" below), so these runs confirm those fixes rather
+than measure the app on new photos. Before them, the app had been tested on real labels only
+as the artwork sent to TTB.
+
 ## Results with basic text reading (offline)
 
 The same 31 labels, read with Tesseract OCR only, as when Claude can't be reached. Full
@@ -506,7 +529,8 @@ app still relies on Claude for bold, and sends every "not bold" or "can't tell" 
   are a check on that, but they are the artwork submitted to TTB, not photos of bottles, and
   the honest measure rests on one set of 24 labels.
 - **The photo-like labels are simulated** (rotated, skewed, blurred, darkened, with a glare
-  spot), not taken with a camera.
+  spot). Only one real bottle has been tested from camera photos: 3 runs, one with a tilted
+  photo, after fixes made for that same bottle.
 - **The set is small.** No false passes in 217 field results is encouraging, but it does not
   prove the rate is zero.
 - **Each label was read once per run.** Claude's times vary from run to run.

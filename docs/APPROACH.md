@@ -398,8 +398,9 @@ in 13 seconds, and the batch finished (`docs/measurements/large-upload-2026-10-1
   COLA Registry: three the rules were changed with, and a fourth, the honest measure. On the
   fourth set there was 1 false pass (an alcohol statement with a decimal comma, now Check
   this) and 11 false Problems; their causes are listed. Three were later fixed by changes made
-  for a real bottle photo, the only camera photo tried so far; real camera photos are not yet
-  in the test set. See [EVALUATION.md](EVALUATION.md).
+  for a real bottle photo. That bottle is the only one tested from camera photos: after the
+  fixes, 3 runs on the live app (one with a tilted photo) gave no false passes or false
+  Problems. See [EVALUATION.md](EVALUATION.md).
 - **Claude may read the warning as it should be,** not as printed: a misspelt word read as spelt
   correctly, or a missing comma put in. The second reading by Tesseract catches a misspelt word
   only when both of Tesseract's passes can read the warning, and doesn't compare punctuation.
