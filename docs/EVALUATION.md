@@ -254,12 +254,16 @@ then a batch of 300 rows, the 31 samples repeated, twice with `tools/batch_live.
 | Single checks, end to end (median / p95 / max) | 2.89 s / 3.85 s / 4.83 s, 31 of 31 under 5 s |
 | Batch of 31 | 30.3 s, every label read by Claude |
 | Field results, batch of 31 | as expected, but for 1 false pass (a warning heading that isn't bold, read as bold) |
-| **Batch of 300** | **4.5 and 4.1 minutes**, 0.90 and 0.82 s a label; all 300 read by Claude both times |
+| **Batch of 300** | **4.5 and 4.1 minutes**, 0.90 and 0.82 s a label; all 300 read by Claude both times, each row on its own (no result reused), but the rows shared the 31 sample pictures: a 5 MB upload |
 | Rows of 300 with every field as expected | 294 and 297 |
 | What the rest were | First run: 5 false passes and 1 false Problem, not recorded by sample. Second: the not-bold heading read as bold on 2 of its 10 rows, and a French importer statement read differently once |
 
 The 8-second reading deadline never sent a batch label to basic text reading: Claude answered
-every one in time, with 8 read at once.
+every one in time, with 8 read at once. "Read by Claude" comes from each row's own result: a
+row is marked so only after its own request to Claude returns. Rows of the same sample came
+out differently (the not-bold sample was a false pass on 2 of its 10 rows), so nothing was
+reused. But the pictures were: the ZIP held each sample picture once, so these runs say
+nothing about uploading 300 photos.
 
 ### Oct 20, afternoon: revision 26, with the fixes for a real bottle photo
 

@@ -345,9 +345,12 @@ Everything skipped is listed with the reason.
 In the first real batch run, 11 sample labels finished in 5.8 seconds, and all 77 field
 results matched the expected results (`docs/measurements/batch-smoke-2026-10-19.md`).
 
-A batch upload can be up to 200 MB. Azure doesn't document a size limit for its front door,
-so a 200 MB batch was sent to the live app: Azure let it through, it uploaded and unpacked
-in 13 seconds, and the batch finished (`docs/measurements/large-upload-2026-10-19.md`).
+A batch upload can be up to 400 MB (200 MB until Oct 20), so 300 labels of about 0.9 MB each
+fit with room to spare. Azure doesn't document a size limit for its front door, so a 200 MB
+batch was sent to the live app on Oct 19: Azure let it through, it uploaded and unpacked in
+13 seconds, and the batch finished (`docs/measurements/large-upload-2026-10-19.md`). A
+300-label batch of camera-sized pictures was sent on Oct 20 (see
+[EVALUATION.md](EVALUATION.md)).
 
 ## Limits and spending
 
@@ -369,6 +372,12 @@ in 13 seconds, and the batch finished (`docs/measurements/large-upload-2026-10-1
   1.0 second a label), plus a margin. A batch whose pictures alone come to more than 600 MB
   once unpacked is turned away at once and asked to be split. A batch turned away doesn't count
   against the visitor's limits. A test fills the queue past the cap.
+- **Uploads arriving at once** are capped too. An upload is held in memory while it arrives
+  and is unpacked: a ZIP and its pictures together, about twice its size, for a moment. Each
+  uploaded file's own copy is let go as soon as it is read. Uploads being received may come
+  to at most 600 MB in all: the largest batch (400 MB), with room beside it for single
+  checks. Another upload is turned away with "The app is receiving other large uploads right
+  now. Please try again in a few minutes." One upload alone is always let in.
 - **The hard stop on AI spending** is the monthly spend limit on the Anthropic workspace the
   app's key belongs to.
 - **Azure budget alerts** warn about hosting costs.

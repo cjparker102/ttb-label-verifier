@@ -27,7 +27,7 @@ class Settings:
     max_image_edge: int = 1568  # picked from the Oct 19 timing test
     max_images_per_label: int = 6
     max_image_bytes: int = 20 * MB
-    max_request_bytes: int = 210 * MB  # a 200 MB batch upload plus the spreadsheet
+    max_request_bytes: int = 410 * MB  # a 400 MB batch upload plus the spreadsheet
     max_batch_files: int = 610  # pictures or ZIP files, plus the spreadsheet
     batch_concurrency: int = 8  # labels read at the same time within a batch
     # A single check asks the AI reader again if it hasn't answered by then. Batches
@@ -41,8 +41,13 @@ class Settings:
     batch_keep_seconds: int = 1800  # finished batch results are deleted after this
     # Pictures of batch labels not yet checked, in all, are held in memory. Above this a
     # new batch is turned away until there is room, so queued uploads can't use up the
-    # replica's 2 GiB.
+    # replica's 4 GiB.
     max_waiting_bytes: int = 600 * MB
+    # Uploads still arriving or being unpacked, in all. A ZIP and its pictures are both held
+    # for a moment while it is unpacked, about twice its size, so this keeps uploads at
+    # once to about 1.2 GB at most: the largest batch, with room beside it for single checks
+    # or a small batch. Above it, a new upload is turned away until one finishes.
+    max_receiving_bytes: int = 600 * MB
     # Per visitor, within the windows below. A visitor is an address, and a whole office
     # may share one, so these are generous; the daily limit and the spend limit on the
     # Anthropic workspace are the real protection.

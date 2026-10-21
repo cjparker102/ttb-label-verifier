@@ -38,7 +38,7 @@ some fields to look at are also outlined on the picture. See [APPROACH](docs/APP
 |---|---|---|
 | Sarah Chen | Results in about 5 seconds | Met: live single checks, median 2.88 s, 32 of 32 under 5 s |
 | Sarah Chen | Simple enough for anyone | Built for it: large type, plain words, one main button. Checked by hand by keyboard alone and with VoiceOver ([ACCESSIBILITY](docs/ACCESSIBILITY.md)) |
-| Sarah Chen, Janet | Batches of 200 to 300 labels | Met: a spreadsheet plus pictures, loose or zipped; 300 labels in about 4.5 minutes |
+| Sarah Chen, Janet | Batches of 200 to 300 labels | Met: a spreadsheet plus pictures, loose or zipped; 300 labels in about 4.5 minutes, each read by Claude (the 31 sample pictures shared by the rows, a 5 MB upload) |
 | Marcus Williams | Standalone, on Azure, nothing sensitive stored | Met: one container. This app keeps pictures in memory only, and deletes batch results after 30 minutes |
 | Marcus Williams | Firewall blocks outside AI services | Partly: if the AI provider is blocked, a check falls back to offline OCR within about 8.5 s, giving Check this at most. Claude in Microsoft Foundry is optional, not yet validated |
 | Dave Morrison | Judgment ("STONE'S THROW" is "Stone's Throw") | Met for capitals, punctuation, company forms, and state names |
@@ -67,6 +67,8 @@ some fields to look at are also outlined on the picture. See [APPROACH](docs/APP
   (the slowest 4.7 s); no false passes or false Problems. On the earlier revision (`77dd73a`),
   a batch of 300 labels took 4.1 to 4.5 minutes, 294 and 297 of 300 rows as expected (the
   second run's misses: that bold heading twice, a bottler once; the first didn't record which).
+  Every row was read by Claude on its own, and no result was reused, but the rows shared the
+  31 sample pictures: the upload was 5 MB, not the size of 300 photos.
 - **One real bottle, photographed** (a wine specialty, front and back, on the live app at
   commit `1f7ef3c`, checked by Christopher): with the right application, all 7 fields matched
   (3.8 s); with the alcohol changed to 6%, alcohol was a Problem, as it should be; with a
@@ -80,10 +82,12 @@ History, method, and limits: [EVALUATION](docs/EVALUATION.md).
 
 ## Batches and large photos
 
-A batch upload can be up to 200 MB, with up to 300 applications. Every picture is shrunk to
-1568 pixels before reading, so large phone photos work, but they fill the 200 MB quickly: at
-4 MB each, about 50 fit. Resize photos to about 1600 pixels on the long side first (nothing
-is lost, and about 600 then fit), or split the batch.
+A batch upload can be up to 400 MB, with up to 300 applications and 600 pictures: 300 labels
+of about 0.9 MB each, about 270 MB, fit with room to spare. Every picture is shrunk to 1568
+pixels before reading, so large phone photos work, but they fill the 400 MB quickly: at 4 MB
+each, about 100 fit. Resize photos to about 1600 pixels on the long side first (nothing is
+lost), or split the batch. Uploads are held in memory while they arrive, so while one large
+batch is arriving, another large upload is asked to try again in a few minutes.
 
 ## Limitations
 

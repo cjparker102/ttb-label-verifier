@@ -61,7 +61,11 @@ MultiPartParser.spool_max_size = settings.max_request_bytes + 1
 # The interactive API docs load scripts from an outside CDN, so they stay off.
 app = FastAPI(title="TTB Label Verifier", docs_url=None, redoc_url=None, openapi_url=None)
 app.add_middleware(SecurityHeaders)
-app.add_middleware(RequestSizeLimit, max_bytes=settings.max_request_bytes)
+app.add_middleware(
+    RequestSizeLimit,
+    max_bytes=settings.max_request_bytes,
+    max_receiving_bytes=settings.max_receiving_bytes,
+)
 app.mount("/static", StaticFiles(directory=HERE / "static"), name="static")
 app.state.limits = Limits.from_settings(settings)
 app.state.batches = BatchStore(settings.batch_keep_seconds)
@@ -290,7 +294,10 @@ async def start_batch(request: Request, reader: Annotated[LabelReader | None, De
         # A spreadsheet in its own box is read first, so a mistake in it shows at once.
         added = SpreadsheetFile(sheet.filename, await sheet.read()) if has_sheet else None
         rows = read_spreadsheet(added.name, added.data) if added else None
-        files = [(upload.filename, await upload.read()) for upload in uploads]
+        files = []
+        for upload in uploads:
+            files.append((upload.filename, await upload.read()))
+            await upload.close()  # its own copy is let go at once, so each is held once
         await form.close()
         collected = await asyncio.to_thread(collect_pictures, files)
         chosen, note = choose_spreadsheet(added, collected.spreadsheets)

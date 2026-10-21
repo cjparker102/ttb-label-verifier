@@ -44,12 +44,21 @@ class TooLarge(Exception):
     pass
 
 
-class RequestSizeLimit:
-    """Refuse request bodies over max_bytes, before the app reads them into memory."""
+RECEIVING_OTHERS = (
+    "The app is receiving other large uploads right now. Please try again in a few minutes."
+)
 
-    def __init__(self, app: ASGIApp, max_bytes: int):
+
+class RequestSizeLimit:
+    """Refuse request bodies over max_bytes, before the app reads them into memory. And
+    refuse a new upload while the uploads being handled already come to max_receiving_bytes,
+    since each is held in memory until its request is done."""
+
+    def __init__(self, app: ASGIApp, max_bytes: int, max_receiving_bytes: int | None = None):
         self.app = app
         self.max_bytes = max_bytes
+        self.max_receiving_bytes = max_receiving_bytes
+        self.receiving = 0  # declared bytes of the requests being handled now
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
         if scope["type"] != "http":
@@ -63,7 +72,27 @@ class RequestSizeLimit:
             if int(length) > self.max_bytes:
                 await self.refuse(send, 413, self.too_large_message())
                 return
+        if length is not None:
+            size = int(length)
+        else:  # no body, or one sent in pieces, which may be as large as allowed
+            size = 0 if scope["method"] in ("GET", "HEAD") else self.max_bytes
+        if self.too_busy(size):
+            await self.refuse(send, 503, RECEIVING_OTHERS)
+            return
+        self.receiving += size
+        try:
+            await self.limited(scope, receive, send)
+        finally:
+            self.receiving -= size
 
+    def too_busy(self, size: int) -> bool:
+        """Whether a body of this size would take the uploads being handled past the cap.
+        One upload alone is always let in."""
+        cap = self.max_receiving_bytes
+        return cap is not None and size > 0 and self.receiving > 0 and self.receiving + size > cap
+
+    async def limited(self, scope: Scope, receive: Receive, send: Send) -> None:
+        """Pass the request on, refusing it once its body goes past max_bytes."""
         received = 0
         started = False
 
