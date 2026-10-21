@@ -13,6 +13,7 @@ from app.rules.application import Application, BeverageType
 from app.rules.results import Status
 from app.rules.warning import NOT_CONFIRMED
 from tests.stand_ins import ReplayReader, perfect_reading
+from tools.batch_live import jpeg, quality_for, with_grain
 from tools.evaluate import load_entries
 from tools.make_samples import LABELS_DIR, sample_for
 
@@ -22,12 +23,21 @@ MODES = pytest.mark.parametrize(
 )
 
 
-def warning_of(sample_id, heading_bold="yes", **options):
-    """The warning's checks for a sample read perfectly, but with the AI reader's bold."""
+def camera_copy(picture: bytes) -> bytes:
+    """The picture with grain, saved as a JPEG of about 0.9 MB, as a camera might."""
+    image = with_grain(picture)
+    return jpeg(image, quality_for(image, 900_000))
+
+
+def warning_of(sample_id, heading_bold="yes", camera=False, **options):
+    """The warning's checks for a sample read perfectly, but with the AI reader's bold.
+    With `camera`, its picture is a grainy, compressed copy."""
     entry = load_entries([sample_id])[0]
     sample = sample_for(sample_id)
     application = Application(BeverageType.from_text(sample.beverage_type), **sample.application)
     pictures = [(name, (LABELS_DIR / name).read_bytes()) for name in entry["images"]]
+    if camera:
+        pictures = [(name, camera_copy(data)) for name, data in pictures]
     reading = perfect_reading(entry["truth"]).model_copy(deep=True)
     reading.government_warning.heading_bold = heading_bold
     outcome = asyncio.run(check_one(application, pictures, ReplayReader(reading), 1568, **options))
@@ -50,9 +60,19 @@ def test_a_heading_that_isnt_bold_needs_review_even_when_the_ai_reader_calls_it_
 
 
 @needs_tesseract
+@pytest.mark.parametrize("copy", range(3))
+def test_a_heading_that_isnt_bold_needs_review_on_camera_like_copies_too(patient, copy):
+    # A grainy, compressed copy measures a little heavier than the drawn picture: up to 1.10
+    # times. A live batch of such copies once let one through at the old 1.1 setting.
+    warning = warning_of("northvale-whisky-warning-not-bold", camera=True, warning_only=True)
+    assert warning.status == Status.REVIEW
+
+
+@needs_tesseract
 @MODES
-def test_a_bold_heading_the_ai_reader_calls_bold_is_met(patient, options):
-    warning = warning_of("old-tom-bourbon", **options)
+@pytest.mark.parametrize("camera", [False, True], ids=["drawn", "camera-like copy"])
+def test_a_bold_heading_the_ai_reader_calls_bold_is_met(patient, options, camera):
+    warning = warning_of("old-tom-bourbon", camera=camera, **options)
     assert warning.status == Status.PASS
     assert warning.notes == [] and all(check.confirmed for check in warning.checks)
 

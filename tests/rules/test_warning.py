@@ -163,7 +163,7 @@ def test_bold_is_met_when_the_ai_reader_and_the_measurement_agree():
     assert check.citation == WARNING_FORMAT_RULE
 
 
-@pytest.mark.parametrize("ratio", [0.9, 1.0, 1.09])
+@pytest.mark.parametrize("ratio", [0.9, 1.0, 1.09, 1.12])
 def test_a_heading_measured_no_heavier_than_the_text_needs_review_though_the_ai_says_bold(ratio):
     check = heading_check("yes", HeadingWeight(ratio=ratio, height=20))
     assert check.status == Status.REVIEW

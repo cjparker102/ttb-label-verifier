@@ -145,9 +145,10 @@ def check_capitals(text: str) -> Check | None:
 
 # The AI reader can call a heading bold that isn't, so its "bold" is met only when code
 # measures the heading's strokes clearly thicker than the warning's words after it. Set on
-# Oct 20, 2026 from tools/heading_weight.py: the lowest setting that catches the sample
-# heading that isn't bold, with no false alarm on the bold samples.
-CLEARLY_HEAVIER = 1.1  # times as thick
+# Oct 20, 2026 from tools/heading_weight.py. The sample heading that isn't bold measures
+# 1.07 to 1.10 times, and up to 1.10 on grainy, compressed copies like camera photos; bold
+# sample headings measure about 1.7. At 1.1 a live batch let one grainy copy through.
+CLEARLY_HEAVIER = 1.15  # times as thick
 MIN_HEADING_HEIGHT = 14  # pixels: strokes in smaller print are too thin to measure
 NOT_CONFIRMED = "Looks bold to the AI; not confirmed. Glance at the heading."
 

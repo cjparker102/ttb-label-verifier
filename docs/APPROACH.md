@@ -180,7 +180,7 @@ up to date as of Oct 15, 2026). The rules differ by beverage type:
     makes the rule met. Code measures the stroke thickness of the heading's letters against
     the warning's words after it, on the picture where Tesseract found both: each word is
     enlarged 4 times, split into ink and background, and its strokes measured as twice the
-    ink's area over its edge. Bold strokes are thicker. If the heading measures at least 1.1
+    ink's area over its edge. Bold strokes are thicker. If the heading measures at least 1.15
     times as heavy, the rule is met; if not, the warning needs review. If it can't be
     measured (Tesseract didn't find the heading and the words after it, or wasn't done in
     time, or the heading is under 14 pixels tall), the result is kept, but it says "Looks
@@ -407,7 +407,7 @@ batch was sent to the live app on Oct 19: Azure let it through, it uploaded and 
   4 times in 19 readings, while two bold samples were read as bold 10 times in 10. So a
   heading that isn't bold would pass, about one time in five on that sample, without the
   second opinion from code. Measuring the strokes catches it, but has its own limits: on 96
-  real labels it confirmed 41 of the 71 headings Claude called bold, couldn't measure 24
+  real labels it confirmed 40 of the 71 headings Claude called bold, couldn't measure 24
   ("not confirmed"), and sent 6 to review, 2 of them wrongly (a bold heading in a different
   typeface from the text, or print a pixel or two thick). A heading printed larger but not
   bold would measure heavier and pass. See [EVALUATION.md](EVALUATION.md).

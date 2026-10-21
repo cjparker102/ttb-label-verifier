@@ -4,7 +4,7 @@ The AI reader says whether "GOVERNMENT WARNING" looks bold, and can be wrong. Bo
 has thicker strokes than the same type set normally. Tesseract says where each word is, so
 app/reading/strokes.py measures the strokes of the heading's words and of the warning's
 words after it, on the same picture. This asks how often "heading not clearly heavier"
-would add Check this at each setting (the app uses 1.1 times, on print at least 14 pixels):
+would add Check this at each setting (the app uses 1.15 times, on print at least 14 pixels):
 on the samples, and on the private real labels, with each label's saved reading by Claude
 (which picture has the warning, and whether Claude called the heading bold). No AI request
 is made, so it costs nothing. Only totals are published for the real labels.

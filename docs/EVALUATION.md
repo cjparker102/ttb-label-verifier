@@ -263,7 +263,8 @@ every one in time, with 8 read at once. "Read by Claude" comes from each row's o
 row is marked so only after its own request to Claude returns. Rows of the same sample came
 out differently (the not-bold sample was a false pass on 2 of its 10 rows), so nothing was
 reused. But the pictures were: the ZIP held each sample picture once, so these runs say
-nothing about uploading 300 photos.
+nothing about uploading 300 photos. That was measured later (see "A batch the size of 300
+photos" below).
 
 ### Oct 20, afternoon: revision 26, with the fixes for a real bottle photo
 
@@ -282,6 +283,32 @@ Revision 27 (image `1f7ef3c`) adds the decimal-comma check and the new sample on
 ([evaluation-2026-10-20-deployed-6.md](measurements/evaluation-2026-10-20-deployed-6.md)):
 single checks 2.88 s / 4.31 s / 4.70 s (median / p95 / max), 32 of 32 under 5 seconds; a batch
 of 32 in 30.1 s; no false passes or false Problems.
+
+### Oct 20, late: a batch the size of 300 photos (revision 30)
+
+Revision 30 (image `66364f8`) raises the batch upload limit to 400 MB. The 300-row batches
+above shared the sample pictures, so this one gave each row its own: the 32 samples repeated,
+328 picture files, every one different (the sample's picture with light grain, saved as a
+JPEG of about 0.9 MB a label), sent with `tools/batch_live.py --picture-mb 0.9`
+([batch-300-2026-10-20-2324.md](measurements/batch-300-2026-10-20-2324.md)).
+
+| Measure | Result |
+|---|---|
+| Upload size | 262.7 MB |
+| Upload and unpacking, until the batch page opened | 16.2 s |
+| Whole batch, upload to finished | 285 s (4.8 minutes); the page says 4 minutes 29 seconds |
+| Read by Claude | 300 of 300 |
+| Rows with every field as expected | 299 of 300; the miss was a false pass on the sample whose heading isn't bold, at the bold check's first setting (see "A code-side bold check" below) |
+| Replica memory, Azure's largest per-minute value | 273 MB before the batch; at most 1,155 MB of 4 GiB during it |
+
+Azure samples the working set, so a peak lasting a few seconds can fall between samples. On a
+laptop, the same kind of upload (262.7 MB, all 300 rows checked, as the downloaded results
+showed row by row) was measured by sampling the server's memory every 0.05 s, with a script
+not kept: 119 MB before, 663 MB at most while the upload arrived and was unpacked (about twice
+its size), and 1.63 GB at most during the batch. That run had no API key, so Tesseract read
+all 300 labels, 8 at a time, in 14 seconds on 18 cores; that path holds more pictures in
+work than Claude's. The caps on pictures waiting (600 MB) and on uploads arriving at once
+(600 MB) keep the worst case under the 4 GiB.
 
 ## Photos of a real bottle
 
@@ -525,12 +552,12 @@ beside a heavy serif), or the print is so small that strokes are 1 or 2 pixels w
 Measuring upright strokes alone did worse. So at first it was not kept.
 
 **Turned on at the final review (Oct 20, evening).** Christopher's decision: Claude's "bold"
-must never make 27 CFR 16.22(a)(2) met on its own. So the check is on, at that setting:
+must never make 27 CFR 16.22(a)(2) met on its own. So the check is on:
 
 | Claude says the heading | Measured | Result |
 |---|---|---|
 | not bold, or can't tell | anything | Check this (as before) |
-| bold | at least 1.1 times as heavy as the text | Matches: the rule is met |
+| bold | at least 1.15 times as heavy as the text | Matches: the rule is met |
 | bold | less than that | Check this |
 | bold | can't be measured | Matches, with the note "Looks bold to the AI; not confirmed. Glance at the heading." The rule shows as "not confirmed", never "met" |
 
@@ -538,14 +565,25 @@ It can't be measured when Tesseract doesn't find the heading and the warning's w
 on the picture, isn't done 1 second after Claude in a single check, or reads the heading
 under 14 pixels tall.
 
-Replayed on the saved readings, with no AI request and Tesseract given all the time it
-needs, comparing the code before (commit `f294a31`) and after, on every field:
+It was first turned on at 1.1 times, the setting above. On the live app (revision 29), the
+sample whose heading isn't bold got Check this on 5 single checks in a row; Claude called it
+bold in 3 of them, and the measurement caught all 3
+([bold-live-2026-10-20.md](measurements/bold-live-2026-10-20.md)). But in a live batch of
+300 rows with camera-like pictures (grain, JPEG compression; see "A batch the size of 300
+photos" above), 1 of that sample's rows was a false pass. Its grainy copies measure 1.096 to
+1.101 times, against 1.09 for the drawn picture, so 1.1 was too close. Bold sample headings
+measure about 1.7, on drawn pictures and grainy copies alike. So the setting is now 1.15:
+in the sweep above, it adds 1 Check this on the real labels over 1.1, on a label whose key
+accepts Check this already, and no wrong one.
+
+Replayed at 1.15 on the saved readings, with no AI request and Tesseract given all the time
+it needs, comparing the code before the check (commit `f294a31`) and after, on every field:
 
 | | 96 real labels, as approved | 32 samples |
 |---|---|---|
 | Claude called the heading bold | 71 | 29 |
-| Measured and met | 41 | 23 |
-| Measured no heavier: Check this added | 6 (2 where the key says the warning is fine; the other 4 keys accept Check this for another reason) | 0 |
+| Measured and met | 40 | 23 |
+| Measured no heavier: Check this | 7, of which 6 added (2 where the key says the warning is fine; the other 4 keys accept Check this for another reason) and 1 already Check this | 0 |
 | Not measured: "bold not confirmed" | 24 (18 that were plain Matches) | 6 (4 that were plain Matches, all photo-like) |
 | Any other result changed | none | none |
 
@@ -554,9 +592,8 @@ labels. No result became a pass. One scoring quirk: where a key accepts either C
 or Matches, the scorer counts "Matches, bold not confirmed" as a false pass (1 label, and its
 planted copy); the result was Matches before as well.
 
-The sample whose heading isn't bold measures 1.09 and 1.07 times (flat and tilted), just under
-the 1.1 setting. A heading printed larger but not bold would measure heavier, since its
-strokes are wider, and pass this check.
+A heading printed larger but not bold would measure heavier, since its strokes are wider,
+and pass this check.
 
 ## Limits of this evaluation
 
