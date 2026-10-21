@@ -6,8 +6,7 @@ plus pictures, and sees each field as **Matches**, **Check this**, or **Problem*
 sentence saying why.
 
 **Demo:** https://ttb-label-verifier.kindmoss-39b6eae5.eastus2.azurecontainerapps.io (press a
-sample button; the first check after a quiet spell takes about 25 seconds more while Azure
-starts the app)
+sample button)
 
 Prototype. Not an official TTB or U.S. government website.
 

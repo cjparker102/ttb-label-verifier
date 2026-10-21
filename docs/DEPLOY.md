@@ -134,9 +134,18 @@ az containerapp revision list -n ttb-label-verifier -g rg-ttb-label-verifier -o 
 az containerapp logs show -n ttb-label-verifier -g rg-ttb-label-verifier --follow
 ```
 
-The first request after the app has scaled to zero waits for a container to start: about 23
-seconds, measured on Oct 19, 2026 (`docs/measurements/live-single-check-2026-10-19.md`).
-Setting `--min-replicas 1` removes the wait, at the cost of a replica that never stops.
+With `--min-replicas 0`, the first request after the app has scaled to zero waits for a
+container to start: about 23 seconds, measured on Oct 19, 2026
+(`docs/measurements/live-single-check-2026-10-19.md`).
+
+For review week, from Oct 20, 2026, the app keeps one replica warm, so there is no wait. The
+replica is billed while idle:
+
+```sh
+az containerapp update -n ttb-label-verifier -g rg-ttb-label-verifier --min-replicas 1
+```
+
+After review, set `--min-replicas 0` again, or remove everything (below).
 
 ## Removing everything
 
